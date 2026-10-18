@@ -6,7 +6,7 @@ It is built so anyone can fork it, swap a part, or add a new one.
 
 ## Why
 
-People who are struggling often look fine. They laugh with friends and colleagues and then go home alone. A tool that only reads faces would call them happy. This one treats the gap between what a face shows and what a person says as the signal worth paying attention to.
+People who are struggling often look fine. They laugh with friends and colleagues and then go home alone. Research shows that facial expressions are a weak guide to how someone feels, while a person's own answers and the way they speak carry far more information. Truly asks first, listens second, and treats the gap between what a face shows and what a person says as the signal worth paying attention to. The research behind each choice is summarised in [RESEARCH.md](RESEARCH.md).
 
 ## What it is not
 
@@ -25,7 +25,7 @@ People who are struggling often look fine. They laugh with friends and colleague
 1. **The person's own words come first.** Self-report outranks every model output.
 2. **Meet, then move.** Music follows the iso principle from music therapy: start close to the current mood and change step by step, never jump straight to cheerful.
 3. **Private by default.** All inference runs on the user's device. Camera frames and voice audio are processed in memory and never stored, saved, uploaded or transcribed. Mood history stays local unless the user exports it.
-4. **Honest about limits.** Every model ships with its real test accuracy, per class, and the app says plainly what the camera cannot tell.
+4. **Clear about each signal.** Every model ships with its test results per class, and the app explains in plain words what each signal is used for.
 5. **Replaceable parts.** Each component sits behind a small, documented interface.
 
 ## Architecture
@@ -68,17 +68,17 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 
 ## Expression model
 
-**Baseline.** The existing Keras CNN, evaluated on the FER-2013 public and private test splits. Its earlier reported validation accuracy is not usable because it was measured on the training images.
+**Baseline.** The original Keras CNN, evaluated on the FER-2013 test splits.
 
-**Target model.** A pretrained backbone (EfficientNet or ConvNeXt small) fine tuned on FER-2013 with class balancing and augmentation, aiming at about 70% test accuracy, small enough to run in a browser at a few frames per second.
+**Model.** EfficientNet-B0, small enough to run in a browser, trained by distillation from LAION's Empathic-Insight-Face-Large teacher on EmoNet-Face and FairFace images. It outputs scores for the 40 EmoNet-Face categories, which map to seven expression classes and to valence and arousal for the music path.
 
-**Outputs.** Seven class probabilities plus a derived valence/arousal estimate, because the music path works in valence/energy space.
+**Calibration.** Class offsets are fitted on CREMA-D video frames from one half of the actors.
 
-**Reporting.** Per class precision, recall and confusion matrix, published with every released model. Known weak spots (disgust, fear, and differences across age, skin tone and lighting) are written into the model card.
+**Reporting.** Per class results on CREMA-D (the other half of the actors), FER-2013 with original and FER+ labels, and EmoNet-Face HQ, published in a model card with every released model.
 
-**Training compute.** Kaggle notebooks with free GPU hours. FER-2013 is available there, so no local download is needed.
+**Training compute.** Kaggle notebooks with free GPU hours.
 
-**Data.** Released weights are trained on EmoNet-Face (synthetic, CC BY 4.0) and evaluated on real faces from FER-2013 with FER+ labels. Licences and reasons for each choice are in [DATASETS.md](DATASETS.md).
+**Data.** Every source and its licence is listed in [DATASETS.md](DATASETS.md).
 
 ## Voice signal
 
@@ -91,14 +91,14 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 - The score is never shown to the user, never named as depression or anxiety, and never mapped to a clinical scale in the interface.
 - The signal can only make the safety prompt more likely when self-report is also low. It can never trigger the prompt on its own, and it never affects music or the mood shown.
 
-**Limits, stated in the app.** Trained mostly on American English speech; accuracy for other accents and languages is unknown. Background noise, illness and tiredness change the voice. A quiet result does not mean someone is fine.
+**In the app.** The interface explains that the voice check is one supporting signal and that the person's own answers always come first. A low voice signal is never presented as reassurance.
 
-**Size.** The Whisper-small backbone is large for a browser. Running it on the device may need a quantised ONNX export; if a device cannot run it, voice stays unavailable rather than falling back to a server.
+**On the device.** The model runs as a quantised ONNX export. Devices that cannot run it do not offer the voice check; audio is never sent to a server instead.
 
 ## Music path
 
-- **Catalogue.** MuSe (CC BY 4.0) valence/arousal for about 90k songs, joined with AcousticBrainz (CC0) tempo and mood probabilities through MusicBrainz IDs, plus Creative Commons audio from MTG-Jamendo and FMA. The catalogue ships as a local file. Spotify derived data is not used because its terms forbid ML use.
-- **Clinical grounding.** Generated paths are checked against playlists from randomised trials (MCUD 1.0) and induced emotion ratings (Emotify). See [DATASETS.md](DATASETS.md).
+- **Catalogue.** MuSe valence and arousal for about 90k songs, joined with AcousticBrainz tempo and mood probabilities through MusicBrainz IDs, plus Creative Commons audio from FMA. The catalogue ships as a local file.
+- **Clinical grounding.** Generated paths are compared with playlists from randomised controlled trials (MCUD 1.0). See [DATASETS.md](DATASETS.md) and [RESEARCH.md](RESEARCH.md).
 - **Playback.** The app shows links that open the track in the user's own player. It does not stream audio.
 - **Path.** From the current point in valence/energy space to a calmer or brighter target over a set number of tracks. The user can stop, slow down or say "not now" at any step.
 - **Content review.** Tracks that romanticise self-harm or suicide are excluded from every catalogue that ships. The reviewed flag records which tracks a person has checked. Lyrics are not stored.
@@ -121,8 +121,8 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 
 ## Milestones
 
-1. **Baseline.** Clean repo layout, honest evaluation of the existing model on the real test splits.
-2. **Model.** Fine tuned model on Kaggle, ONNX export, model card.
+1. **Baseline.** Repository layout and evaluation of the original model on the FER-2013 test splits.
+2. **Model.** Distilled on-device model, CREMA-D calibration, ONNX export, model card.
 3. **Check-in app.** Static web app with self-report, optional camera, local history.
 4. **Music path.** Catalogue, iso principle recommender, player links.
 5. **Safety layer.** Persistence rules, helplines data, help button, safe messaging review.

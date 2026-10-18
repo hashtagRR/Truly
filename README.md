@@ -6,11 +6,21 @@ Truly is a free, open source wellbeing companion. It checks in on how a person f
 
 It never diagnoses, never predicts risk, and runs on the user's device.
 
+## Research basis
+
+- **Self-report comes first.** Brief self-report questionnaires such as the PHQ-9 are a validated way to assess low mood (Kroenke et al., 2001).
+- **Faces are a weak guide.** A major review found that facial movements do not reliably reveal how a person feels (Barrett et al., 2019), so the camera in Truly is optional and never makes a decision.
+- **Voice carries a measurable signal.** Reviews of speech in depression report consistent acoustic changes and discrimination between people with and without depression with AUCs from 0.71 to 0.93 (Cummins et al., 2015; Low et al., 2020; Briganti and Lechien, 2025).
+- **Music helps, step by step.** Music therapy provides short-term benefits for people with depression (Aalbers et al., 2017), and music chosen by the iso principle, matching the current mood before moving towards a better one, modulates affective state (Starcke and von Georgi, 2024).
+
+Full references are in [docs/RESEARCH.md](docs/RESEARCH.md).
+
 ## Documents
 
 - [Scope](docs/SCOPE.md): what the tool does and does not do, the decision rules for each signal, privacy and safety requirements, milestones.
-- [Datasets](docs/DATASETS.md): every dataset and model considered, its licence, and whether it is used.
-- [Related work](docs/RELATED_WORK.md): similar tools and studies, and where this project differs.
+- [Research basis](docs/RESEARCH.md): the published research behind each design choice, with references.
+- [Data and models](docs/DATASETS.md): every dataset and model Truly uses, its licence and how to cite it.
+- [Related work](docs/RELATED_WORK.md): the projects and studies Truly builds on.
 
 ## Layout
 

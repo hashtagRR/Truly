@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 hashtagRR
-"""Honest evaluation of the original Keras CNN on the FER-2013 test splits.
+"""Evaluate the original Keras CNN on the FER-2013 splits.
 
 Scores the model on PublicTest and PrivateTest with the original FER-2013 labels
-and with FER+ majority labels, and on the Training split to show how far the
-earlier "validation" figure (measured on training images) was from test accuracy.
+and with FER+ majority labels, and on the Training split for comparison.
 """
 import glob
 import json
