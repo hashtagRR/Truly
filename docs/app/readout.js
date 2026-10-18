@@ -35,8 +35,3 @@ export function tone(cls) {
   if (HEAVY.includes(cls)) return "heavy";
   return "calm";
 }
-
-// The masking case: a bright face while the person says they feel low.
-export function isMasking(faceTone, feeling) {
-  return faceTone === "bright" && feeling <= 2;
-}

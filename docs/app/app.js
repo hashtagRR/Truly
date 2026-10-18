@@ -2,21 +2,23 @@
 // Copyright (C) 2026 hashtagRR
 
 import * as store from "./store.js";
-import { isMasking } from "./readout.js";
-import { persistentLow, guessCountry } from "./safety.js";
 
 const $ = (id) => document.getElementById(id);
 const VIEWS = ["checkin", "music", "history", "privacy"];
 const TONE_TEXT = {
-  bright: "Your expression looked bright.",
-  calm: "Your expression looked calm.",
-  heavy: "Your expression looked heavy.",
+  bright: "The camera suggests starting a little brighter.",
+  calm: "The camera suggests starting where you are.",
+  heavy: "The camera suggests starting a little calmer and softer.",
 };
+const STEPS = 6;
+const SLOW_STEPS = 9;
+const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 
 let questions = null;
-let help = null;
-let faceTone = null;
 let camera = null;
+// The current check-in lives here for this visit; it is saved only if history is on.
+const session = { entry: null, face: null };
+const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1 };
 
 function labelFor(group, value) {
   return questions[group].options.find((o) => o.value === value)?.label ?? String(value);
@@ -46,11 +48,12 @@ function show(view) {
   });
   if (view === "history") renderHistory();
   if (view === "music") openMusic();
+  if (view === "privacy") $("keep-history").checked = store.keepsHistory();
 }
 
-// Camera check
+// Camera input: an optional nudge to where the music starts
 
-async function startCameraCheck() {
+async function startCamera() {
   const status = $("camera-status");
   $("camera-start").hidden = true;
   $("camera-stop").hidden = false;
@@ -72,92 +75,65 @@ async function startCameraCheck() {
     status.textContent = "Look at the screen as you normally would. This takes a few seconds.";
     const result = await face.readExpression($("camera-video"), { signal });
     if (signal.aborted) return;
-    faceTone = result?.tone ?? null;
+    session.face = result?.tone ?? null;
     status.textContent = result
-      ? `${TONE_TEXT[result.tone]} This is only a rough reading. Your own answers matter most.`
-      : "Truly could not see your face clearly. That is fine, the camera check is optional.";
+      ? `${TONE_TEXT[result.tone]} It is only a playful guess, and your answers above still lead.`
+      : "The camera could not see a face clearly. That is fine, it is optional.";
   } catch (err) {
     if (signal.aborted) return;
     status.textContent = err?.name === "NotAllowedError"
-      ? "Camera access was not allowed. That is fine, the camera check is optional."
-      : "The camera check is not available on this device. That is fine, it is optional.";
+      ? "Camera access was not allowed. That is fine, it is optional."
+      : "The camera is not available on this device. That is fine, it is optional.";
   } finally {
-    if (camera === check) stopCameraCheck(false);
+    if (camera === check) stopCamera(false);
   }
 }
 
-function stopCameraCheck(userStopped = true) {
+function stopCamera(userStopped = true) {
   if (camera) {
     camera.abort.abort();
-    const video = $("camera-video");
     if (camera.stream) camera.stream.getTracks().forEach((t) => t.stop());
-    video.srcObject = null;
+    $("camera-video").srcObject = null;
     camera = null;
   }
   $("camera-stage").hidden = true;
   $("camera-stop").hidden = true;
   $("camera-start").hidden = false;
-  $("camera-start").textContent = "Start camera check again";
+  $("camera-start").textContent = "Try the camera again";
   if (userStopped) $("camera-status").textContent = "Camera stopped.";
 }
 
-// Saving
+// Check-in
 
-function saveCheckin(event) {
+function submitCheckin(event) {
   event.preventDefault();
   const form = event.target;
   const feeling = Number(form.feeling?.value || 0);
   const energy = Number(form.energy?.value || 0);
   if (!feeling || !energy) {
-    $("form-error").textContent = "Please choose how you feel and how much energy you have.";
+    $("form-error").textContent = "Please choose a mood and an energy level.";
     return;
   }
   $("form-error").textContent = "";
-  const entry = {
-    at: new Date().toISOString(),
-    feeling,
-    energy,
-    note: form.note.value.trim() || null,
-    face: faceTone,
-  };
-  const ok = store.add(entry);
-  const message = [];
-  if (!ok) message.push("This browser would not let Truly save. Private browsing can cause this.");
-  if (isMasking(faceTone, feeling)) {
-    message.push("You said you feel low, while your face looked bright. Many people smile through heavy days. Thank you for answering honestly. Your answer is the one that counts.");
-  } else {
-    message.push(`You said you feel ${labelFor("feeling", feeling).toLowerCase()}, with ${labelFor("energy", energy).toLowerCase()} energy.`);
-  }
-  $("saved-message").textContent = message.join(" ");
-  const prompt = Boolean(help) && persistentLow(store.load(), help.rules);
-  $("saved-prompt").hidden = !prompt;
-  $("saved-help").hidden = prompt || feeling > 1;
-  form.hidden = true;
-  $("saved").hidden = false;
-  $("saved").focus();
+  const entry = { at: new Date().toISOString(), feeling, energy, note: form.note.value.trim() || null };
+  session.entry = entry;
+  if (store.keepsHistory()) store.add(entry);
+  form.reset();
+  $("camera-status").textContent = "";
+  $("camera-start").textContent = "Try the camera";
+  location.hash = "#music";
 }
 
-function newCheckin() {
-  const form = $("checkin-form");
-  form.reset();
-  faceTone = null;
-  $("camera-status").textContent = "";
-  $("camera-start").textContent = "Start camera check";
-  $("saved").hidden = true;
-  form.hidden = false;
-  $("checkin-title").scrollIntoView({ block: "start" });
+function currentEntry() {
+  if (session.entry) return session.entry;
+  const entries = store.load();
+  return entries[entries.length - 1] ?? null;
 }
 
 // Music path
 
-const STEPS = 6;
-const SLOW_STEPS = 9;
-const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
-const music = { catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1 };
-
 async function openMusic() {
-  const entries = store.load();
-  const entry = entries[entries.length - 1];
+  const entry = currentEntry();
   $("music-needs-checkin").hidden = Boolean(entry);
   $("music-body").hidden = !entry;
   if (!entry) return;
@@ -165,9 +141,8 @@ async function openMusic() {
   if (!music.catalogue) {
     status.textContent = "Loading the music list.";
     try {
-      const lib = await import("./music.js");
-      music.lib = lib;
-      music.catalogue = await lib.loadCatalogue(MUSIC_BASE);
+      music.lib = await import("./music.js");
+      music.catalogue = await music.lib.loadCatalogue(MUSIC_BASE);
       status.textContent = "";
     } catch {
       status.textContent = "The music could not be loaded. Please check your connection and try again.";
@@ -183,14 +158,9 @@ async function openMusic() {
   }
 }
 
-function currentEntry() {
-  const entries = store.load();
-  return entries[entries.length - 1];
-}
-
 function newPath(entry = currentEntry(), keep = []) {
   const { lib, catalogue } = music;
-  const start = lib.startPoint(entry.feeling, entry.energy, catalogue.stats);
+  const start = lib.nudgeStart(lib.startPoint(entry.feeling, entry.energy, catalogue.stats), session.face, catalogue.stats);
   const goal = lib.goalPoint(start, music.direction, catalogue.stats);
   music.points = lib.pathPoints(start, goal, music.steps);
   music.path = lib.buildPath(catalogue, music.points, { keep });
@@ -213,9 +183,9 @@ function renderCurve() {
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.setAttribute("class", "curve chart");
   svg.setAttribute("role", "img");
-  const label = music.direction === "steady" ? "staying close to how you feel"
-    : music.direction === "calmer" ? "moving step by step towards calmer" : "moving step by step towards brighter";
-  svg.setAttribute("aria-label", `A path of ${points.length} songs, ${label}`);
+  const label = music.direction === "steady" ? "staying close to the mood you chose"
+    : music.direction === "calmer" ? "moving step by step towards calmer music" : "moving step by step towards brighter music";
+  svg.setAttribute("aria-label", `A path of ${points.length} pieces, ${label}`);
   const el = (tag, attrs, text) => {
     const n = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
@@ -224,7 +194,7 @@ function renderCurve() {
   };
   el("polyline", { points: points.map((p, i) => `${x(i)},${y(p.v)}`).join(" "), class: "path" });
   points.forEach((p, i) => el("circle", { cx: x(i), cy: y(p.v), r: i === 0 || i === points.length - 1 ? 7 : 4, class: "stop" }));
-  el("text", { x: L, y: H - 8, class: "label" }, "where you are");
+  el("text", { x: L, y: H - 8, class: "label" }, "your mood");
   const endLabel = music.direction === "steady" ? "staying with you" : music.direction === "calmer" ? "calmer" : "brighter";
   el("text", { x: W - R, y: H - 8, "text-anchor": "end", class: "label" }, endLabel);
   box.append(svg);
@@ -253,7 +223,8 @@ function renderMusic() {
     creditLine.append(`${credit(song)} `, licence, ", ", source, ".");
     text.append(
       Object.assign(document.createElement("div"), { className: "title", textContent: song.title }),
-      Object.assign(document.createElement("div"), { className: "artist", textContent: `${formatTime(song.seconds)}` }),
+      Object.assign(document.createElement("div"), { className: "why", textContent: music.lib.explain(music.path, i, music.catalogue.stats, music.direction) }),
+      Object.assign(document.createElement("div"), { className: "artist", textContent: formatTime(song.seconds) }),
       creditLine,
     );
     const links = Object.assign(document.createElement("div"), { className: "links" });
@@ -276,6 +247,25 @@ function renderMusic() {
   });
   $("music-slower").disabled = music.steps === SLOW_STEPS;
   if (!music.path.length) $("music-status").textContent = "No pieces matched. Please try another direction.";
+}
+
+function setDirection(direction) {
+  music.direction = direction;
+  newPath();
+  $("music-status").textContent = "A new path is ready.";
+}
+
+function slowDown() {
+  music.steps = SLOW_STEPS;
+  newPath(currentEntry(), music.path.slice(0, 1));
+  $("music-status").textContent = `The path now takes ${SLOW_STEPS} smaller steps.`;
+}
+
+function stopMusic() {
+  resetPlayer();
+  $("music-list").replaceChildren();
+  $("music-curve").replaceChildren();
+  $("music-status").textContent = "Stopped. You can come back to the music any time.";
 }
 
 // Player
@@ -327,32 +317,13 @@ function wirePlayer() {
   audio.addEventListener("ended", () => {
     if (music.playing < music.path.length - 1) playAt(music.playing + 1);
     else {
-      $("music-status").textContent = "That is the end of this path. Take a moment before you go on.";
+      $("music-status").textContent = "That is the end of this path.";
       resetPlayer();
       renderMusic();
     }
   });
   $("np-toggle").addEventListener("click", togglePlay);
   $("np-next").addEventListener("click", () => playAt(music.playing + 1));
-}
-
-function setDirection(direction) {
-  music.direction = direction;
-  newPath();
-  $("music-status").textContent = "A new path is ready.";
-}
-
-function slowDown() {
-  music.steps = SLOW_STEPS;
-  newPath(currentEntry(), music.path.slice(0, 1));
-  $("music-status").textContent = `The path now takes ${SLOW_STEPS} smaller steps.`;
-}
-
-function stopMusic() {
-  resetPlayer();
-  $("music-list").replaceChildren();
-  $("music-curve").replaceChildren();
-  $("music-status").textContent = "Stopped. You can come back to music any time.";
 }
 
 // History
@@ -370,7 +341,7 @@ function renderChart(entries) {
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.setAttribute("class", "chart");
   svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", `How you felt across your last ${recent.length} check-ins`);
+  svg.setAttribute("aria-label", `Your mood answers across your last ${recent.length} check-ins`);
   const el = (tag, attrs, text) => {
     const n = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
@@ -400,105 +371,12 @@ function renderHistory() {
     const time = Object.assign(document.createElement("time"), { dateTime: e.at, textContent: fmt.format(new Date(e.at)) });
     const values = Object.assign(document.createElement("div"), {
       className: "values",
-      textContent: `Feeling ${labelFor("feeling", e.feeling).toLowerCase()}, energy ${labelFor("energy", e.energy).toLowerCase()}`,
+      textContent: `Mood ${labelFor("feeling", e.feeling).toLowerCase()}, energy ${labelFor("energy", e.energy).toLowerCase()}`,
     });
     li.append(time, values);
     if (e.note) li.append(Object.assign(document.createElement("p"), { className: "note", textContent: e.note }));
     list.append(li);
   }
-}
-
-// Help
-
-async function loadHelp() {
-  const get = (name) => fetch(new URL(`./help/${name}`, import.meta.url)).then((r) => r.json());
-  const [lines, zones, rules] = await Promise.all([get("helplines.json"), get("timezones.json"), get("safety.json")]);
-  let timeZone = null;
-  try {
-    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  } catch {
-    // No time zone available: fall back to the browser language.
-  }
-  const detected = guessCountry(timeZone, navigator.languages, zones.zones);
-  help = { lines, rules, detected };
-  const select = $("help-country");
-  const codes = Object.keys(lines.countries).sort((a, b) =>
-    lines.countries[a].name.replace(/^the /, "").localeCompare(lines.countries[b].name.replace(/^the /, "")));
-  select.replaceChildren(
-    ...codes.map((c) => new Option(lines.countries[c].name.replace(/^the /, "").replace(/^./, (x) => x.toUpperCase()), c)),
-    new Option("Another country", ""),
-  );
-  select.addEventListener("change", () => {
-    store.chooseCountry(select.value || "other");
-    renderHelp();
-  });
-  renderHelp();
-}
-
-function currentCountry() {
-  const chosen = store.chosenCountry();
-  if (chosen === "other") return null;
-  return chosen || help.detected;
-}
-
-function contactLink(c) {
-  const digits = c.value.replace(/[^0-9+]/g, "");
-  if (c.type === "call") return { href: `tel:${digits}`, label: `Call ${c.value}` };
-  if (c.type === "text") return { href: `sms:${digits}${c.body ? `?body=${encodeURIComponent(c.body)}` : ""}`, label: c.note || `Text ${c.value}` };
-  return { href: c.value, label: c.note || "Chat online", external: true };
-}
-
-function renderHelp() {
-  if (!help) return;
-  const code = currentCountry();
-  const country = code ? help.lines.countries[code] : null;
-  const list = $("help-lines");
-  list.replaceChildren();
-  $("help-country").value = country ? code : "";
-  const em = $("help-emergency");
-  em.replaceChildren(Object.assign(document.createElement("strong"), { textContent: "If you are in danger right now" }));
-  if (country) {
-    const numbers = country.emergency.map((e) => (e.label === "or" ? `or ${e.number}` : `${e.number} (${e.label})`)).join(" ");
-    em.append(`, call ${numbers}.`);
-  } else {
-    em.append(", call your local emergency number.");
-  }
-  $("help-country-title").textContent = country ? `People you can talk to in ${country.name}` : "People you can talk to";
-  for (const line of country ? country.lines : []) {
-    const li = document.createElement("li");
-    const actions = Object.assign(document.createElement("div"), { className: "actions" });
-    line.contact.forEach((c, i) => {
-      const link = contactLink(c);
-      const a = Object.assign(document.createElement("a"), {
-        className: `button ${i === 0 ? "primary" : "quiet"}`, href: link.href, textContent: link.label,
-      });
-      if (link.external) Object.assign(a, { target: "_blank", rel: "noopener" });
-      actions.append(a);
-    });
-    const source = Object.assign(document.createElement("a"), { href: line.source, textContent: "Official website", target: "_blank", rel: "noopener" });
-    li.append(
-      Object.assign(document.createElement("div"), { className: "name", textContent: line.name }),
-      actions,
-      Object.assign(document.createElement("div"), { className: "hours", textContent: line.hours }),
-      Object.assign(document.createElement("div"), { className: "source" }),
-    );
-    li.lastChild.append(source);
-    list.append(li);
-  }
-  const fb = help.lines.fallback;
-  const fallback = $("help-fallback");
-  fallback.replaceChildren(
-    country ? "In another country? " : "",
-    Object.assign(document.createElement("a"), { href: fb.url, textContent: country ? "Find a helpline there" : "Find a free, confidential helpline near you", target: "_blank", rel: "noopener" }),
-    country ? "." : `. ${fb.description}`,
-  );
-}
-
-function openHelp() {
-  renderHelp();
-  const dialog = $("help");
-  if (typeof dialog.showModal === "function") dialog.showModal();
-  else window.open("https://findahelpline.com", "_blank", "noopener");
 }
 
 async function init() {
@@ -508,12 +386,9 @@ async function init() {
   $("note-label").textContent = questions.note.label;
   $("note-hint").textContent = questions.note.hint;
 
-  $("checkin-form").addEventListener("submit", saveCheckin);
-  $("camera-start").addEventListener("click", startCameraCheck);
-  $("camera-stop").addEventListener("click", () => stopCameraCheck(true));
-  $("new-checkin").addEventListener("click", newCheckin);
-  $("open-help").addEventListener("click", openHelp);
-  document.querySelectorAll("[data-open-help]").forEach((b) => b.addEventListener("click", openHelp));
+  $("checkin-form").addEventListener("submit", submitCheckin);
+  $("camera-start").addEventListener("click", startCamera);
+  $("camera-stop").addEventListener("click", () => stopCamera(true));
 
   document.querySelectorAll('input[name="direction"]').forEach((r) =>
     r.addEventListener("change", () => setDirection(r.value)));
@@ -522,6 +397,12 @@ async function init() {
   $("music-stop").addEventListener("click", stopMusic);
   wirePlayer();
 
+  $("keep-history").addEventListener("change", (e) => {
+    store.setKeepHistory(e.target.checked);
+    $("data-status").textContent = e.target.checked
+      ? "Check-ins will be kept on this device."
+      : "Check-ins will no longer be saved. Existing ones stay until you delete them.";
+  });
   $("export").addEventListener("click", () => {
     store.exportFile();
     $("data-status").textContent = "Your check-ins were downloaded.";
@@ -530,16 +411,8 @@ async function init() {
   $("delete-no").addEventListener("click", () => { $("delete-confirm").hidden = true; });
   $("delete-yes").addEventListener("click", () => {
     store.clear();
-    renderHelp();
     $("delete-confirm").hidden = true;
     $("data-status").textContent = "All check-ins were deleted from this device.";
-  });
-
-  loadHelp().catch(() => {
-    // Helpline data unavailable: the dialog still shows the emergency advice and the global directory.
-    $("help-fallback").replaceChildren(Object.assign(document.createElement("a"), {
-      href: "https://findahelpline.com", textContent: "Find a free, confidential helpline near you", target: "_blank", rel: "noopener",
-    }));
   });
 
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));

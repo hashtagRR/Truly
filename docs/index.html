@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Truly</title>
-<meta name="description" content="Truly is a free, open source companion that asks how you really are, uses music the way music therapists do, and helps you reach someone when you need to.">
+<meta name="description" content="Truly is a free, open source music recommender. Tell it your mood and energy, and it plays a short path of music that starts where you are and moves towards calmer or brighter.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
 <style>
 @font-face {
@@ -38,7 +38,6 @@
   --hill-far: #cdd9e4;
   --hill-near: #e8cdb6;
   --line: #e6ded3;
-  --help-bg: #f3e7d9;
   --focus: #b5541c;
   --band-top: #eef3f6;
   --band-low: #fbeee2;
@@ -61,7 +60,6 @@
     --hill-far: #222d42;
     --hill-near: #3a3243;
     --line: #2a3342;
-    --help-bg: #2a2530;
     --focus: #f0b27a;
     --band-top: #172131;
     --band-low: #2a2433;
@@ -84,7 +82,6 @@
   --hill-far: #222d42;
   --hill-near: #3a3243;
   --line: #2a3342;
-  --help-bg: #2a2530;
   --focus: #f0b27a;
   --band-top: #172131;
   --band-low: #2a2433;
@@ -138,7 +135,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 10px; }
 .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .topbar .button { min-height: 44px; padding: 8px 16px; font-size: 1rem; }
-.help-link { background: var(--help-bg); color: var(--ink); border-color: var(--sun); }
 .narrow { display: none; }
 html { scroll-padding-top: 80px; }
 
@@ -274,8 +270,7 @@ footer p { margin: 0; }
       <span class="brand-name">Truly</span>
     </a>
     <nav class="topbar-actions" aria-label="Quick actions">
-      <a class="button help-link" href="https://findahelpline.com"><span class="wide">Need help now</span><span class="narrow">Need help</span></a>
-      <a class="button primary" href="app/"><span class="wide">Try the check-in</span><span class="narrow">Check in</span></a>
+      <a class="button primary" href="app/">Find music</a>
     </nav>
   </div>
 </header>
@@ -286,16 +281,16 @@ footer p { margin: 0; }
     <div class="hero-body">
       <div>
         <h1>How are you, <em>truly?</em></h1>
-        <p class="read">Some days you smile for everyone and still feel heavy inside. Truly asks how you really are, then uses music the way music therapists do. It meets your mood first and gently lifts it, one song at a time. When you need more, it helps you reach someone.</p>
+        <p class="read">Tell Truly your mood and how much energy you have. It builds a short path of music that starts where you are and moves, one piece at a time, towards calmer or brighter. Everything plays right here, privately.</p>
         <ul class="tags" aria-label="About Truly">
           <li>Free</li>
           <li>Private</li>
           <li>Open source</li>
-          <li>Guided by music therapy</li>
+          <li>Plays in your browser</li>
         </ul>
         <div class="actions">
           <a class="button primary" href="#how">See how it works</a>
-          <a class="button quiet" href="app/">Try the check-in</a>
+          <a class="button quiet" href="app/">Find music</a>
           <a class="button quiet" href="https://github.com/hashtagRR/Truly">View on GitHub</a>
         </div>
       </div>
@@ -323,31 +318,31 @@ footer p { margin: 0; }
     <section id="how" class="gutter" aria-labelledby="how-title">
       <div class="column">
       <h2 id="how-title">How it works</h2>
-      <p class="intro read">Four small steps. Your own answers always come first.</p>
+      <p class="intro read">Four small steps, and you stay in charge of every one.</p>
       <ol class="steps">
         <li>
           <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></div>
           <span class="num">Step 1</span>
-          <h3>Ask</h3>
-          <p>A short check-in asks how you feel and how much energy you have. It takes under a minute.</p>
+          <h3>Tell</h3>
+          <p>Choose your mood and your energy. It takes a few seconds.</p>
         </li>
         <li>
-          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8M9 9.5h.01M15 9.5h.01"/></svg></div>
+          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
           <span class="num">Step 2</span>
-          <h3>Notice</h3>
-          <p>If you turn it on, the camera notices when the face you show is different from how you say you feel.</p>
+          <h3>Choose a direction</h3>
+          <p>Calmer, gently brighter, or staying where you are. Truly suggests one, and you decide.</p>
         </li>
         <li>
           <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17.5V4.5c2.6.4 5.2 1.9 6.4 4.6"/><circle cx="8.3" cy="17.6" r="2.7"/><path d="M3.5 21c3-1 5-1 8 0s5 1 8 0"/></svg></div>
           <span class="num">Step 3</span>
-          <h3>Meet, then move</h3>
-          <p>Following a music therapy method called the iso principle, songs start close to how you feel, then shift a little at a time towards calmer or brighter.</p>
+          <h3>Listen</h3>
+          <p>Six pieces play in order, each a small step from the last, with a short note on why each one was chosen.</p>
         </li>
         <li>
-          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></div>
+          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8M9 9.5h.01M15 9.5h.01"/></svg></div>
           <span class="num">Step 4</span>
-          <h3>Reach out</h3>
-          <p>When low days add up, Truly gently suggests talking to someone and shows helplines where you live.</p>
+          <h3>Shape it</h3>
+          <p>Swap a piece, slow the path down or stop at any time. An optional camera experiment can nudge where the music starts.</p>
         </li>
       </ol>
       </div>
@@ -355,35 +350,35 @@ footer p { margin: 0; }
 
     <section class="gutter band" aria-labelledby="why-title">
       <div class="column">
-      <h2 id="why-title">Why it works this way</h2>
-      <p class="intro read">Every choice in Truly comes from published research.</p>
+      <h2 id="why-title">How the music is chosen</h2>
+      <p class="intro read">Truly builds each path from published research on music and emotion.</p>
       <ul class="findings">
         <li class="finding">
-          <div class="art art-teal"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 14h40v26H28l-12 10V40h-4z"/><path d="M20 24h24M20 31h16"/></svg></div>
-          <h3>Your words come first</h3>
-          <p>Short questionnaires are one of the most trusted ways to understand low mood. So Truly starts by asking.</p>
-          <cite class="chip">Kroenke and colleagues, 2001</cite>
+          <div class="art art-teal"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22"/><path d="M10 32h44M32 10v44"/><circle cx="42" cy="22" r="4"/></svg></div>
+          <h3>Every piece has a mood</h3>
+          <p>Music can be placed by how bright it feels and how lively it is. Truly places your answers on the same map.</p>
+          <cite class="chip">Russell, 1980</cite>
         </li>
         <li class="finding">
-          <div class="art art-sun"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="20"/><path d="M23 37c2.5 3 5.6 4.5 9 4.5s6.5-1.5 9-4.5M24 27h.01M40 27h.01"/><path d="M32 12v40" stroke-dasharray="3 4"/></svg></div>
-          <h3>A smile can hide a lot</h3>
-          <p>Faces do not reliably show how someone feels. That is why the camera never decides anything.</p>
-          <cite class="chip">Barrett and colleagues, 2019</cite>
-        </li>
-        <li class="finding">
-          <div class="art art-sun"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 32h4M18 24v16M24 18v28M30 26v12M36 14v36M42 22v20M48 28v8M54 32h0"/></svg></div>
-          <h3>Your voice says more</h3>
-          <p>Pauses and tone change with low mood. Truly can listen to how you speak, never to what you say.</p>
-          <cite class="chip">Cummins and colleagues, 2015; Briganti and Lechien, 2025</cite>
+          <div class="art art-sun"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 44h40"/><circle cx="20" cy="36" r="6"/><path d="M30 30h22" stroke-dasharray="3 5"/></svg></div>
+          <h3>Start where you are</h3>
+          <p>Listening research suggests that starting close to your mood, then moving gradually, shapes how music feels.</p>
+          <cite class="chip">Starcke and von Georgi, 2024</cite>
         </li>
         <li class="finding">
           <div class="art art-teal"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 50c10 0 14-6 20-12s10-14 28-20" stroke-dasharray="3 5"/><circle cx="14" cy="49" r="4"/><circle cx="30" cy="36" r="4"/><circle cx="46" cy="22" r="4"/></svg></div>
-          <h3>Music can lift, step by step</h3>
-          <p>Music therapy eases depression in the short term. Meeting your mood first, then moving gently, is how therapists use it.</p>
-          <cite class="chip">Aalbers and colleagues, 2017; Starcke and von Georgi, 2024</cite>
+          <h3>Small steps</h3>
+          <p>Each recording has published mood and tempo scores, so every piece can be a small, smooth step from the last.</p>
+          <cite class="chip">Du and colleagues, 2026</cite>
+        </li>
+        <li class="finding">
+          <div class="art art-sun"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="20"/><path d="M23 37c2.5 3 5.6 4.5 9 4.5s6.5-1.5 9-4.5M24 27h.01M40 27h.01"/></svg></div>
+          <h3>A face is only a hint</h3>
+          <p>Facial expressions are not a reliable guide to feelings, so the optional camera only nudges the start and never decides anything.</p>
+          <cite class="chip">Barrett and colleagues, 2019</cite>
         </li>
       </ul>
-      <a class="more" href="https://github.com/hashtagRR/Truly/blob/main/references/RESEARCH.md">Read the research and full references</a>
+      <a class="more" href="https://github.com/hashtagRR/Truly/blob/main/references/RESEARCH.md">Read the research and references</a>
       </div>
     </section>
 
@@ -391,11 +386,11 @@ footer p { margin: 0; }
       <div class="column">
       <h2 id="private-title">Private by design</h2>
       <ul class="promise read">
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Everything runs on your own device. Nothing is sent to a server.</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Camera and voice are off until you turn them on, and they are never recorded or stored.</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>The voice check listens to how you speak, never to the words.</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Your check-ins stay on your device, and you can delete them at any time.</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Truly never diagnoses you or puts a label on you. It is a companion, not a medical device.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Everything runs in your browser, and the music plays from Truly's own site.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>No account, cookies, analytics or tracking.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>The camera is off until you try it, and its frames are never recorded or stored.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Your check-ins stay on your device. You can switch saving off or delete them at any time.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Your answers are only ever used to choose music.</span></li>
       </ul>
       </div>
     </section>
@@ -403,7 +398,7 @@ footer p { margin: 0; }
     <section class="gutter" aria-labelledby="open-title">
       <div class="column">
       <h2 id="open-title">Open for everyone</h2>
-      <p class="intro read">Truly is free software, built on openly shared research, data and models. Developers, researchers and music therapists are welcome to help, from the music catalogue to helplines for another country.</p>
+      <p class="intro read">Truly is free software, built on openly shared research, data and recordings. Developers, researchers and musicians are welcome to help, from the music catalogue to new ways to shape a path.</p>
       <div class="open-links">
         <a class="button quiet" href="https://github.com/hashtagRR/Truly">Source code</a>
         <a class="button quiet" href="https://github.com/hashtagRR/Truly/blob/main/references/DATASETS.md">Data and models</a>
@@ -416,8 +411,7 @@ footer p { margin: 0; }
 
 <footer class="gutter">
   <div class="column">
-    <p>Truly is in development. An early version of the <a href="app/">check-in</a> is available.</p>
-    <p>Truly does not replace professional care. If you are in danger, please call your local emergency number.</p>
+    <p>Truly is in development. An early version of the <a href="app/">app</a> is available.</p>
     <p>Copyright (C) 2026 hashtagRR. Code under <a href="https://github.com/hashtagRR/Truly/blob/main/LICENSE">AGPL-3.0-or-later</a>. Typeface Atkinson Hyperlegible by the Braille Institute, under the <a href="fonts/OFL.txt">SIL Open Font License</a>.</p>
   </div>
 </footer>

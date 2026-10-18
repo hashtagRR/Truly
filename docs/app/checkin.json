@@ -1,6 +1,6 @@
 {
   "feeling": {
-    "question": "How are you feeling right now, truly?",
+    "question": "What is your mood right now?",
     "options": [
       {"value": 1, "label": "Very low"},
       {"value": 2, "label": "Low"},

@@ -1,6 +1,6 @@
 # Data and models
 
-Truly is built on openly shared datasets and models. This page lists each one, what Truly uses it for, its licence, and the work to cite. Each source keeps its own licence and terms; please credit the original authors when you use them.
+Truly is built on openly shared datasets, models and recordings. This page lists each one, what Truly uses it for, its licence, and the work to cite. Each source keeps its own licence and terms; please credit the original authors when you use them.
 
 ## Face
 
@@ -18,13 +18,6 @@ Truly is built on openly shared datasets and models. This page lists each one, w
 
 The 40 EmoNet-Face categories are mapped to seven expression classes and to valence and arousal in [mappings/emonet_categories.json](../mappings/emonet_categories.json).
 
-## Voice
-
-| Source | What it provides | Licence | Use in Truly |
-|---|---|---|---|
-| [Kintsugi DAM](https://huggingface.co/KintsugiHealth/dam) | Speech model that estimates depression and anxiety severity from the acoustics of about 30 seconds of speech, trained on recordings from about 35,000 people | Apache-2.0 | Private, opt-in signal for the safety layer |
-| [Kintsugi DAM dataset](https://huggingface.co/datasets/KintsugiHealth/dam-dataset) | Model scores with demographic metadata | Apache-2.0 | Threshold tuning and per-group reporting |
-
 ## Music
 
 | Source | What it provides | Licence | Use in Truly |
@@ -35,13 +28,6 @@ The 40 EmoNet-Face categories are mapped to seven expression classes and to vale
 | [MCUD 1.0](https://doi.org/10.6084/m9.figshare.30517820.v7) (Du et al., 2026) | Playlists and songs used in randomised controlled trials of music interventions, with clinical and song level annotations | CC BY 4.0 | Which works to include, their valence, arousal and tempo, and the reference for path targets |
 
 | Recordings on [Wikimedia Commons](https://commons.wikimedia.org) | Freely licensed recordings of the trial works, by the performers listed in [Truly-music credits](https://github.com/hashtagRR/Truly-music/blob/main/CREDITS.md) | Public domain, CC0, CC BY or CC BY-SA, per recording | The music played in the app |
-
-## Safety
-
-| Source | What it provides | Licence | Use in Truly |
-|---|---|---|---|
-| [IANA time zone database](https://www.iana.org/time-zones) | Time zone to country table (`zone.tab`, `backward`) | Public domain | Suggests local helplines from the device's time zone |
-| Helpline services listed in `docs/app/help/helplines.json` | Phone, text and chat contacts, from each service's official website | Contact details as published by each service | Help dialog and gentle prompt |
 
 ## Local layout
 

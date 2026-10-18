@@ -5,8 +5,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Truly check-in</title>
-<meta name="description" content="A private daily check-in. Everything stays on your device.">
+<title>Truly</title>
+<meta name="description" content="Tell Truly your mood and energy, and it plays music to match. Everything stays on your device.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="app.css">
 <script type="module" src="app.js"></script>
@@ -27,7 +27,6 @@
       <a href="#history" data-view="history">History</a>
       <a href="#privacy" data-view="privacy">Privacy</a>
     </nav>
-    <button class="help-button" type="button" id="open-help">Need help now</button>
   </div>
 </header>
 
@@ -35,8 +34,8 @@
   <div class="column">
 
     <section id="view-checkin" class="view" aria-labelledby="checkin-title">
-      <h1 id="checkin-title">Check in</h1>
-      <p class="lead">A minute for yourself. There are no wrong answers.</p>
+      <h1 id="checkin-title">How are you, truly?</h1>
+      <p class="lead">Tell Truly your mood and energy, and it will choose music to match. There are no wrong answers.</p>
 
       <form id="checkin-form" novalidate>
         <fieldset class="scale" id="feeling-group">
@@ -56,48 +55,32 @@
         </div>
 
         <div class="camera card" id="camera">
-          <h2>Camera check <span class="optional">optional</span></h2>
-          <p>Truly can look at your expression for a few seconds and tell you if it differs from how you feel. The video stays on this device and is never saved.</p>
+          <h2>Shape the start with your expression <span class="optional">optional experiment</span></h2>
+          <p>Truly can look at your expression for a few seconds and start the music a little calmer or brighter. It is a playful guess, not a reading of how you feel. The video stays on this device and is never saved.</p>
           <div class="camera-stage" id="camera-stage" hidden>
             <video id="camera-video" playsinline muted aria-label="Your camera preview"></video>
           </div>
           <p class="status" id="camera-status" role="status" aria-live="polite"></p>
           <div class="row">
-            <button type="button" class="button quiet" id="camera-start">Start camera check</button>
+            <button type="button" class="button quiet" id="camera-start">Try the camera</button>
             <button type="button" class="button quiet" id="camera-stop" hidden>Stop camera</button>
           </div>
         </div>
 
         <p class="error" id="form-error" role="alert"></p>
-        <button type="submit" class="button primary big">Save check-in</button>
+        <button type="submit" class="button primary big">Find my music</button>
       </form>
-
-      <div class="card saved" id="saved" hidden tabindex="-1">
-        <h2>Saved on this device</h2>
-        <p id="saved-message"></p>
-        <div class="gentle" id="saved-prompt" hidden>
-          <h3>You have had a few low days lately</h3>
-          <p>That is a lot to carry, and you do not have to carry it alone. Talking to someone can help: a friend, a family member, a doctor, or a helpline where someone is ready to listen.</p>
-          <button type="button" class="button primary" data-open-help>See who you can talk to</button>
-        </div>
-        <p id="saved-help" hidden>If today feels very hard, you do not have to carry it alone. <button type="button" class="link" data-open-help>See who you can talk to</button>.</p>
-        <div class="row">
-          <a class="button primary" href="#music">Music for right now</a>
-          <button type="button" class="button quiet" id="new-checkin">New check-in</button>
-          <a class="button quiet" href="#history">See your history</a>
-        </div>
-      </div>
     </section>
 
     <section id="view-music" class="view" aria-labelledby="music-title" hidden>
       <h1 id="music-title">Music for right now</h1>
-      <p class="lead">Chosen the way music therapists do: the first piece sits close to how you feel, and each one after moves a little further. Every piece is a work used in music therapy studies, and it plays right here.</p>
+      <p class="lead">The first piece sits close to the mood you chose, and each one after moves a little further in the direction you pick. Every piece plays right here.</p>
 
       <p class="empty" id="music-needs-checkin" hidden>Music follows your check-in. <a href="#checkin">Check in first</a>, then come back here.</p>
 
       <div id="music-body" hidden>
         <fieldset class="direction">
-          <legend>Where would you like to go?</legend>
+          <legend>Where would you like the music to go?</legend>
           <div class="segmented">
             <input type="radio" name="direction" id="dir-calmer" value="calmer"><label for="dir-calmer">Calmer</label>
             <input type="radio" name="direction" id="dir-brighter" value="brighter"><label for="dir-brighter">Gently brighter</label>
@@ -138,24 +121,27 @@
 
     <section id="view-history" class="view" aria-labelledby="history-title" hidden>
       <h1 id="history-title">Your history</h1>
-      <p class="lead">Your recent check-ins, newest first. They are stored only in this browser.</p>
+      <p class="lead">Your recent check-ins, newest first. They are stored only in this browser, and you can switch this off on the Privacy page.</p>
       <div id="history-chart"></div>
       <ol class="entries" id="history-list"></ol>
-      <p class="empty" id="history-empty">No check-ins yet. <a href="#checkin">Start your first one</a>.</p>
+      <p class="empty" id="history-empty">No check-ins saved. <a href="#checkin">Check in</a> to find some music.</p>
     </section>
 
     <section id="view-privacy" class="view" aria-labelledby="privacy-title" hidden>
       <h1 id="privacy-title">Privacy</h1>
       <ul class="promise">
-        <li>Your check-ins are stored only in this browser on this device.</li>
-        <li>The camera is off until you start a camera check, and it switches off by itself after a few seconds.</li>
-        <li>Camera frames are read into memory, scored on this device and then discarded. No image is ever saved or sent.</li>
-        <li>To show helplines near you, Truly reads your device's time zone. It never uses your location or IP address, and nothing is sent anywhere. If you choose a country yourself, that choice is kept in this browser.</li>
-        <li>Truly has no accounts, no cookies, no analytics and no tracking.</li>
+        <li>Truly needs no account and uses no cookies, analytics or tracking.</li>
+        <li>Your mood answers are used only to choose music.</li>
+        <li>The camera is off until you try it, and it switches off by itself after a few seconds. Frames are read into memory on this device and then discarded. No image is ever saved or sent, and the camera result is never stored.</li>
+        <li>Music plays from Truly's own site, so no streaming service learns what you listen to.</li>
       </ul>
       <div class="card">
         <h2>Your data</h2>
-        <p>Save a copy of your check-ins, or delete them, and any country you chose, from this device.</p>
+        <div class="toggle">
+          <input type="checkbox" id="keep-history">
+          <label for="keep-history">Keep my check-ins on this device</label>
+        </div>
+        <p class="hint">When this is off, check-ins are used for this visit only and nothing is saved.</p>
         <div class="row">
           <button type="button" class="button quiet" id="export">Download my check-ins</button>
           <button type="button" class="button quiet danger" id="delete">Delete all check-ins</button>
@@ -176,24 +162,10 @@
 
 <footer class="gutter">
   <div class="column">
-    <p>Truly is an early version in development. It does not replace professional care.</p>
-    <p><a href="../">About Truly</a> &middot; <a href="https://github.com/hashtagRR/Truly">Source code</a> &middot; <a href="https://github.com/hashtagRR/Truly/blob/main/models/face/MODEL_CARD.md">Face model card</a></p>
+    <p>Truly is an early version of a free, open source music recommender.</p>
+    <p><a href="../">About Truly</a> &middot; <a href="https://github.com/hashtagRR/Truly">Source code</a> &middot; <a href="https://github.com/hashtagRR/Truly-music/blob/main/CREDITS.md">Music credits</a></p>
   </div>
 </footer>
-
-<dialog id="help" aria-labelledby="help-title">
-  <h2 id="help-title">You do not have to go through this alone</h2>
-  <p class="emergency" id="help-emergency"><strong>If you are in danger right now</strong>, call your local emergency number.</p>
-  <h3 id="help-country-title">People you can talk to</h3>
-  <ul class="lines" id="help-lines"></ul>
-  <p id="help-fallback"><a href="https://findahelpline.com" target="_blank" rel="noopener">Find a free, confidential helpline near you</a></p>
-  <div class="field country-choice">
-    <label for="help-country">Not the right country? Choose yours</label>
-    <select id="help-country"></select>
-  </div>
-  <p class="hint">Talking to a friend, family member or doctor can help too.</p>
-  <form method="dialog"><button class="button quiet">Close</button></form>
-</dialog>
 
 </body>
 </html>

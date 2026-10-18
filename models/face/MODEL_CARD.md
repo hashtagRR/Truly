@@ -1,6 +1,6 @@
 # Truly face expression model v1
 
-A compact face expression model that runs on the user's device inside Truly. It estimates the intensity of 40 emotion categories from a face image, and maps them to seven expression classes and to valence and arousal.
+A compact face expression model that runs in the listener's browser inside Truly. It estimates the intensity of 40 emotion categories from a face image, and maps them to seven expression classes and to valence and arousal.
 
 ## Model
 
@@ -60,9 +60,9 @@ On FER-2013 PrivateTest, the readout without calibration offsets reaches 46.9% (
 
 ## Intended use
 
-The model is one optional input to Truly's mood state. It suggests a starting point for the music path and notices when a person's expression differs from their own check-in answers. It runs only when the user turns the camera on, and frames are processed in memory and never stored.
+The model powers Truly's optional camera experiment, which nudges where a music path starts a little calmer or brighter. The result is presented as a playful guess, never as a reading of how anyone feels, and the listener's own answers always lead. The camera runs only when the listener starts it, and frames are processed in memory and never stored.
 
-The model does not make decisions about people. It is not used for diagnosis, does not trigger Truly's help prompts, and is not intended for emotion recognition in workplaces or schools, surveillance, law enforcement, hiring, credit, insurance or any similar setting.
+The model does not make decisions or draw conclusions about people. It is not used for any health purpose and is not intended for emotion recognition in workplaces or schools, surveillance, law enforcement, hiring, credit, insurance or any similar setting.
 
 ## Files
 

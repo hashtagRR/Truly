@@ -1,5 +1,5 @@
 {
-  "description": "Freely licensed recordings of public domain works used in music therapy trials (MCUD 1.0). Each entry gives the Wikimedia Commons source, its licence, and the MCUD song IDs whose valence, arousal and tempo it takes (averaged).",
+  "description": "Freely licensed recordings of public domain works listed in MCUD 1.0, a published dataset of music used in studies. Each entry gives the Wikimedia Commons source, its licence, and the MCUD song IDs whose valence, arousal and tempo it takes (averaged).",
   "recordings": [
     {
       "key": "bach-air",

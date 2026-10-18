@@ -58,7 +58,7 @@ export function defaultDirection(feeling, energy) {
   return "brighter";
 }
 
-// Targets sit where music therapy playlists sit: calm and moderately positive.
+// Targets favour calm, moderately positive music, where most of the catalogue sits.
 // Each direction moves mainly one thing: calmer lowers energy with a small lift
 // in mood; brighter lifts mood with a gentle nudge of energy towards the middle.
 export function goalPoint(start, direction, stats) {
@@ -166,4 +166,29 @@ export function replaceSong(catalogue, path, points, index, skipped, rng = Math.
   const next = [...path];
   next[index] = song;
   return next;
+}
+
+// The optional camera input moves the start point a little; the mood answer
+// stays in charge.
+const NUDGE = { bright: 0.35, calm: 0, heavy: -0.35 };
+
+export function nudgeStart(start, tone, stats) {
+  if (!tone || !(tone in NUDGE)) return start;
+  return { ...start, v: start.v + NUDGE[tone] * stats.sdV };
+}
+
+// A short reason for each piece, from its place in the path.
+export function explain(path, i, stats, direction) {
+  if (i === 0) return "Chosen to match the mood and energy you described.";
+  const prev = path[i - 1];
+  const dv = (path[i].valence - prev.valence) / stats.sdV;
+  const da = (path[i].arousal - prev.arousal) / stats.sdA;
+  const parts = [];
+  if (da < -0.15) parts.push("calmer");
+  else if (da > 0.15) parts.push("livelier");
+  if (dv > 0.15) parts.push("brighter");
+  else if (dv < -0.15) parts.push("more reflective");
+  const step = parts.length ? `A little ${parts.join(" and ")} than the piece before.` : "A similar feel to the piece before.";
+  if (i === path.length - 1 && direction !== "steady") return `${step} This is where the path settles.`;
+  return step;
 }

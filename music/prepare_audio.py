@@ -100,7 +100,7 @@ def main():
         print(f"  {rec['key']}: {tracks[-1]['seconds']}s, {dest.stat().st_size / 1e6:.1f} MB")
 
     (args.out_dir / "tracks.json").write_text(json.dumps({
-        "description": "Freely licensed recordings of public domain works used in music therapy trials. Valence, arousal and tempo are averaged from MCUD 1.0 (Du et al., 2026, CC BY 4.0).",
+        "description": "Freely licensed recordings of public domain works from MCUD 1.0, a published dataset of music used in studies. Valence, arousal and tempo are averaged from MCUD 1.0 (Du et al., 2026, CC BY 4.0).",
         "tracks": tracks}, indent=2, ensure_ascii=False) + "\n")
     lines = ["# Credits", "",
              "Each recording keeps its own licence. The recordings were converted to 96 kbps MP3 and their loudness was evened out; nothing else was changed. Valence, arousal and tempo come from MCUD 1.0 (Du et al., 2026, CC BY 4.0).", "",
