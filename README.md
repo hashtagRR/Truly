@@ -31,6 +31,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 | `docs/` | Project website, published with GitHub Pages |
 | `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
+| `models/face/` | Face model card and readout settings |
 | `training/` | Face model scripts, run as Kaggle kernels |
 | `training/kernels/` | Kaggle kernel metadata templates |
 | `music/` | Music catalogue building |
