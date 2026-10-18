@@ -1,0 +1,405 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 hashtagRR -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Truly</title>
+<meta name="description" content="Truly is a free, open source companion that asks how you really are, uses music the way music therapists do, and helps you reach someone when you need to.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
+<style>
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("fonts/atkinson-hyperlegible-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("fonts/atkinson-hyperlegible-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Layout: one calm reading column; a dawn sky hero whose path rises from "where you are" to "where you'd like to be"; short sections below. */
+:root {
+  --page: #fbf7f2;
+  --surface: #ffffff;
+  --ink: #1d2633;
+  --soft-ink: #4a5363;
+  --accent: #1c6b73;
+  --on-accent: #ffffff;
+  --sun: #e8955a;
+  --sky-top: #e3eaf1;
+  --sky-low: #f7e3d2;
+  --hill-far: #cdd9e4;
+  --hill-near: #e8cdb6;
+  --line: #e6ded3;
+  --help-bg: #f3e7d9;
+  --focus: #b5541c;
+  --band-top: #eef3f6;
+  --band-low: #fbeee2;
+  --tint-teal: #d7ecec;
+  --tint-sun: #fbe1cc;
+  --chip: #ffffff;
+  --font: "Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #131922;
+    --surface: #1b2330;
+    --ink: #e9edf2;
+    --soft-ink: #b4bcc8;
+    --accent: #7cc7c4;
+    --on-accent: #0f1a1f;
+    --sun: #e8a86a;
+    --sky-top: #141c2a;
+    --sky-low: #3a2f3c;
+    --hill-far: #222d42;
+    --hill-near: #3a3243;
+    --line: #2a3342;
+    --help-bg: #2a2530;
+    --focus: #f0b27a;
+    --band-top: #172131;
+    --band-low: #2a2433;
+    --tint-teal: #1e3a3d;
+    --tint-sun: #43322a;
+    --chip: #131922;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #131922;
+  --surface: #1b2330;
+  --ink: #e9edf2;
+  --soft-ink: #b4bcc8;
+  --accent: #7cc7c4;
+  --on-accent: #0f1a1f;
+  --sun: #e8a86a;
+  --sky-top: #141c2a;
+  --sky-low: #3a2f3c;
+  --hill-far: #222d42;
+  --hill-near: #3a3243;
+  --line: #2a3342;
+  --help-bg: #2a2530;
+  --focus: #f0b27a;
+  --band-top: #172131;
+  --band-low: #2a2433;
+  --tint-teal: #1e3a3d;
+  --tint-sun: #43322a;
+  --chip: #131922;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1.1875rem;
+  line-height: 1.7;
+}
+a { color: var(--accent); text-underline-offset: 0.18em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+
+.gutter {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.column { max-width: 1040px; margin: 0 auto; }
+.read { max-width: 36em; }
+
+.skip {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  top: -60px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 14px;
+  border-radius: 8px;
+  z-index: 20;
+}
+.skip:focus { top: 12px; }
+
+.help { background: var(--help-bg); font-size: 1rem; line-height: 1.5; }
+.help .column { padding-block: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.help strong { font-weight: 700; }
+.help a { color: var(--ink); font-weight: 700; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-low) 100%);
+  overflow: hidden;
+}
+.hero .column { padding-block: 28px 0; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.25rem; letter-spacing: 0.01em; }
+.brand-mark { width: 30px; height: 30px; flex: none; }
+.hero-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: end; padding-top: 48px; }
+.hero h1 {
+  font-size: clamp(2.4rem, 6.2vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 0 0 20px;
+  text-wrap: balance;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p { margin: 0 0 28px; font-size: 1.25rem; color: var(--ink); }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; padding: 0; list-style: none; }
+.tags li { background: var(--surface); border-radius: 999px; padding: 4px 14px; font-size: 1rem; font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; padding-bottom: 48px; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid var(--accent);
+}
+.button.primary { background: var(--accent); color: var(--on-accent); }
+.button.quiet { color: var(--accent); background: transparent; }
+
+.scene { width: 100%; max-width: 100%; height: auto; display: block; }
+.scene text { font-family: var(--font); font-size: 15px; font-weight: 700; fill: var(--ink); }
+.sun { fill: var(--sun); }
+.sun-glow { fill: var(--sun); opacity: 0.22; }
+.hill-far { fill: var(--hill-far); }
+.hill-near { fill: var(--hill-near); }
+.ground { fill: var(--page); }
+.path { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 12; }
+.dot { fill: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise 3s ease-out 0.3s both; }
+  @keyframes rise { from { transform: translateY(46px); } to { transform: translateY(0); } }
+}
+
+/* Sections */
+main section { padding-block: 56px; }
+main section + section { border-top: 1px solid var(--line); }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.2rem); line-height: 1.2; margin: 0 0 14px; text-wrap: balance; }
+.intro { color: var(--soft-ink); margin: 0 0 32px; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px; }
+.steps li { display: grid; grid-template-rows: auto auto 1fr; gap: 6px; min-width: 0; }
+.step-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--surface); display: grid; place-items: center; margin-bottom: 8px; }
+.step-icon svg { width: 28px; height: 28px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.steps h3 { font-size: 1.25rem; margin: 0; }
+.steps .num { color: var(--soft-ink); font-weight: 700; font-size: 1rem; }
+.steps p { margin: 0; color: var(--soft-ink); }
+
+.band { background: linear-gradient(160deg, var(--band-top) 0%, var(--band-low) 100%); }
+main section.band { border-top: 0; }
+main section.band + section { border-top: 0; }
+.findings { list-style: none; margin: 0 0 28px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.finding {
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 26px 24px 22px;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 10px;
+  min-width: 0;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.05);
+}
+.art { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 6px; }
+.art svg { width: 46px; height: 46px; fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.art-teal { background: var(--tint-teal); }
+.art-sun { background: var(--tint-sun); }
+.finding h3 { font-size: 1.45rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+.finding p { margin: 0; color: var(--soft-ink); }
+.chip {
+  justify-self: start;
+  font-style: normal;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--soft-ink);
+  background: var(--chip);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.chip::before { content: "Research: "; font-weight: 700; color: var(--accent); }
+.more { font-weight: 700; }
+
+.promise { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.promise li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; }
+.promise svg { width: 24px; height: 24px; margin-top: 4px; stroke: var(--accent); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.open-links { display: flex; flex-wrap: wrap; gap: 12px; }
+
+footer { border-top: 1px solid var(--line); color: var(--soft-ink); font-size: 1rem; line-height: 1.6; }
+footer .column { padding-block: 36px 48px; display: grid; gap: 8px; }
+footer p { margin: 0; }
+
+@media (max-width: 720px) {
+  .hero-body { grid-template-columns: 1fr; padding-top: 32px; gap: 8px; }
+  .actions { padding-bottom: 8px; }
+  main section { padding-block: 44px; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to main content</a>
+
+<div class="help gutter" role="region" aria-label="Help now">
+  <div class="column">
+    <strong>Need to talk to someone now?</strong>
+    <span><a href="https://findahelpline.com">Find a free, confidential helpline near you</a>, or call your local emergency number.</span>
+  </div>
+</div>
+
+<header class="hero gutter">
+  <div class="column">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="9" class="sun"/><path d="M2 24c6-4 10-4 14-1s8 3 14-1v8H2z" class="dot"/></svg>
+      Truly
+    </div>
+
+    <div class="hero-body">
+      <div>
+        <h1>How are you, <em>truly?</em></h1>
+        <p class="read">Some days you smile for everyone and still feel heavy inside. Truly asks how you really are, then uses music the way music therapists do. It meets your mood first and gently lifts it, one song at a time. When you need more, it helps you reach someone.</p>
+        <ul class="tags" aria-label="About Truly">
+          <li>Free</li>
+          <li>Private</li>
+          <li>Open source</li>
+          <li>Guided by music therapy</li>
+        </ul>
+        <div class="actions">
+          <a class="button primary" href="#how">See how it works</a>
+          <a class="button quiet" href="https://github.com/hashtagRR/Truly">View on GitHub</a>
+        </div>
+      </div>
+
+      <svg class="scene" viewBox="0 0 480 300" role="img" aria-label="A path of music rising gently from where you are towards where you'd like to be, under a rising sun.">
+        <g class="rise">
+          <circle class="sun-glow" cx="360" cy="150" r="78"/>
+          <circle class="sun" cx="360" cy="150" r="46"/>
+        </g>
+        <path class="hill-far" d="M0 210 C 90 170, 170 175, 250 195 S 400 170, 480 160 L 480 300 L 0 300 Z"/>
+        <path class="hill-near" d="M0 245 C 110 220, 200 230, 290 240 S 420 220, 480 215 L 480 300 L 0 300 Z"/>
+        <path class="ground" d="M0 272 C 120 262, 260 266, 480 258 L 480 300 L 0 300 Z"/>
+        <path class="path" d="M40 262 C 120 258, 170 232, 230 214 S 340 160, 420 112"/>
+        <circle class="dot" cx="40" cy="262" r="7"/>
+        <circle class="dot" cx="420" cy="112" r="7"/>
+        <text x="40" y="292" text-anchor="start">where you are</text>
+        <text x="420" y="94" text-anchor="end">where you'd like to be</text>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+    <section id="how" class="gutter" aria-labelledby="how-title">
+      <div class="column">
+      <h2 id="how-title">How it works</h2>
+      <p class="intro read">Four small steps. Your own answers always come first.</p>
+      <ol class="steps">
+        <li>
+          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></div>
+          <span class="num">Step 1</span>
+          <h3>Ask</h3>
+          <p>A short check-in asks how you feel and how much energy you have. It takes under a minute.</p>
+        </li>
+        <li>
+          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8M9 9.5h.01M15 9.5h.01"/></svg></div>
+          <span class="num">Step 2</span>
+          <h3>Notice</h3>
+          <p>If you turn it on, the camera notices when the face you show is different from how you say you feel.</p>
+        </li>
+        <li>
+          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17.5V4.5c2.6.4 5.2 1.9 6.4 4.6"/><circle cx="8.3" cy="17.6" r="2.7"/><path d="M3.5 21c3-1 5-1 8 0s5 1 8 0"/></svg></div>
+          <span class="num">Step 3</span>
+          <h3>Meet, then move</h3>
+          <p>Following a music therapy method called the iso principle, songs start close to how you feel, then shift a little at a time towards calmer or brighter.</p>
+        </li>
+        <li>
+          <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></div>
+          <span class="num">Step 4</span>
+          <h3>Reach out</h3>
+          <p>When low days add up, Truly gently suggests talking to someone and shows helplines where you live.</p>
+        </li>
+      </ol>
+      </div>
+    </section>
+
+    <section class="gutter band" aria-labelledby="why-title">
+      <div class="column">
+      <h2 id="why-title">Why it works this way</h2>
+      <p class="intro read">Every choice in Truly comes from published research.</p>
+      <ul class="findings">
+        <li class="finding">
+          <div class="art art-teal"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 14h40v26H28l-12 10V40h-4z"/><path d="M20 24h24M20 31h16"/></svg></div>
+          <h3>Your words come first</h3>
+          <p>Short questionnaires are one of the most trusted ways to understand low mood. So Truly starts by asking.</p>
+          <cite class="chip">Kroenke and colleagues, 2001</cite>
+        </li>
+        <li class="finding">
+          <div class="art art-sun"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="20"/><path d="M23 37c2.5 3 5.6 4.5 9 4.5s6.5-1.5 9-4.5M24 27h.01M40 27h.01"/><path d="M32 12v40" stroke-dasharray="3 4"/></svg></div>
+          <h3>A smile can hide a lot</h3>
+          <p>Faces do not reliably show how someone feels. That is why the camera never decides anything.</p>
+          <cite class="chip">Barrett and colleagues, 2019</cite>
+        </li>
+        <li class="finding">
+          <div class="art art-sun"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 32h4M18 24v16M24 18v28M30 26v12M36 14v36M42 22v20M48 28v8M54 32h0"/></svg></div>
+          <h3>Your voice says more</h3>
+          <p>Pauses and tone change with low mood. Truly can listen to how you speak, never to what you say.</p>
+          <cite class="chip">Cummins and colleagues, 2015; Briganti and Lechien, 2025</cite>
+        </li>
+        <li class="finding">
+          <div class="art art-teal"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 50c10 0 14-6 20-12s10-14 28-20" stroke-dasharray="3 5"/><circle cx="14" cy="49" r="4"/><circle cx="30" cy="36" r="4"/><circle cx="46" cy="22" r="4"/></svg></div>
+          <h3>Music can lift, step by step</h3>
+          <p>Music therapy eases depression in the short term. Meeting your mood first, then moving gently, is how therapists use it.</p>
+          <cite class="chip">Aalbers and colleagues, 2017; Starcke and von Georgi, 2024</cite>
+        </li>
+      </ul>
+      <a class="more" href="https://github.com/hashtagRR/Truly/blob/main/docs/RESEARCH.md">Read the research and full references</a>
+      </div>
+    </section>
+
+    <section class="gutter" aria-labelledby="private-title">
+      <div class="column">
+      <h2 id="private-title">Private by design</h2>
+      <ul class="promise read">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Everything runs on your own device. Nothing is sent to a server.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Camera and voice are off until you turn them on, and they are never recorded or stored.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>The voice check listens to how you speak, never to the words.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Your check-ins stay on your device, and you can delete them at any time.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Truly never diagnoses you or puts a label on you. It is a companion, not a medical device.</span></li>
+      </ul>
+      </div>
+    </section>
+
+    <section class="gutter" aria-labelledby="open-title">
+      <div class="column">
+      <h2 id="open-title">Open for everyone</h2>
+      <p class="intro read">Truly is free software, built on openly shared research, data and models. Developers, researchers and music therapists are welcome to help, from the music catalogue to helplines for another country.</p>
+      <div class="open-links">
+        <a class="button quiet" href="https://github.com/hashtagRR/Truly">Source code</a>
+        <a class="button quiet" href="https://github.com/hashtagRR/Truly/blob/main/docs/DATASETS.md">Data and models</a>
+        <a class="button quiet" href="https://github.com/hashtagRR/Truly/blob/main/docs/SCOPE.md">Scope</a>
+      </div>
+      </div>
+    </section>
+
+</main>
+
+<footer class="gutter">
+  <div class="column">
+    <p>Truly is in development and not yet ready to use.</p>
+    <p>Truly does not replace professional care. If you are in danger, please call your local emergency number.</p>
+    <p>Copyright (C) 2026 hashtagRR. Code under <a href="https://github.com/hashtagRR/Truly/blob/main/LICENSE">AGPL-3.0-or-later</a>. Typeface Atkinson Hyperlegible by the Braille Institute, under the <a href="fonts/OFL.txt">SIL Open Font License</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>

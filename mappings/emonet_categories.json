@@ -1,5 +1,7 @@
 {
   "description": "EmoNet-Face categories with their taxonomy group, the FER class each one counts towards when scoring on FER-2013, and a valence/arousal position (-1, 0 or 1). Valence and arousal follow the group name where it states them (positive or negative, high or low energy) and are set by hand for the cognitive, longing and physical groups. Categories with fer7 null are left out of FER scoring. FER neutral has no EmoNet category and is scored as 1 minus the highest emotional class score.",
+  "source": "Category names and groups from the EmoNet-Face taxonomy (Schuhmann et al., 2025, arXiv:2505.20033), licensed under CC BY 4.0. The FER class and valence/arousal assignments are part of Truly.",
+  "source_licence": "CC BY 4.0",
   "fer7": ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"],
   "aliases": {"Hopelessness": "Helplessness"},
   "aliases_note": "The Binary parquet files use the name 'Hopelessness' for the Helplessness category.",
