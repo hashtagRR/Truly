@@ -1,9 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 hashtagRR
-"""Fetch AcousticBrainz (CC0) tempo, loudness, key and mood probabilities for MuSe songs.
+"""Fetch AcousticBrainz (CC0) tempo, loudness, key, mood and instrumental probabilities for MuSe songs.
 
-Usage: python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv \
-           data/acousticbrainz/muse_acousticbrainz.jsonl.gz
+Usage: python3 -I music/acousticbrainz_harvest.py MUSE_CSV OUT_JSONL_GZ [--high-level-only]
+
+    python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv \
+        data/acousticbrainz/muse_acousticbrainz.jsonl.gz
+
+--high-level-only skips the low-level request and keeps the classifier outputs only.
 """
 import csv
 import gzip
@@ -57,12 +61,14 @@ def parse(low, high, mbid):
             if m in hl:
                 positive = m.replace("mood_", "")
                 rec[m] = hl[m]["all"].get(positive)
+        if "voice_instrumental" in hl:
+            rec["instrumental"] = hl["voice_instrumental"]["all"].get("instrumental")
     return rec if len(rec) > 1 else None
 
 
-def work(ids, out, stats):
+def work(ids, out, stats, high_level_only=False):
     q = ";".join(ids)
-    low = fetch(f"{API}/low-level?recording_ids={q}&features={LOW_FEATURES}")
+    low = {} if high_level_only else fetch(f"{API}/low-level?recording_ids={q}&features={LOW_FEATURES}")
     high = fetch(f"{API}/high-level?recording_ids={q}")
     if low is None or high is None:
         with lock:
@@ -79,16 +85,16 @@ def work(ids, out, stats):
             print(f"{stats['done']} queried, {stats['found']} found", flush=True)
 
 
-def main(muse_csv, out_path):
+def main(muse_csv, out_path, high_level_only=False):
     with open(muse_csv, newline="", encoding="utf-8") as f:
         mbids = sorted({r["mbid"] for r in csv.DictReader(f) if r.get("mbid")})
     print(f"{len(mbids)} MuSe songs with a MusicBrainz ID", flush=True)
     batches = [mbids[i:i + BATCH] for i in range(0, len(mbids), BATCH)]
     stats = {"done": 0, "found": 0, "failed_batches": []}
     with gzip.open(out_path, "wt", encoding="utf-8") as out, ThreadPoolExecutor(8) as pool:
-        list(pool.map(lambda b: work(b, out, stats), batches))
+        list(pool.map(lambda b: work(b, out, stats, high_level_only), batches))
     print(f"finished: {stats['done']} queried, {stats['found']} found, {len(stats['failed_batches'])} failed batches")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], "--high-level-only" in sys.argv[3:])

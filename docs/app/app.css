@@ -133,8 +133,26 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 .error:empty { display: none; }
 
 .saved { margin-top: 8px; }
+
+.direction { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+.direction legend { font-weight: 700; font-size: 1.15rem; margin-bottom: 10px; padding: 0; }
+.segmented { display: flex; flex-wrap: wrap; gap: 8px; }
+.segmented input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.segmented label { border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 18px; font-weight: 700; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
+.segmented input:checked + label { border-color: var(--accent); background: var(--chosen); }
+.segmented input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 3px; }
+#music-curve { margin-bottom: 12px; }
+.curve .path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-dasharray: 2 9; stroke-linecap: round; }
+.curve .stop { fill: var(--accent); }
+.curve .label { fill: var(--soft-ink); font-family: var(--font); font-size: 13px; }
+.tracks { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 12px; counter-reset: track; }
+.tracks li { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 4px 14px; counter-increment: track; }
+.tracks li::before { content: counter(track); grid-row: span 3; width: 36px; height: 36px; border-radius: 50%; background: var(--chosen); display: grid; place-items: center; font-weight: 700; }
+.tracks .title { font-weight: 700; font-size: 1.1rem; overflow-wrap: anywhere; }
+.tracks .artist { color: var(--soft-ink); overflow-wrap: anywhere; }
+.tracks .links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; }
+.tracks .links a, .tracks .links button { font-weight: 700; }
 .saved h2 { font-size: 1.5rem; }
-.soon { color: var(--soft-ink); }
 
 #history-chart { margin-bottom: 24px; }
 .chart { width: 100%; height: auto; display: block; }

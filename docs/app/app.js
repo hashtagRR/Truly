@@ -5,7 +5,7 @@ import * as store from "./store.js";
 import { isMasking } from "./readout.js";
 
 const $ = (id) => document.getElementById(id);
-const VIEWS = ["checkin", "history", "privacy"];
+const VIEWS = ["checkin", "music", "history", "privacy"];
 const TONE_TEXT = {
   bright: "Your expression looked bright.",
   calm: "Your expression looked calm.",
@@ -43,6 +43,7 @@ function show(view) {
     else a.removeAttribute("aria-current");
   });
   if (view === "history") renderHistory();
+  if (view === "music") openMusic();
 }
 
 // Camera check
@@ -143,6 +144,134 @@ function newCheckin() {
   $("checkin-title").scrollIntoView({ block: "start" });
 }
 
+// Music path
+
+const STEPS = 6;
+const SLOW_STEPS = 9;
+const music = { catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set() };
+
+async function openMusic() {
+  const entries = store.load();
+  const entry = entries[entries.length - 1];
+  $("music-needs-checkin").hidden = Boolean(entry);
+  $("music-body").hidden = !entry;
+  if (!entry) return;
+  const status = $("music-status");
+  if (!music.catalogue) {
+    status.textContent = "Loading songs. The first time, this downloads about 1 MB.";
+    try {
+      const lib = await import("./music.js");
+      music.lib = lib;
+      music.catalogue = await lib.loadCatalogue(new URL("./music/catalogue.json", import.meta.url));
+    } catch {
+      status.textContent = "The songs could not be loaded. Please check your connection and try again.";
+      return;
+    }
+  }
+  if (music.entry !== entry.at) {
+    music.entry = entry.at;
+    music.direction = music.lib.defaultDirection(entry.feeling, entry.energy);
+    music.steps = STEPS;
+    $(`dir-${music.direction}`).checked = true;
+    newPath(entry);
+  }
+}
+
+function currentEntry() {
+  const entries = store.load();
+  return entries[entries.length - 1];
+}
+
+function newPath(entry = currentEntry(), keep = []) {
+  const { lib, catalogue } = music;
+  const start = lib.startPoint(entry.feeling, entry.energy, catalogue.stats);
+  const goal = lib.goalPoint(start, music.direction, catalogue.stats);
+  music.points = lib.pathPoints(start, goal, music.steps);
+  music.path = lib.buildPath(catalogue, music.points, { keep });
+  music.skipped = new Set();
+  renderMusic();
+}
+
+function renderCurve() {
+  const { points } = music;
+  const box = $("music-curve");
+  box.replaceChildren();
+  const vs = points.map((p) => p.v);
+  const lo = Math.min(...vs), hi = Math.max(...vs);
+  const W = 640, H = 120, L = 24, R = 24, T = 26, B = 30;
+  const x = (i) => L + (i * (W - L - R)) / Math.max(1, points.length - 1);
+  const y = (v) => (hi - lo < 0.05 ? (T + H - B) / 2 : T + ((hi - v) * (H - T - B)) / (hi - lo));
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("class", "curve chart");
+  svg.setAttribute("role", "img");
+  const label = music.direction === "steady" ? "staying close to how you feel"
+    : music.direction === "calmer" ? "moving step by step towards calmer" : "moving step by step towards brighter";
+  svg.setAttribute("aria-label", `A path of ${points.length} songs, ${label}`);
+  const el = (tag, attrs, text) => {
+    const n = document.createElementNS(ns, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    if (text) n.textContent = text;
+    svg.append(n);
+  };
+  el("polyline", { points: points.map((p, i) => `${x(i)},${y(p.v)}`).join(" "), class: "path" });
+  points.forEach((p, i) => el("circle", { cx: x(i), cy: y(p.v), r: i === 0 || i === points.length - 1 ? 7 : 4, class: "stop" }));
+  el("text", { x: L, y: H - 8, class: "label" }, "where you are");
+  const endLabel = music.direction === "steady" ? "staying with you" : music.direction === "calmer" ? "calmer" : "brighter";
+  el("text", { x: W - R, y: H - 8, "text-anchor": "end", class: "label" }, endLabel);
+  box.append(svg);
+}
+
+function renderMusic() {
+  renderCurve();
+  const list = $("music-list");
+  list.replaceChildren();
+  music.path.forEach((song, i) => {
+    const li = document.createElement("li");
+    const text = document.createElement("div");
+    text.append(
+      Object.assign(document.createElement("div"), { className: "title", textContent: song.title }),
+      Object.assign(document.createElement("div"), { className: "artist", textContent: song.artist }),
+    );
+    const links = Object.assign(document.createElement("div"), { className: "links" });
+    for (const l of music.lib.songLinks(song)) {
+      links.append(Object.assign(document.createElement("a"), { href: l.href, textContent: l.label, target: "_blank", rel: "noopener" }));
+    }
+    const swap = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Not this one" });
+    swap.setAttribute("aria-label", `Choose another song instead of ${song.title}`);
+    swap.addEventListener("click", () => {
+      music.skipped.add(song.id);
+      music.path = music.lib.replaceSong(music.catalogue, music.path, music.points, i, music.skipped);
+      renderMusic();
+      $("music-status").textContent = `Song ${i + 1} changed.`;
+    });
+    links.append(swap);
+    li.append(text, links);
+    list.append(li);
+  });
+  $("music-slower").disabled = music.steps === SLOW_STEPS;
+  if (!music.path.length) $("music-status").textContent = "No songs matched. Please try another direction.";
+}
+
+function setDirection(direction) {
+  music.direction = direction;
+  newPath();
+  $("music-status").textContent = "A new path is ready.";
+}
+
+function slowDown() {
+  music.steps = SLOW_STEPS;
+  newPath(currentEntry(), music.path.slice(0, 1));
+  $("music-status").textContent = `The path now takes ${SLOW_STEPS} smaller steps.`;
+}
+
+function stopMusic() {
+  $("music-list").replaceChildren();
+  $("music-curve").replaceChildren();
+  $("music-status").textContent = "Stopped. You can come back to music any time.";
+}
+
 // History
 
 function renderChart(entries) {
@@ -217,6 +346,12 @@ async function init() {
   $("new-checkin").addEventListener("click", newCheckin);
   $("open-help").addEventListener("click", openHelp);
   document.querySelectorAll("[data-open-help]").forEach((b) => b.addEventListener("click", openHelp));
+
+  document.querySelectorAll('input[name="direction"]').forEach((r) =>
+    r.addEventListener("change", () => setDirection(r.value)));
+  $("music-slower").addEventListener("click", slowDown);
+  $("music-new").addEventListener("click", () => { newPath(); $("music-status").textContent = "A new path is ready."; });
+  $("music-stop").addEventListener("click", stopMusic);
 
   $("export").addEventListener("click", () => {
     store.exportFile();

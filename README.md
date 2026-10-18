@@ -72,10 +72,12 @@ training/kaggle_push.sh face_distill <user> full # after face_teacher finishes
 ## Music catalogue
 
 ```bash
+python music/build_catalogue.py
 python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv data/acousticbrainz/muse_acousticbrainz.jsonl.gz
+python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv data/acousticbrainz/muse_acousticbrainz_highlevel.jsonl.gz --high-level-only
 ```
 
-Adds AcousticBrainz tempo, key, loudness and mood probabilities to MuSe songs by MusicBrainz ID.
+The builder keeps the lyric-free pieces used in music therapy trials (MCUD 1.0), removes anything matching `music/blocklist.txt`, and writes `docs/app/music/catalogue.json`. It needs pandas and openpyxl. The harvester adds AcousticBrainz tempo, key, loudness, mood and instrumental probabilities to MuSe songs by MusicBrainz ID, prepared for extending the catalogue.
 
 ## Licence
 

@@ -29,10 +29,10 @@ The 40 EmoNet-Face categories are mapped to seven expression classes and to vale
 
 | Source | What it provides | Licence | Use in Truly |
 |---|---|---|---|
-| [MuSe](https://zenodo.org/record/4281165) (Akiki and Burghardt, 2021) | Valence, arousal and dominance for about 90,000 songs, with MusicBrainz identifiers | CC BY 4.0 | Position of each song in valence and arousal space |
-| [AcousticBrainz](https://acousticbrainz.org/) (Porter et al., 2015) | Audio descriptors and mood classifier outputs keyed by MusicBrainz identifier | CC0 | Tempo, key, loudness and mood probabilities for MuSe songs |
+| [MuSe](https://zenodo.org/record/4281165) (Akiki and Burghardt, 2021) | Valence, arousal and dominance for about 90,000 songs, with MusicBrainz identifiers | CC BY 4.0 | Song valence and arousal, prepared for extending the catalogue |
+| [AcousticBrainz](https://acousticbrainz.org/) (Porter et al., 2015) | Audio descriptors and mood classifier outputs keyed by MusicBrainz identifier | CC0 | Tempo and classifier outputs, prepared for extending the catalogue |
 | [FMA](https://github.com/mdeff/fma) (Defferrard et al., 2017) | Creative Commons music archive with per-track licences and metadata | Metadata CC BY 4.0; audio per track | Tracks that can be played inside the app |
-| [MCUD 1.0](https://doi.org/10.6084/m9.figshare.30517820.v7) (Du et al., 2026) | Playlists and songs used in randomised controlled trials of music interventions, with clinical and song level annotations | CC BY 4.0 | Reference for comparing generated music paths with clinical playlists |
+| [MCUD 1.0](https://doi.org/10.6084/m9.figshare.30517820.v7) (Du et al., 2026) | Playlists and songs used in randomised controlled trials of music interventions, with clinical and song level annotations | CC BY 4.0 | The music catalogue: lyric-free pieces used in music therapy trials, and the reference for path targets |
 
 ## Local layout
 

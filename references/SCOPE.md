@@ -97,11 +97,11 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 
 ## Music path
 
-- **Catalogue.** MuSe valence and arousal for about 90k songs, joined with AcousticBrainz tempo and mood probabilities through MusicBrainz IDs, plus Creative Commons audio from FMA. The catalogue ships as a local file.
-- **Clinical grounding.** Generated paths are compared with playlists from randomised controlled trials (MCUD 1.0). See [DATASETS.md](DATASETS.md) and [RESEARCH.md](RESEARCH.md).
+- **Catalogue.** Pieces without lyrics that were used in music therapy trials, from MCUD 1.0, with their valence, arousal and tempo. The catalogue ships as one file built by `music/build_catalogue.py`. Songs with lyrics and a wider range of instrumental tracks join once each track's instrumental status or lyrics can be checked.
+- **Clinical grounding.** Every piece comes from a trial playlist, and path targets sit where those playlists sit: calm and moderately positive. See [DATASETS.md](DATASETS.md) and [RESEARCH.md](RESEARCH.md).
 - **Playback.** The app shows links that open the track in the user's own player. It does not stream audio.
-- **Path.** From the current point in valence/energy space to a calmer or brighter target over a set number of tracks. The user can stop, slow down or say "not now" at any step.
-- **Content review.** Tracks that romanticise self-harm or suicide are excluded from every catalogue that ships. The reviewed flag records which tracks a person has checked. Lyrics are not stored.
+- **Path.** Six pieces from the person's current point in valence and arousal towards a target. Calmer mainly lowers energy with a small lift in mood; gently brighter mainly lifts mood with a gentle settling of energy; staying keeps close to how the person feels. Each piece is a small step from the last, tempo changes gradually and no artist repeats. The person can swap a piece, slow down to nine smaller steps, or stop at any time.
+- **Content review.** Tracks that romanticise self-harm or suicide are kept out of every catalogue that ships. The catalogue contains only lyric-free pieces chosen for clinical trials, and an editable blocklist (`music/blocklist.txt`) removes any title or artist that matches. Lyrics are not stored.
 
 ## Safety layer
 

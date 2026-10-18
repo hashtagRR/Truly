@@ -9,3 +9,4 @@ legacy/
 *.parquet
 __pycache__/
 !docs/app/models/*.onnx
+.venv/

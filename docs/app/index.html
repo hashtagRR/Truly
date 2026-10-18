@@ -23,6 +23,7 @@
     </a>
     <nav aria-label="Sections">
       <a href="#checkin" data-view="checkin">Check in</a>
+      <a href="#music" data-view="music">Music</a>
       <a href="#history" data-view="history">History</a>
       <a href="#privacy" data-view="privacy">Privacy</a>
     </nav>
@@ -75,11 +76,40 @@
         <h2>Saved on this device</h2>
         <p id="saved-message"></p>
         <p id="saved-help" hidden>If today feels very hard, you do not have to carry it alone. <button type="button" class="link" data-open-help>See who you can talk to</button>.</p>
-        <p class="soon">Coming next in Truly: music that meets you where you are and moves gently with you.</p>
         <div class="row">
+          <a class="button primary" href="#music">Music for right now</a>
           <button type="button" class="button quiet" id="new-checkin">New check-in</button>
           <a class="button quiet" href="#history">See your history</a>
         </div>
+      </div>
+    </section>
+
+    <section id="view-music" class="view" aria-labelledby="music-title" hidden>
+      <h1 id="music-title">Music for right now</h1>
+      <p class="lead">Chosen the way music therapists do: the first piece sits close to how you feel, and each one after moves a little further. Every piece has no lyrics and was used in a music therapy study.</p>
+
+      <p class="empty" id="music-needs-checkin" hidden>Music follows your check-in. <a href="#checkin">Check in first</a>, then come back here.</p>
+
+      <div id="music-body" hidden>
+        <fieldset class="direction">
+          <legend>Where would you like to go?</legend>
+          <div class="segmented">
+            <input type="radio" name="direction" id="dir-calmer" value="calmer"><label for="dir-calmer">Calmer</label>
+            <input type="radio" name="direction" id="dir-brighter" value="brighter"><label for="dir-brighter">Gently brighter</label>
+            <input type="radio" name="direction" id="dir-steady" value="steady"><label for="dir-steady">Stay where I am</label>
+          </div>
+        </fieldset>
+
+        <div id="music-curve"></div>
+        <p class="status" id="music-status" role="status" aria-live="polite"></p>
+        <ol class="tracks" id="music-list"></ol>
+
+        <div class="row">
+          <button type="button" class="button quiet" id="music-slower">Slow down</button>
+          <button type="button" class="button quiet" id="music-new">New path</button>
+          <button type="button" class="button quiet" id="music-stop">Stop</button>
+        </div>
+        <p class="hint">Songs open in your own music app or browser. Truly does not play or track what you listen to.</p>
       </div>
     </section>
 
