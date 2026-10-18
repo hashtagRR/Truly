@@ -30,6 +30,8 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 |---|---|
 | `docs/` | Project website, published with GitHub Pages |
 | `docs/app/` | The check-in web app: plain HTML, CSS and JavaScript modules, no build step |
+| `docs/app/help/` | Helplines per country, the time zone table and the safety prompt rules ([how to add a country](docs/app/help/README.md)) |
+| `tools/` | Builds the time zone table |
 | `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
 | `models/face/` | Face model card and readout settings |

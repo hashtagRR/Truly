@@ -4,6 +4,7 @@
 // Check-in history, kept only in this browser.
 
 const KEY = "truly.checkins.v1";
+const COUNTRY_KEY = "truly.country.v1";
 
 export function load() {
   try {
@@ -28,8 +29,27 @@ export function add(entry) {
 export function clear() {
   try {
     localStorage.removeItem(KEY);
+    localStorage.removeItem(COUNTRY_KEY);
   } catch {
     // Nothing stored, or storage blocked: nothing to remove.
+  }
+}
+
+// A country the person chose themselves, kept only in this browser.
+export function chosenCountry() {
+  try {
+    return localStorage.getItem(COUNTRY_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function chooseCountry(code) {
+  try {
+    if (code) localStorage.setItem(COUNTRY_KEY, code);
+    else localStorage.removeItem(COUNTRY_KEY);
+  } catch {
+    // Storage blocked: the choice lasts for this visit only.
   }
 }
 

@@ -75,6 +75,11 @@
       <div class="card saved" id="saved" hidden tabindex="-1">
         <h2>Saved on this device</h2>
         <p id="saved-message"></p>
+        <div class="gentle" id="saved-prompt" hidden>
+          <h3>You have had a few low days lately</h3>
+          <p>That is a lot to carry, and you do not have to carry it alone. Talking to someone can help: a friend, a family member, a doctor, or a helpline where someone is ready to listen.</p>
+          <button type="button" class="button primary" data-open-help>See who you can talk to</button>
+        </div>
         <p id="saved-help" hidden>If today feels very hard, you do not have to carry it alone. <button type="button" class="link" data-open-help>See who you can talk to</button>.</p>
         <div class="row">
           <a class="button primary" href="#music">Music for right now</a>
@@ -127,11 +132,12 @@
         <li>Your check-ins are stored only in this browser on this device.</li>
         <li>The camera is off until you start a camera check, and it switches off by itself after a few seconds.</li>
         <li>Camera frames are read into memory, scored on this device and then discarded. No image is ever saved or sent.</li>
-        <li>Truly has no accounts, no analytics and no tracking.</li>
+        <li>To show helplines near you, Truly reads your device's time zone. It never uses your location or IP address, and nothing is sent anywhere. If you choose a country yourself, that choice is kept in this browser.</li>
+        <li>Truly has no accounts, no cookies, no analytics and no tracking.</li>
       </ul>
       <div class="card">
         <h2>Your data</h2>
-        <p>Save a copy of your check-ins, or delete them all from this device.</p>
+        <p>Save a copy of your check-ins, or delete them, and any country you chose, from this device.</p>
         <div class="row">
           <button type="button" class="button quiet" id="export">Download my check-ins</button>
           <button type="button" class="button quiet danger" id="delete">Delete all check-ins</button>
@@ -159,10 +165,15 @@
 
 <dialog id="help" aria-labelledby="help-title">
   <h2 id="help-title">You do not have to go through this alone</h2>
-  <p><strong>If you are in danger right now</strong>, call your local emergency number.</p>
-  <p>To talk to someone, you can find a free, confidential helpline near you, by phone, text or chat.</p>
-  <p><a class="button primary" href="https://findahelpline.com" target="_blank" rel="noopener">Find a helpline</a></p>
-  <p>Talking to a friend, family member or doctor can help too.</p>
+  <p class="emergency" id="help-emergency"><strong>If you are in danger right now</strong>, call your local emergency number.</p>
+  <h3 id="help-country-title">People you can talk to</h3>
+  <ul class="lines" id="help-lines"></ul>
+  <p id="help-fallback"><a href="https://findahelpline.com" target="_blank" rel="noopener">Find a free, confidential helpline near you</a></p>
+  <div class="field country-choice">
+    <label for="help-country">Not the right country? Choose yours</label>
+    <select id="help-country"></select>
+  </div>
+  <p class="hint">Talking to a friend, family member or doctor can help too.</p>
   <form method="dialog"><button class="button quiet">Close</button></form>
 </dialog>
 

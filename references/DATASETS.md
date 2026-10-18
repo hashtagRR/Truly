@@ -34,6 +34,13 @@ The 40 EmoNet-Face categories are mapped to seven expression classes and to vale
 | [FMA](https://github.com/mdeff/fma) (Defferrard et al., 2017) | Creative Commons music archive with per-track licences and metadata | Metadata CC BY 4.0; audio per track | Tracks that can be played inside the app |
 | [MCUD 1.0](https://doi.org/10.6084/m9.figshare.30517820.v7) (Du et al., 2026) | Playlists and songs used in randomised controlled trials of music interventions, with clinical and song level annotations | CC BY 4.0 | The music catalogue: lyric-free pieces used in music therapy trials, and the reference for path targets |
 
+## Safety
+
+| Source | What it provides | Licence | Use in Truly |
+|---|---|---|---|
+| [IANA time zone database](https://www.iana.org/time-zones) | Time zone to country table (`zone.tab`, `backward`) | Public domain | Suggests local helplines from the device's time zone |
+| Helpline services listed in `docs/app/help/helplines.json` | Phone, text and chat contacts, from each service's official website | Contact details as published by each service | Help dialog and gentle prompt |
+
 ## Local layout
 
 Datasets are stored under `data/`, one directory per source, and are not part of the repository. Large sets are loaded directly inside Kaggle notebooks.

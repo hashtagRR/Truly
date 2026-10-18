@@ -3,6 +3,7 @@
 
 import * as store from "./store.js";
 import { isMasking } from "./readout.js";
+import { persistentLow, guessCountry } from "./safety.js";
 
 const $ = (id) => document.getElementById(id);
 const VIEWS = ["checkin", "music", "history", "privacy"];
@@ -13,6 +14,7 @@ const TONE_TEXT = {
 };
 
 let questions = null;
+let help = null;
 let faceTone = null;
 let camera = null;
 
@@ -127,7 +129,9 @@ function saveCheckin(event) {
     message.push(`You said you feel ${labelFor("feeling", feeling).toLowerCase()}, with ${labelFor("energy", energy).toLowerCase()} energy.`);
   }
   $("saved-message").textContent = message.join(" ");
-  $("saved-help").hidden = feeling > 1;
+  const prompt = Boolean(help) && persistentLow(store.load(), help.rules);
+  $("saved-prompt").hidden = !prompt;
+  $("saved-help").hidden = prompt || feeling > 1;
   form.hidden = true;
   $("saved").hidden = false;
   $("saved").focus();
@@ -327,7 +331,92 @@ function renderHistory() {
 
 // Help
 
+async function loadHelp() {
+  const get = (name) => fetch(new URL(`./help/${name}`, import.meta.url)).then((r) => r.json());
+  const [lines, zones, rules] = await Promise.all([get("helplines.json"), get("timezones.json"), get("safety.json")]);
+  let timeZone = null;
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    // No time zone available: fall back to the browser language.
+  }
+  const detected = guessCountry(timeZone, navigator.languages, zones.zones);
+  help = { lines, rules, detected };
+  const select = $("help-country");
+  const codes = Object.keys(lines.countries).sort((a, b) =>
+    lines.countries[a].name.replace(/^the /, "").localeCompare(lines.countries[b].name.replace(/^the /, "")));
+  select.replaceChildren(
+    ...codes.map((c) => new Option(lines.countries[c].name.replace(/^the /, "").replace(/^./, (x) => x.toUpperCase()), c)),
+    new Option("Another country", ""),
+  );
+  select.addEventListener("change", () => {
+    store.chooseCountry(select.value || "other");
+    renderHelp();
+  });
+  renderHelp();
+}
+
+function currentCountry() {
+  const chosen = store.chosenCountry();
+  if (chosen === "other") return null;
+  return chosen || help.detected;
+}
+
+function contactLink(c) {
+  const digits = c.value.replace(/[^0-9+]/g, "");
+  if (c.type === "call") return { href: `tel:${digits}`, label: `Call ${c.value}` };
+  if (c.type === "text") return { href: `sms:${digits}${c.body ? `?body=${encodeURIComponent(c.body)}` : ""}`, label: c.note || `Text ${c.value}` };
+  return { href: c.value, label: c.note || "Chat online", external: true };
+}
+
+function renderHelp() {
+  if (!help) return;
+  const code = currentCountry();
+  const country = code ? help.lines.countries[code] : null;
+  const list = $("help-lines");
+  list.replaceChildren();
+  $("help-country").value = country ? code : "";
+  const em = $("help-emergency");
+  em.replaceChildren(Object.assign(document.createElement("strong"), { textContent: "If you are in danger right now" }));
+  if (country) {
+    const numbers = country.emergency.map((e) => (e.label === "or" ? `or ${e.number}` : `${e.number} (${e.label})`)).join(" ");
+    em.append(`, call ${numbers}.`);
+  } else {
+    em.append(", call your local emergency number.");
+  }
+  $("help-country-title").textContent = country ? `People you can talk to in ${country.name}` : "People you can talk to";
+  for (const line of country ? country.lines : []) {
+    const li = document.createElement("li");
+    const actions = Object.assign(document.createElement("div"), { className: "actions" });
+    line.contact.forEach((c, i) => {
+      const link = contactLink(c);
+      const a = Object.assign(document.createElement("a"), {
+        className: `button ${i === 0 ? "primary" : "quiet"}`, href: link.href, textContent: link.label,
+      });
+      if (link.external) Object.assign(a, { target: "_blank", rel: "noopener" });
+      actions.append(a);
+    });
+    const source = Object.assign(document.createElement("a"), { href: line.source, textContent: "Official website", target: "_blank", rel: "noopener" });
+    li.append(
+      Object.assign(document.createElement("div"), { className: "name", textContent: line.name }),
+      actions,
+      Object.assign(document.createElement("div"), { className: "hours", textContent: line.hours }),
+      Object.assign(document.createElement("div"), { className: "source" }),
+    );
+    li.lastChild.append(source);
+    list.append(li);
+  }
+  const fb = help.lines.fallback;
+  const fallback = $("help-fallback");
+  fallback.replaceChildren(
+    country ? "In another country? " : "",
+    Object.assign(document.createElement("a"), { href: fb.url, textContent: country ? "Find a helpline there" : "Find a free, confidential helpline near you", target: "_blank", rel: "noopener" }),
+    country ? "." : `. ${fb.description}`,
+  );
+}
+
 function openHelp() {
+  renderHelp();
   const dialog = $("help");
   if (typeof dialog.showModal === "function") dialog.showModal();
   else window.open("https://findahelpline.com", "_blank", "noopener");
@@ -361,8 +450,16 @@ async function init() {
   $("delete-no").addEventListener("click", () => { $("delete-confirm").hidden = true; });
   $("delete-yes").addEventListener("click", () => {
     store.clear();
+    renderHelp();
     $("delete-confirm").hidden = true;
     $("data-status").textContent = "All check-ins were deleted from this device.";
+  });
+
+  loadHelp().catch(() => {
+    // Helpline data unavailable: the dialog still shows the emergency advice and the global directory.
+    $("help-fallback").replaceChildren(Object.assign(document.createElement("a"), {
+      href: "https://findahelpline.com", textContent: "Find a free, confidential helpline near you", target: "_blank", rel: "noopener",
+    }));
   });
 
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));

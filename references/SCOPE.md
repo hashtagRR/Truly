@@ -105,11 +105,12 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 
 ## Safety layer
 
-- Shows a gentle prompt to talk to someone when low self-reported mood persists over several check-ins or days. Thresholds live in one config file.
-- Helplines come from a per-country data file with a source link for each entry, plus a link to a global directory such as findahelpline.com.
-- A "need help now" button is visible on every screen.
-- Wording follows published safe messaging guidelines for suicide and mental health content.
+- Shows a gentle prompt to talk to someone when low self-reported mood persists: at least 3 of the 5 most recent check-ins within 14 days report feeling low or very low. The rules live in `docs/app/help/safety.json`.
 - Model output alone never triggers the prompt. Self-report has to be part of it. A raised voice signal lowers the number of low check-ins needed before the prompt appears; it never replaces them.
+- Helplines come from `docs/app/help/helplines.json`, one entry per country with the service's official website for each line and the date the numbers were checked. Countries without an entry see a link to a global directory.
+- The country is guessed from the device's time zone, falling back to the browser language, entirely on the device. No location, IP address or cookie is used. A person can choose another country; that choice is kept in the browser and removed by "Delete all check-ins".
+- A "Need help now" button is visible on every screen, with emergency numbers for the person's country.
+- Wording follows published safe messaging guidelines for suicide and mental health content: warm, hopeful, and never describing methods.
 
 ## Evaluation
 

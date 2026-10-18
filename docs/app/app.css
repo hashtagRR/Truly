@@ -173,6 +173,20 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 dialog { max-width: 520px; width: calc(100% - 32px); border: 0; border-radius: 22px; padding: 26px; background: var(--surface); color: var(--ink); }
 dialog::backdrop { background: rgb(10 14 20 / 0.55); }
 dialog h2 { font-size: 1.45rem; }
+dialog h3 { font-size: 1.1rem; margin: 18px 0 8px; }
+dialog { max-height: calc(100% - 32px); overflow-y: auto; }
+.emergency { background: var(--help-bg); border-radius: 14px; padding: 12px 14px; }
+.lines { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 12px; }
+.lines li { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.lines .name { font-weight: 700; }
+.lines .hours, .lines .source { font-size: 0.95rem; color: var(--soft-ink); }
+.lines .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.lines .actions .button { min-height: 44px; padding: 8px 16px; }
+.country-choice { margin: 8px 0 4px; }
+.country-choice label { font-size: 1rem; }
+select { font: inherit; font-size: 1rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; min-height: 44px; margin-top: 4px; max-width: 100%; }
+.gentle { background: var(--help-bg); border-radius: 16px; padding: 16px 18px; margin: 4px 0 14px; }
+.gentle h3 { margin: 0 0 6px; font-size: 1.2rem; }
 
 footer { border-top: 1px solid var(--line); color: var(--soft-ink); font-size: 1rem; }
 footer .column { padding-block: 24px 40px; }
