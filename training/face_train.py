@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 hashtagRR
 """Train a face expression model on EmoNet-Face and evaluate it on real faces.
 
 Training data: EmoNet-Face Binary (expert yes/no judgements, 40 categories).

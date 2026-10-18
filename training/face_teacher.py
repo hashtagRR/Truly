@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 hashtagRR
 """Score face images with the LAION teacher and save them for distillation.
 
 Teacher: Empathic-Insight-Face-Large (40 MLP heads on SigLIP2 so400m embeddings).

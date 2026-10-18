@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 hashtagRR
 """Fetch AcousticBrainz (CC0) tempo, loudness, key and mood probabilities for MuSe songs.
 
 Usage: python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv \

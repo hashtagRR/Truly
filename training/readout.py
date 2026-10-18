@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 hashtagRR
 """Compare ways of turning 40 EmoNet scores into the 7 FER classes.
 
 Reads the arrays saved by face_probe.py. Rules marked "fixed" use no FER labels.

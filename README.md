@@ -57,3 +57,11 @@ python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv data/acous
 ```
 
 Adds AcousticBrainz tempo, key, loudness and mood probabilities to MuSe songs by MusicBrainz ID.
+
+## Licence
+
+Copyright (C) 2026 hashtagRR.
+
+Truly is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
+
+Datasets and pretrained models used by the project keep their own licences, listed in [docs/DATASETS.md](docs/DATASETS.md).

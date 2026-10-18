@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 hashtagRR
 """Save raw emotion scores from two models for offline readout experiments.
 
 Models: the EfficientNet-B0 trained in truly-face-train, and LAION

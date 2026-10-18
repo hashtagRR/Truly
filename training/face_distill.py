@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 hashtagRR
 """Distil the LAION face teacher into a small on-device model.
 
 Student: EfficientNet-B0, trained to reproduce the teacher's 40 raw scores on

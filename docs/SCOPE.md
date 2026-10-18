@@ -129,7 +129,10 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 6. **Voice signal.** On-device DAM export, threshold tuning, privacy tests, opt-in flow.
 7. **Release.** Contributor guide, interface docs, first tagged release.
 
+## Licence
+
+Code is released under AGPL-3.0-or-later, so every derivative, including one offered as a network service, stays open. This also stops anyone turning Truly into a closed monitoring product.
+
 ## Open decisions
 
-- **Licence.** A permissive licence (Apache-2.0 or MIT) lets anyone build on it, including closed products. A copyleft licence (AGPL-3.0-or-later) keeps every derivative open, which also stops someone turning it into a closed monitoring product.
 - **First countries** for the helplines file.
