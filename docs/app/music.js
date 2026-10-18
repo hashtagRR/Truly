@@ -7,26 +7,30 @@
 
 const LEVELS = [0.08, 0.25, 0.5, 0.75, 0.92];
 const CANDIDATES = 8;
+const POOL = 4;
+const POOL_MARGIN = 0.25;
 const CONTINUITY = 0.35;
 const BACKWARD = 1.0;
 
-export async function loadCatalogue(url) {
-  const data = await fetch(url).then((r) => r.json());
-  return makeCatalogue(data);
+export async function loadCatalogue(base) {
+  const data = await fetch(new URL("tracks.json", base)).then((r) => r.json());
+  return makeCatalogue(data, base);
 }
 
-export function makeCatalogue(data) {
-  const at = Object.fromEntries(data.fields.map((f, i) => [f, i]));
-  const songs = data.songs.map((row, id) => ({
+export function makeCatalogue(data, base) {
+  const songs = data.tracks.map((t, id) => ({
     id,
-    title: row[at.title],
-    artist: row[at.artist],
-    valence: row[at.valence],
-    arousal: row[at.arousal],
-    bpm: row[at.bpm],
-    spotify: row[at.spotify],
-    youtube: row[at.youtube],
-    clinical: row[at.clinical] === 1,
+    title: t.title,
+    composer: t.composer,
+    artist: t.performer,
+    valence: t.valence,
+    arousal: t.arousal,
+    bpm: t.bpm,
+    seconds: t.seconds,
+    audio: new URL(t.audio, base).href,
+    licence: t.licence,
+    licenceUrl: t.licence_url,
+    source: t.source,
   }));
   const v = songs.map((s) => s.valence).sort((a, b) => a - b);
   const a = songs.map((s) => s.arousal).sort((a, b) => a - b);
@@ -99,7 +103,6 @@ function pick(catalogue, point, prev, avoid, rng, heading = null) {
       }
     }
     if (prev?.bpm && s.bpm) d += 0.3 * ((s.bpm - prev.bpm) / 30) ** 2;
-    if (s.clinical) d -= 0.05;
     if (scored.length < CANDIDATES) {
       scored.push([d, s]);
       scored.sort((x, y) => x[0] - y[0]);
@@ -109,13 +112,15 @@ function pick(catalogue, point, prev, avoid, rng, heading = null) {
     }
   }
   if (!scored.length) return null;
-  const weights = scored.map((_, rank) => 1 / (1 + rank));
+  // Vary only among pieces nearly as close as the best match.
+  const pool = scored.filter(([d], rank) => rank < POOL && d <= scored[0][0] + POOL_MARGIN);
+  const weights = pool.map((_, rank) => 1 / (1 + rank) ** 2);
   let r = rng() * weights.reduce((a, b) => a + b, 0);
-  for (let i = 0; i < scored.length; i++) {
+  for (let i = 0; i < pool.length; i++) {
     r -= weights[i];
-    if (r <= 0) return scored[i][1];
+    if (r <= 0) return pool[i][1];
   }
-  return scored[0][1];
+  return pool[0][1];
 }
 
 // Builds a path of songs, one per point, never repeating a song or an artist.
@@ -139,7 +144,14 @@ export function buildPath(catalogue, points, { rng = Math.random, keep = [] } = 
     avoid.ids.add(song.id);
     avoid.artists.add(song.artist);
   }
-  return path;
+  return forwardOrder(path, keep.length, heading, catalogue.stats);
+}
+
+// Orders the newly chosen pieces along the path's direction so it only moves forward.
+function forwardOrder(path, fixed, heading, stats) {
+  if (!heading) return path;
+  const along = (s) => (s.valence / stats.sdV) * heading.v + (s.arousal / stats.sdA) * heading.a;
+  return [...path.slice(0, fixed), ...path.slice(fixed).sort((x, y) => along(x) - along(y))];
 }
 
 // Swaps one song for another close to the same point.
@@ -154,12 +166,4 @@ export function replaceSong(catalogue, path, points, index, skipped, rng = Math.
   const next = [...path];
   next[index] = song;
   return next;
-}
-
-export function songLinks(song) {
-  const links = [];
-  if (song.spotify) links.push({ label: "Open in Spotify", href: `https://open.spotify.com/track/${song.spotify}` });
-  const query = encodeURIComponent(`${song.artist} ${song.title}`);
-  links.push({ label: "Find on YouTube", href: song.youtube || `https://www.youtube.com/results?search_query=${query}` });
-  return links;
 }

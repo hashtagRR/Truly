@@ -32,7 +32,9 @@ The 40 EmoNet-Face categories are mapped to seven expression classes and to vale
 | [MuSe](https://zenodo.org/record/4281165) (Akiki and Burghardt, 2021) | Valence, arousal and dominance for about 90,000 songs, with MusicBrainz identifiers | CC BY 4.0 | Song valence and arousal, prepared for extending the catalogue |
 | [AcousticBrainz](https://acousticbrainz.org/) (Porter et al., 2015) | Audio descriptors and mood classifier outputs keyed by MusicBrainz identifier | CC0 | Tempo and classifier outputs, prepared for extending the catalogue |
 | [FMA](https://github.com/mdeff/fma) (Defferrard et al., 2017) | Creative Commons music archive with per-track licences and metadata | Metadata CC BY 4.0; audio per track | Tracks that can be played inside the app |
-| [MCUD 1.0](https://doi.org/10.6084/m9.figshare.30517820.v7) (Du et al., 2026) | Playlists and songs used in randomised controlled trials of music interventions, with clinical and song level annotations | CC BY 4.0 | The music catalogue: lyric-free pieces used in music therapy trials, and the reference for path targets |
+| [MCUD 1.0](https://doi.org/10.6084/m9.figshare.30517820.v7) (Du et al., 2026) | Playlists and songs used in randomised controlled trials of music interventions, with clinical and song level annotations | CC BY 4.0 | Which works to include, their valence, arousal and tempo, and the reference for path targets |
+
+| Recordings on [Wikimedia Commons](https://commons.wikimedia.org) | Freely licensed recordings of the trial works, by the performers listed in [Truly-music credits](https://github.com/hashtagRR/Truly-music/blob/main/CREDITS.md) | Public domain, CC0, CC BY or CC BY-SA, per recording | The music played in the app |
 
 ## Safety
 

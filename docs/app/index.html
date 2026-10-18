@@ -91,7 +91,7 @@
 
     <section id="view-music" class="view" aria-labelledby="music-title" hidden>
       <h1 id="music-title">Music for right now</h1>
-      <p class="lead">Chosen the way music therapists do: the first piece sits close to how you feel, and each one after moves a little further. Every piece has no lyrics and was used in a music therapy study.</p>
+      <p class="lead">Chosen the way music therapists do: the first piece sits close to how you feel, and each one after moves a little further. Every piece is a work used in music therapy studies, and it plays right here.</p>
 
       <p class="empty" id="music-needs-checkin" hidden>Music follows your check-in. <a href="#checkin">Check in first</a>, then come back here.</p>
 
@@ -106,6 +106,24 @@
         </fieldset>
 
         <div id="music-curve"></div>
+
+        <div class="player card" id="player">
+          <div class="player-head">
+            <div>
+              <div class="np-label" id="np-label">Ready when you are</div>
+              <div class="np-title" id="np-title"></div>
+              <div class="np-credit" id="np-credit"></div>
+            </div>
+            <button type="button" class="button primary" id="np-toggle">Play the path</button>
+          </div>
+          <div class="np-bar">
+            <progress id="np-progress" max="1" value="0" aria-label="Progress through this piece"></progress>
+            <span class="np-time" id="np-time">0:00</span>
+          </div>
+          <button type="button" class="link" id="np-next" hidden>Next piece</button>
+          <audio id="np-audio" preload="none"></audio>
+        </div>
+
         <p class="status" id="music-status" role="status" aria-live="polite"></p>
         <ol class="tracks" id="music-list"></ol>
 
@@ -114,7 +132,7 @@
           <button type="button" class="button quiet" id="music-new">New path</button>
           <button type="button" class="button quiet" id="music-stop">Stop</button>
         </div>
-        <p class="hint">Songs open in your own music app or browser. Truly does not play or track what you listen to.</p>
+        <p class="hint">Music plays from Truly's own site. No streaming service is involved, and nothing about your listening is recorded. Recordings are freely licensed; credits are shown with each piece.</p>
       </div>
     </section>
 

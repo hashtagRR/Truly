@@ -97,11 +97,11 @@ Model training lives in a separate Python package in the same repo, run on Kaggl
 
 ## Music path
 
-- **Catalogue.** Pieces without lyrics that were used in music therapy trials, from MCUD 1.0, with their valence, arousal and tempo. The catalogue ships as one file built by `music/build_catalogue.py`. Songs with lyrics and a wider range of instrumental tracks join once each track's instrumental status or lyrics can be checked.
-- **Clinical grounding.** Every piece comes from a trial playlist, and path targets sit where those playlists sit: calm and moderately positive. See [DATASETS.md](DATASETS.md) and [RESEARCH.md](RESEARCH.md).
-- **Playback.** The app shows links that open the track in the user's own player. It does not stream audio.
-- **Path.** Six pieces from the person's current point in valence and arousal towards a target. Calmer mainly lowers energy with a small lift in mood; gently brighter mainly lifts mood with a gentle settling of energy; staying keeps close to how the person feels. Each piece is a small step from the last, tempo changes gradually and no artist repeats. The person can swap a piece, slow down to nine smaller steps, or stop at any time.
-- **Content review.** Tracks that romanticise self-harm or suicide are kept out of every catalogue that ships. The catalogue contains only lyric-free pieces chosen for clinical trials, and an editable blocklist (`music/blocklist.txt`) removes any title or artist that matches. Lyrics are not stored.
+- **Catalogue.** Freely licensed recordings of public domain works that were used in music therapy trials (MCUD 1.0). Each recording takes the valence, arousal and tempo of the trial entries it stands for. Recordings and their credits live in the [Truly-music](https://github.com/hashtagRR/Truly-music) repository, listed in `music/recordings.json` and prepared by `music/prepare_audio.py`.
+- **Clinical grounding.** Every piece is a work from a trial playlist, and path targets sit where those playlists sit: calm and moderately positive. See [DATASETS.md](DATASETS.md) and [RESEARCH.md](RESEARCH.md).
+- **Playback.** Pieces play inside the app from Truly's own site, with each recording's credits and licence shown as it plays. No streaming service is involved and nothing about listening is recorded.
+- **Path.** Six pieces from the person's current point in valence and arousal towards a target. Calmer mainly lowers energy with a small lift in mood; gently brighter mainly lifts mood with a gentle settling of energy; staying keeps close to how the person feels. Each piece is a small step from the last, tempo changes gradually and no performer repeats. The person can swap a piece, slow down to nine smaller steps, or stop at any time.
+- **Content review.** Every recording is chosen by hand: a lyric-free, public domain composition, a recording whose licence allows redistribution worldwide, and the work and movement checked against the trial entry.
 
 ## Safety layer
 

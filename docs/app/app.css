@@ -152,6 +152,17 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 .tracks .artist { color: var(--soft-ink); overflow-wrap: anywhere; }
 .tracks .links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; }
 .tracks .links a, .tracks .links button { font-weight: 700; }
+.tracks .credit { font-size: 0.9rem; color: var(--soft-ink); overflow-wrap: anywhere; }
+.tracks li.playing { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+.player { margin-bottom: 16px; display: grid; gap: 10px; }
+.player-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.player-head > div { min-width: 0; flex: 1 1 220px; }
+.np-label { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+.np-title { font-weight: 700; font-size: 1.15rem; overflow-wrap: anywhere; }
+.np-credit { font-size: 0.9rem; color: var(--soft-ink); overflow-wrap: anywhere; }
+.np-bar { display: flex; align-items: center; gap: 12px; }
+.np-bar progress { flex: 1; height: 10px; accent-color: var(--accent); }
+.np-time { font-variant-numeric: tabular-nums; color: var(--soft-ink); font-size: 0.95rem; min-width: 3.2em; text-align: right; }
 .saved h2 { font-size: 1.5rem; }
 
 #history-chart { margin-bottom: 24px; }

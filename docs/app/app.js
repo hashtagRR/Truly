@@ -152,7 +152,8 @@ function newCheckin() {
 
 const STEPS = 6;
 const SLOW_STEPS = 9;
-const music = { catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set() };
+const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
+const music = { catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1 };
 
 async function openMusic() {
   const entries = store.load();
@@ -162,13 +163,14 @@ async function openMusic() {
   if (!entry) return;
   const status = $("music-status");
   if (!music.catalogue) {
-    status.textContent = "Loading songs. The first time, this downloads about 1 MB.";
+    status.textContent = "Loading the music list.";
     try {
       const lib = await import("./music.js");
       music.lib = lib;
-      music.catalogue = await lib.loadCatalogue(new URL("./music/catalogue.json", import.meta.url));
+      music.catalogue = await lib.loadCatalogue(MUSIC_BASE);
+      status.textContent = "";
     } catch {
-      status.textContent = "The songs could not be loaded. Please check your connection and try again.";
+      status.textContent = "The music could not be loaded. Please check your connection and try again.";
       return;
     }
   }
@@ -193,6 +195,7 @@ function newPath(entry = currentEntry(), keep = []) {
   music.points = lib.pathPoints(start, goal, music.steps);
   music.path = lib.buildPath(catalogue, music.points, { keep });
   music.skipped = new Set();
+  resetPlayer();
   renderMusic();
 }
 
@@ -227,35 +230,110 @@ function renderCurve() {
   box.append(svg);
 }
 
+function credit(song) {
+  return `${song.composer}. Performed by ${song.artist}.`;
+}
+
+function formatTime(sec) {
+  if (!Number.isFinite(sec)) return "0:00";
+  return `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+}
+
 function renderMusic() {
   renderCurve();
   const list = $("music-list");
   list.replaceChildren();
   music.path.forEach((song, i) => {
     const li = document.createElement("li");
+    if (i === music.playing) li.className = "playing";
     const text = document.createElement("div");
+    const licence = Object.assign(document.createElement("a"), { href: song.licenceUrl, textContent: song.licence, target: "_blank", rel: "noopener" });
+    const source = Object.assign(document.createElement("a"), { href: song.source, textContent: "source", target: "_blank", rel: "noopener" });
+    const creditLine = Object.assign(document.createElement("div"), { className: "credit" });
+    creditLine.append(`${credit(song)} `, licence, ", ", source, ".");
     text.append(
       Object.assign(document.createElement("div"), { className: "title", textContent: song.title }),
-      Object.assign(document.createElement("div"), { className: "artist", textContent: song.artist }),
+      Object.assign(document.createElement("div"), { className: "artist", textContent: `${formatTime(song.seconds)}` }),
+      creditLine,
     );
     const links = Object.assign(document.createElement("div"), { className: "links" });
-    for (const l of music.lib.songLinks(song)) {
-      links.append(Object.assign(document.createElement("a"), { href: l.href, textContent: l.label, target: "_blank", rel: "noopener" }));
-    }
+    const play = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: i === music.playing ? "Playing" : "Play" });
+    play.setAttribute("aria-label", `Play ${song.title}`);
+    play.addEventListener("click", () => playAt(i));
     const swap = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Not this one" });
-    swap.setAttribute("aria-label", `Choose another song instead of ${song.title}`);
+    swap.setAttribute("aria-label", `Choose another piece instead of ${song.title}`);
     swap.addEventListener("click", () => {
       music.skipped.add(song.id);
+      const was = music.playing === i;
       music.path = music.lib.replaceSong(music.catalogue, music.path, music.points, i, music.skipped);
-      renderMusic();
-      $("music-status").textContent = `Song ${i + 1} changed.`;
+      if (was) playAt(i);
+      else renderMusic();
+      $("music-status").textContent = `Piece ${i + 1} changed.`;
     });
-    links.append(swap);
+    links.append(play, swap);
     li.append(text, links);
     list.append(li);
   });
   $("music-slower").disabled = music.steps === SLOW_STEPS;
-  if (!music.path.length) $("music-status").textContent = "No songs matched. Please try another direction.";
+  if (!music.path.length) $("music-status").textContent = "No pieces matched. Please try another direction.";
+}
+
+// Player
+
+function playAt(i) {
+  const song = music.path[i];
+  if (!song) return;
+  const audio = $("np-audio");
+  music.playing = i;
+  audio.src = song.audio;
+  audio.play().catch(() => { $("music-status").textContent = "The piece could not start. Please press play again."; });
+  $("np-label").textContent = `Piece ${i + 1} of ${music.path.length}`;
+  $("np-title").textContent = song.title;
+  $("np-credit").textContent = `${credit(song)} ${song.licence}.`;
+  $("np-next").hidden = i >= music.path.length - 1;
+  renderMusic();
+}
+
+function togglePlay() {
+  const audio = $("np-audio");
+  if (music.playing < 0) return playAt(0);
+  if (audio.paused) audio.play().catch(() => {});
+  else audio.pause();
+}
+
+function resetPlayer() {
+  const audio = $("np-audio");
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  music.playing = -1;
+  $("np-label").textContent = "Ready when you are";
+  $("np-title").textContent = "";
+  $("np-credit").textContent = "";
+  $("np-progress").value = 0;
+  $("np-time").textContent = "0:00";
+  $("np-toggle").textContent = "Play the path";
+  $("np-next").hidden = true;
+}
+
+function wirePlayer() {
+  const audio = $("np-audio");
+  audio.addEventListener("play", () => { $("np-toggle").textContent = "Pause"; });
+  audio.addEventListener("pause", () => { if (music.playing >= 0) $("np-toggle").textContent = "Play"; });
+  audio.addEventListener("timeupdate", () => {
+    if (audio.duration) $("np-progress").value = audio.currentTime / audio.duration;
+    $("np-time").textContent = formatTime(audio.currentTime);
+  });
+  audio.addEventListener("ended", () => {
+    if (music.playing < music.path.length - 1) playAt(music.playing + 1);
+    else {
+      $("music-status").textContent = "That is the end of this path. Take a moment before you go on.";
+      resetPlayer();
+      renderMusic();
+    }
+  });
+  $("np-toggle").addEventListener("click", togglePlay);
+  $("np-next").addEventListener("click", () => playAt(music.playing + 1));
 }
 
 function setDirection(direction) {
@@ -271,6 +349,7 @@ function slowDown() {
 }
 
 function stopMusic() {
+  resetPlayer();
   $("music-list").replaceChildren();
   $("music-curve").replaceChildren();
   $("music-status").textContent = "Stopped. You can come back to music any time.";
@@ -441,6 +520,7 @@ async function init() {
   $("music-slower").addEventListener("click", slowDown);
   $("music-new").addEventListener("click", () => { newPath(); $("music-status").textContent = "A new path is ready."; });
   $("music-stop").addEventListener("click", stopMusic);
+  wirePlayer();
 
   $("export").addEventListener("click", () => {
     store.exportFile();

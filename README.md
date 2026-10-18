@@ -37,7 +37,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 | `models/face/` | Face model card and readout settings |
 | `training/` | Face model scripts, run as Kaggle kernels |
 | `training/kernels/` | Kaggle kernel metadata templates |
-| `music/` | Music catalogue building |
+| `music/` | Music selection and audio preparation |
 
 `data/`, `runs/`, `build/` and `legacy/` hold downloaded datasets, run outputs, generated files and the original prototype. They are not tracked.
 
@@ -71,15 +71,15 @@ training/kaggle_push.sh face_distill <user> full # after face_teacher finishes
 
 `face_probe` and `face_distill` read the output of an earlier kernel by the same user, so run the kernels in the order listed above.
 
-## Music catalogue
+## Music
+
+The music plays from the [Truly-music](https://github.com/hashtagRR/Truly-music) repository, served by GitHub Pages on the same site as the app. `music/recordings.json` lists the recordings; `music/prepare_audio.py` downloads them from Wikimedia Commons, converts them with ffmpeg and writes the audio, `tracks.json` and the credits into a clone of that repository:
 
 ```bash
-python music/build_catalogue.py
-python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv data/acousticbrainz/muse_acousticbrainz.jsonl.gz
-python3 -I music/acousticbrainz_harvest.py data/muse/muse_dataset.csv data/acousticbrainz/muse_acousticbrainz_highlevel.jsonl.gz --high-level-only
+python music/prepare_audio.py ../Truly-music --ffmpeg /path/to/ffmpeg
 ```
 
-The builder keeps the lyric-free pieces used in music therapy trials (MCUD 1.0), removes anything matching `music/blocklist.txt`, and writes `docs/app/music/catalogue.json`. It needs pandas and openpyxl. The harvester adds AcousticBrainz tempo, key, loudness, mood and instrumental probabilities to MuSe songs by MusicBrainz ID, prepared for extending the catalogue.
+It needs pandas and openpyxl. `music/works.json` records which trial works are public domain and which MCUD entries each one stands for. `music/acousticbrainz_harvest.py` collects song features for extending the catalogue.
 
 ## Licence
 
