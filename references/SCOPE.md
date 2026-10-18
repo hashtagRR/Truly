@@ -111,4 +111,4 @@ Code is released under AGPL-3.0-or-later. Free software licences allow anyone to
 3. Check-in app.
 4. Music paths with self-hosted recordings and an in-app player.
 5. Scope boundary, optional history and recommendation explanations.
-6. A larger catalogue, listener preferences such as instruments and tempo, and first tagged release.
+6. First tagged release, then voice input and a larger catalogue. Planned work is listed in [ROADMAP.md](../ROADMAP.md).

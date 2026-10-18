@@ -21,6 +21,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 - [Scope](references/SCOPE.md): the project's purpose, what it never does, the feature acceptance rule, privacy and milestones.
 - [Contributing](CONTRIBUTING.md): how to propose changes and the scope check every pull request answers.
+- [Roadmap](ROADMAP.md): planned work for the next releases.
 - [Research basis](references/RESEARCH.md): the research behind how music is chosen, with references.
 - [Data and models](references/DATASETS.md): every dataset and model Truly uses, its licence and how to cite it.
 - [Related work](references/RELATED_WORK.md): the projects and studies Truly builds on.
