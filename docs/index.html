@@ -127,10 +127,20 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .skip:focus { top: 12px; }
 
-.help { background: var(--help-bg); font-size: 1rem; line-height: 1.5; }
-.help .column { padding-block: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
-.help strong { font-weight: 700; }
-.help a { color: var(--ink); font-weight: 700; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--page); }
+.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--page);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 10px; }
+.topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.topbar .button { min-height: 44px; padding: 8px 16px; font-size: 1rem; }
+.help-link { background: var(--help-bg); color: var(--ink); border-color: var(--sun); }
+.narrow { display: none; }
+html { scroll-padding-top: 80px; }
 
 /* Hero */
 .hero {
@@ -138,9 +148,9 @@ a:hover { text-decoration-thickness: 2px; }
   overflow: hidden;
 }
 .hero .column { padding-block: 28px 0; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.25rem; letter-spacing: 0.01em; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.25rem; letter-spacing: 0.01em; color: var(--ink); text-decoration: none; }
 .brand-mark { width: 30px; height: 30px; flex: none; }
-.hero-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: end; padding-top: 48px; }
+.hero-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: end; padding-top: 28px; }
 .hero h1 {
   font-size: clamp(2.4rem, 6.2vw, 4rem);
   line-height: 1.08;
@@ -238,6 +248,14 @@ footer { border-top: 1px solid var(--line); color: var(--soft-ink); font-size: 1
 footer .column { padding-block: 36px 48px; display: grid; gap: 8px; }
 footer p { margin: 0; }
 
+@media (max-width: 520px) {
+  .wide { display: none; }
+  .narrow { display: inline; }
+  .topbar .button { padding: 8px 12px; }
+}
+@media (max-width: 360px) {
+  .brand-name { display: none; }
+}
 @media (max-width: 720px) {
   .hero-body { grid-template-columns: 1fr; padding-top: 32px; gap: 8px; }
   .actions { padding-bottom: 8px; }
@@ -249,19 +267,21 @@ footer p { margin: 0; }
 
 <a class="skip" href="#main">Skip to main content</a>
 
-<div class="help gutter" role="region" aria-label="Help now">
-  <div class="column">
-    <strong>Need to talk to someone now?</strong>
-    <span><a href="https://findahelpline.com">Find a free, confidential helpline near you</a>, or call your local emergency number.</span>
-  </div>
-</div>
-
-<header class="hero gutter">
-  <div class="column">
-    <div class="brand">
+<header class="topbar gutter">
+  <div class="column topbar-inner">
+    <a class="brand" href="#top" aria-label="Truly, back to top">
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="9" class="sun"/><path d="M2 24c6-4 10-4 14-1s8 3 14-1v8H2z" class="dot"/></svg>
-      Truly
-    </div>
+      <span class="brand-name">Truly</span>
+    </a>
+    <nav class="topbar-actions" aria-label="Quick actions">
+      <a class="button help-link" href="https://findahelpline.com"><span class="wide">Need help now</span><span class="narrow">Need help</span></a>
+      <a class="button primary" href="app/"><span class="wide">Try the check-in</span><span class="narrow">Check in</span></a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero gutter" id="top">
+  <div class="column">
 
     <div class="hero-body">
       <div>
@@ -296,7 +316,7 @@ footer p { margin: 0; }
       </svg>
     </div>
   </div>
-</header>
+</div>
 
 <main id="main">
 
