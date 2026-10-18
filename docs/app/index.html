@@ -1,0 +1,140 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 hashtagRR -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Truly check-in</title>
+<meta name="description" content="A private daily check-in. Everything stays on your device.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="app.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to main content</a>
+
+<header class="bar gutter">
+  <div class="column bar-inner">
+    <a class="brand" href="../">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="9" class="sun"/><path d="M2 24c6-4 10-4 14-1s8 3 14-1v8H2z" class="hill"/></svg>
+      Truly
+    </a>
+    <nav aria-label="Sections">
+      <a href="#checkin" data-view="checkin">Check in</a>
+      <a href="#history" data-view="history">History</a>
+      <a href="#privacy" data-view="privacy">Privacy</a>
+    </nav>
+    <button class="help-button" type="button" id="open-help">Need help now</button>
+  </div>
+</header>
+
+<main id="main" class="gutter">
+  <div class="column">
+
+    <section id="view-checkin" class="view" aria-labelledby="checkin-title">
+      <h1 id="checkin-title">Check in</h1>
+      <p class="lead">A minute for yourself. There are no wrong answers.</p>
+
+      <form id="checkin-form" novalidate>
+        <fieldset class="scale" id="feeling-group">
+          <legend id="feeling-question"></legend>
+          <div class="options" id="feeling-options"></div>
+        </fieldset>
+
+        <fieldset class="scale" id="energy-group">
+          <legend id="energy-question"></legend>
+          <div class="options" id="energy-options"></div>
+        </fieldset>
+
+        <div class="field">
+          <label for="note" id="note-label"></label>
+          <p class="hint" id="note-hint"></p>
+          <textarea id="note" name="note" rows="3" maxlength="1000"></textarea>
+        </div>
+
+        <div class="camera card" id="camera">
+          <h2>Camera check <span class="optional">optional</span></h2>
+          <p>Truly can look at your expression for a few seconds and tell you if it differs from how you feel. The video stays on this device and is never saved.</p>
+          <div class="camera-stage" id="camera-stage" hidden>
+            <video id="camera-video" playsinline muted aria-label="Your camera preview"></video>
+          </div>
+          <p class="status" id="camera-status" role="status" aria-live="polite"></p>
+          <div class="row">
+            <button type="button" class="button quiet" id="camera-start">Start camera check</button>
+            <button type="button" class="button quiet" id="camera-stop" hidden>Stop camera</button>
+          </div>
+        </div>
+
+        <p class="error" id="form-error" role="alert"></p>
+        <button type="submit" class="button primary big">Save check-in</button>
+      </form>
+
+      <div class="card saved" id="saved" hidden tabindex="-1">
+        <h2>Saved on this device</h2>
+        <p id="saved-message"></p>
+        <p id="saved-help" hidden>If today feels very hard, you do not have to carry it alone. <button type="button" class="link" data-open-help>See who you can talk to</button>.</p>
+        <p class="soon">Coming next in Truly: music that meets you where you are and moves gently with you.</p>
+        <div class="row">
+          <button type="button" class="button quiet" id="new-checkin">New check-in</button>
+          <a class="button quiet" href="#history">See your history</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-history" class="view" aria-labelledby="history-title" hidden>
+      <h1 id="history-title">Your history</h1>
+      <p class="lead">Your recent check-ins, newest first. They are stored only in this browser.</p>
+      <div id="history-chart"></div>
+      <ol class="entries" id="history-list"></ol>
+      <p class="empty" id="history-empty">No check-ins yet. <a href="#checkin">Start your first one</a>.</p>
+    </section>
+
+    <section id="view-privacy" class="view" aria-labelledby="privacy-title" hidden>
+      <h1 id="privacy-title">Privacy</h1>
+      <ul class="promise">
+        <li>Your check-ins are stored only in this browser on this device.</li>
+        <li>The camera is off until you start a camera check, and it switches off by itself after a few seconds.</li>
+        <li>Camera frames are read into memory, scored on this device and then discarded. No image is ever saved or sent.</li>
+        <li>Truly has no accounts, no analytics and no tracking.</li>
+      </ul>
+      <div class="card">
+        <h2>Your data</h2>
+        <p>Save a copy of your check-ins, or delete them all from this device.</p>
+        <div class="row">
+          <button type="button" class="button quiet" id="export">Download my check-ins</button>
+          <button type="button" class="button quiet danger" id="delete">Delete all check-ins</button>
+        </div>
+        <div class="confirm" id="delete-confirm" hidden>
+          <p>Delete every check-in on this device? This cannot be undone.</p>
+          <div class="row">
+            <button type="button" class="button primary" id="delete-yes">Yes, delete everything</button>
+            <button type="button" class="button quiet" id="delete-no">Keep my check-ins</button>
+          </div>
+        </div>
+        <p class="status" id="data-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="gutter">
+  <div class="column">
+    <p>Truly is an early version in development. It does not replace professional care.</p>
+    <p><a href="../">About Truly</a> &middot; <a href="https://github.com/hashtagRR/Truly">Source code</a> &middot; <a href="https://github.com/hashtagRR/Truly/blob/main/models/face/MODEL_CARD.md">Face model card</a></p>
+  </div>
+</footer>
+
+<dialog id="help" aria-labelledby="help-title">
+  <h2 id="help-title">You do not have to go through this alone</h2>
+  <p><strong>If you are in danger right now</strong>, call your local emergency number.</p>
+  <p>To talk to someone, you can find a free, confidential helpline near you, by phone, text or chat.</p>
+  <p><a class="button primary" href="https://findahelpline.com" target="_blank" rel="noopener">Find a helpline</a></p>
+  <p>Talking to a friend, family member or doctor can help too.</p>
+  <form method="dialog"><button class="button quiet">Close</button></form>
+</dialog>
+
+</body>
+</html>

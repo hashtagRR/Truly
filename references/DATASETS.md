@@ -13,6 +13,8 @@ Truly is built on openly shared datasets and models. This page lists each one, w
 | [CREMA-D](https://github.com/CheyneyComputerScience/CREMA-D) (Cao et al., 2014) | Audio-visual recordings of 91 actors with crowd-sourced emotion ratings, including ratings of the video alone | ODbL 1.0, contents DbCL 1.0 | Calibration and evaluation on real faces, split by actor |
 | [FER-2013](https://www.kaggle.com/datasets/deadskull7/fer2013) (Goodfellow et al., 2015) and [FER+](https://github.com/microsoft/FERPlus) labels (Barsoum et al., 2016) | Facial expression images with seven class labels, and ten-annotator relabelling | FER+ labels MIT; images as distributed on Kaggle | Evaluation only |
 | [EfficientNet-B0](https://huggingface.co/timm/efficientnet_b0.ra_in1k) (Tan and Le, 2019) | Compact image model architecture with pretrained weights | Apache-2.0 | Base of the on-device face model |
+| [Ultra-Light-Fast-Generic-Face-Detector-1MB](https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB) | Small face detector (RFB-320) | MIT | Finds the face in camera frames before the expression model runs |
+| [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) | Runs ONNX models in the browser with WebAssembly | MIT | Runs both face models on the user's device |
 
 The 40 EmoNet-Face categories are mapped to seven expression classes and to valence and arousal in [mappings/emonet_categories.json](../mappings/emonet_categories.json).
 

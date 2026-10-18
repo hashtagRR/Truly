@@ -29,6 +29,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 | Path | Contents |
 |---|---|
 | `docs/` | Project website, published with GitHub Pages |
+| `docs/app/` | The check-in web app: plain HTML, CSS and JavaScript modules, no build step |
 | `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
 | `models/face/` | Face model card and readout settings |
@@ -37,6 +38,10 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 | `music/` | Music catalogue building |
 
 `data/`, `runs/`, `build/` and `legacy/` hold downloaded datasets, run outputs, generated files and the original prototype. They are not tracked.
+
+## Check-in app
+
+The app runs entirely in the browser at [hashtagrr.github.io/Truly/app/](https://hashtagrr.github.io/Truly/app/). Check-ins are stored in the browser's local storage. The optional camera check finds the face with UltraFace and reads its expression with the Truly face model, both through ONNX Runtime Web, so no image leaves the device. To run it locally, serve the `docs/` folder with any static file server, for example `python3 -m http.server -d docs`, and open `/app/`. The check-in questions are in `docs/app/checkin.json`.
 
 ## Face model pipeline
 
