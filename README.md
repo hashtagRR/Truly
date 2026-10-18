@@ -13,20 +13,21 @@ It never diagnoses, never predicts risk, and runs on the user's device.
 - **Voice carries a measurable signal.** Reviews of speech in depression report consistent acoustic changes and discrimination between people with and without depression with AUCs from 0.71 to 0.93 (Cummins et al., 2015; Low et al., 2020; Briganti and Lechien, 2025).
 - **Music helps, step by step.** Music therapy provides short-term benefits for people with depression (Aalbers et al., 2017), and music chosen by the iso principle, matching the current mood before moving towards a better one, modulates affective state (Starcke and von Georgi, 2024).
 
-Full references are in [docs/RESEARCH.md](docs/RESEARCH.md).
+Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 ## Documents
 
-- [Scope](docs/SCOPE.md): what the tool does and does not do, the decision rules for each signal, privacy and safety requirements, milestones.
-- [Research basis](docs/RESEARCH.md): the published research behind each design choice, with references.
-- [Data and models](docs/DATASETS.md): every dataset and model Truly uses, its licence and how to cite it.
-- [Related work](docs/RELATED_WORK.md): the projects and studies Truly builds on.
+- [Scope](references/SCOPE.md): what the tool does and does not do, the decision rules for each signal, privacy and safety requirements, milestones.
+- [Research basis](references/RESEARCH.md): the published research behind each design choice, with references.
+- [Data and models](references/DATASETS.md): every dataset and model Truly uses, its licence and how to cite it.
+- [Related work](references/RELATED_WORK.md): the projects and studies Truly builds on.
 
 ## Layout
 
 | Path | Contents |
 |---|---|
-| `docs/` | Scope, datasets, related work |
+| `docs/` | Project website, published with GitHub Pages |
+| `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
 | `training/` | Face model scripts, run as Kaggle kernels |
 | `training/kernels/` | Kaggle kernel metadata templates |
@@ -74,4 +75,4 @@ Copyright (C) 2026 hashtagRR.
 
 Truly is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
 
-Datasets and pretrained models used by the project keep their own licences, listed in [docs/DATASETS.md](docs/DATASETS.md).
+Datasets and pretrained models used by the project keep their own licences, listed in [references/DATASETS.md](references/DATASETS.md).
