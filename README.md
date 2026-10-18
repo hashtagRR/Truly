@@ -2,6 +2,8 @@
 
 *How are you, truly?*
 
+**[hashtagRR.github.io/Truly](https://hashtagRR.github.io/Truly)**
+
 Truly is a free, open source wellbeing companion. It checks in on how a person feels, notices when their face and their own words do not match, plays music that meets them where they are and moves gently towards a better state, and points them to people and helplines when low mood persists.
 
 It never diagnoses, never predicts risk, and runs on the user's device.
