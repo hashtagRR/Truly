@@ -1,0 +1,16 @@
+{
+  "id": "{user}/truly-baseline-eval",
+  "title": "truly-baseline-eval",
+  "code_file": "baseline_eval.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "{user}/truly-inputs",
+    "deadskull7/fer2013"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

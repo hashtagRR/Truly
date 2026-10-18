@@ -1,0 +1,18 @@
+{
+  "id": "{user}/truly-face-distill",
+  "title": "truly-face-distill",
+  "code_file": "face_distill.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "{user}/truly-inputs",
+    "deadskull7/fer2013"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [
+    "{user}/truly-face-teacher"
+  ]
+}

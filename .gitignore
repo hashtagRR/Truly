@@ -1,0 +1,10 @@
+data/
+runs/
+build/
+legacy/
+*.pt
+*.onnx
+*.h5
+*.npy
+*.parquet
+__pycache__/

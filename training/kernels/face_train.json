@@ -1,0 +1,16 @@
+{
+  "id": "{user}/truly-face-train",
+  "title": "truly-face-train",
+  "code_file": "face_train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "{user}/truly-inputs",
+    "deadskull7/fer2013"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}
