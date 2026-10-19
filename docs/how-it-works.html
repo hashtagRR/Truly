@@ -388,12 +388,13 @@ footer p { margin: 0; }
   <div class="column">
     <h2 id="h-choice"><span class="n">4</span>Choosing each piece</h2>
     <p class="lead read">At every planned point, each remaining piece gets a cost. Lower is better. All distances are in standard deviations of the catalogue.</p>
-<div class="formula" role="img" aria-label="Cost equals closeness to the planned point, plus 0.35 times the step from the previous piece, plus the squared backward part of that step, plus 0.3 times the squared tempo change over 30 beats per minute, plus 0.6 if no preferred instrument, minus 0.25 for a favourite."><span class="k-close">closeness</span>  (v - point.v)² + (a - point.a)²
+<div class="formula" role="img" aria-label="Cost equals closeness to the planned point, plus 0.35 times the step from the previous piece, plus the squared backward part of that step, plus 0.3 times the squared tempo change over 30 beats per minute, plus 0.6 if no preferred instrument, minus 0.25 for a favourite, and at most 0.24 either way from how often the piece was played to the end or left early."><span class="k-close">closeness</span>  (v - point.v)² + (a - point.a)²
 <span class="k-step">step</span>     + 0.35 × [(v - prev.v)² + (a - prev.a)²]
 <span class="k-back">backward</span> + 1.0  × (part of that step going backwards)²
 <span class="k-tempo">tempo</span>    + 0.3  × ((bpm - prev.bpm) / 30)²
          + 0.6  if none of your preferred instruments
-         - 0.25 if it is a favourite</div>
+         - 0.25 if it is a favourite
+         ± 0.24 at most from listening: played to the end, or left early</div>
     <div class="read">
       <p>Three rules come first: no piece twice, no performer twice, and never a piece marked "not for me". Truly then keeps the eight cheapest pieces and picks among those within 0.25 of the best, with weights 1, 1/4, 1/9 and 1/16, so the best match wins most of the time and near-ties sometimes swap. Finally the path is sorted along its direction, so it never steps backwards.</p>
     </div>
@@ -562,6 +563,7 @@ footer p { margin: 0; }
           <li><code>truly.favourites.v1</code></li>
           <li><code>truly.not-for-me.v1</code></li>
           <li><code>truly.preferences.v1</code>: instruments and length</li>
+          <li><code>truly.listening.v1</code>: per piece, how often played to the end or left early</li>
         </ul>
       </div>
     </div>

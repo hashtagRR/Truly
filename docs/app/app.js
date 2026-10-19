@@ -14,6 +14,8 @@ const TONE_TEXT = {
 const SLOWER = 1.5;
 const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 const STALL_MS = 15000;
+// Leaving a piece by choice within this many seconds counts as an early skip.
+const EARLY_SECONDS = 30;
 
 let questions = null;
 let camera = null;
@@ -317,7 +319,10 @@ function renderMusic() {
     const links = Object.assign(document.createElement("div"), { className: "links" });
     const play = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: i === music.playing ? "Playing" : "Play" });
     play.setAttribute("aria-label", `Play ${song.title}`);
-    play.addEventListener("click", () => playAt(i));
+    play.addEventListener("click", () => {
+      if (i !== music.playing) leaveCurrent();
+      playAt(i);
+    });
     const swap = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Not this one" });
     swap.setAttribute("aria-label", `Choose another piece instead of ${song.title}`);
     swap.addEventListener("click", () => replaceAt(i, song));
@@ -360,6 +365,7 @@ function renderMusic() {
 }
 
 function replaceAt(i, song) {
+  if (music.playing === i) leaveCurrent();
   music.skipped.add(song.id);
   const was = music.playing === i;
   const before = new Set(music.path.map((s) => s.id));
@@ -413,6 +419,7 @@ function currentPrefs() {
     instruments: prefs.instruments,
     favourites: store.loadFavourites().map((f) => f.key),
     ruledOut: [...store.loadNotForMe().map((p) => p.key), ...prefs.notForMe],
+    listening: store.loadListening(),
   });
 }
 
@@ -483,6 +490,15 @@ function playAt(i, { from = 0, retry = false } = {}) {
   updateSteps();
   setMediaSession(song);
   renderMusic();
+}
+
+// Called only when the listener chooses to leave the playing piece. A piece
+// left within its first seconds counts as an early skip, saved only when
+// saving is on.
+function leaveCurrent() {
+  const audio = $("np-audio");
+  if (music.playing < 0 || !audio.getAttribute("src")) return;
+  if (audio.currentTime < EARLY_SECONDS) store.recordListen(music.path[music.playing].key, "early", music.path[music.playing].title);
 }
 
 function updateSteps() {
@@ -563,8 +579,8 @@ function wireMediaSession() {
   const handlers = {
     play: () => (music.playing < 0 ? playAt(0) : audio.play().catch(() => {})),
     pause: () => audio.pause(),
-    nexttrack: () => playAt(music.playing + 1),
-    previoustrack: () => playAt(Math.max(0, music.playing - 1)),
+    nexttrack: () => { leaveCurrent(); playAt(music.playing + 1); },
+    previoustrack: () => { leaveCurrent(); playAt(Math.max(0, music.playing - 1)); },
     seekto: (d) => { if (Number.isFinite(d.seekTime)) audio.currentTime = d.seekTime; },
   };
   for (const [action, fn] of Object.entries(handlers)) {
@@ -626,6 +642,7 @@ function wirePlayer() {
   audio.addEventListener("durationchange", showTime);
   audio.addEventListener("ended", () => {
     clearStall();
+    if (music.playing >= 0) store.recordListen(music.path[music.playing].key, "full", music.path[music.playing].title);
     if (music.playing < music.path.length - 1) playAt(music.playing + 1);
     else {
       $("music-status").textContent = "That is the end of this path.";
@@ -660,8 +677,8 @@ function wirePlayer() {
     if (music.playing < 0 && music.resumeAt != null) return playAt(music.resumeAt);
     togglePlay();
   });
-  $("np-next").addEventListener("click", () => playAt(music.playing + 1));
-  $("np-prev").addEventListener("click", () => playAt(Math.max(0, music.playing - 1)));
+  $("np-next").addEventListener("click", () => { leaveCurrent(); playAt(music.playing + 1); });
+  $("np-prev").addEventListener("click", () => { leaveCurrent(); playAt(Math.max(0, music.playing - 1)); });
   wireMediaSession();
 }
 
@@ -723,6 +740,18 @@ function renderHistory() {
     notList.append(li);
   }
   $("not-for-me-empty").hidden = notForMe.length > 0;
+  const learned = Object.entries(store.loadListening());
+  const learnedList = $("learned-list");
+  learnedList.replaceChildren();
+  const times = (n) => (n === 1 ? "once" : `${n} times`);
+  for (const [, c] of learned.sort((a, b) => (b[1].full - b[1].early) - (a[1].full - a[1].early))) {
+    const parts = [];
+    if (c.full) parts.push(`played to the end ${times(c.full)}`);
+    if (c.early) parts.push(`left early ${times(c.early)}`);
+    learnedList.append(item(c.title, parts.join(", ").replace(/^./, (x) => x.toUpperCase()) + "."));
+  }
+  $("learned-empty").hidden = learned.length > 0;
+  $("learned-forget").hidden = learned.length === 0;
 }
 
 async function init() {
@@ -743,6 +772,10 @@ async function init() {
   $("music-new").addEventListener("click", () => { newPath(); $("music-status").textContent = "A new path is ready."; });
   $("music-stop").addEventListener("click", stopMusic);
   $("music-retry").addEventListener("click", openMusic);
+  $("learned-forget").addEventListener("click", () => {
+    store.forgetListening();
+    renderHistory();
+  });
   document.querySelectorAll('input[name="instrument"], input[name="length"]').forEach((c) => c.addEventListener("change", changePrefs));
   loadPrefs();
   wirePlayer();

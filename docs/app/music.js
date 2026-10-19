@@ -16,13 +16,24 @@ const BACKWARD = 1.0;
 // favourite as a little closer. Pieces marked "not for me" are never chosen.
 const INSTRUMENT_MISS = 0.6;
 const FAVOURITE_PULL = 0.25;
+// Pieces the listener usually plays to the end come up a little more often,
+// and pieces they usually leave early a little less, by at most this much.
+const LISTENING_PULL = 0.24;
+const LISTENING_CAP = 3;
 export const INSTRUMENTS = ["piano", "strings", "orchestra", "winds"];
 export const LENGTHS = { short: 4, standard: 6, long: 9 };
 const INSTRUMENT_WORDS = { piano: "piano", strings: "strings", orchestra: "a full orchestra", winds: "wind instruments" };
 
 // Normalises listener preferences; every field is optional.
-export function preferences({ instruments = [], favourites = [], ruledOut = [] } = {}) {
-  return { instruments: new Set(instruments), favourites: new Set(favourites), ruledOut: new Set(ruledOut) };
+export function preferences({ instruments = [], favourites = [], ruledOut = [], listening = {} } = {}) {
+  return { instruments: new Set(instruments), favourites: new Set(favourites), ruledOut: new Set(ruledOut), listening };
+}
+
+// From -1 (usually left early) to 1 (usually played to the end).
+export function listeningLean(counts) {
+  if (!counts) return 0;
+  const lean = (counts.full ?? 0) - (counts.early ?? 0);
+  return Math.max(-LISTENING_CAP, Math.min(LISTENING_CAP, lean)) / LISTENING_CAP;
 }
 
 function prefersInstrument(song, prefs) {
@@ -130,6 +141,7 @@ export function cost(s, point, prev, heading, stats, prefs = preferences()) {
     tempo: 0,
     instrument: prefersInstrument(s, prefs) ? 0 : INSTRUMENT_MISS,
     favourite: prefs.favourites.has(s.key) ? -FAVOURITE_PULL : 0,
+    listening: -LISTENING_PULL * listeningLean(prefs.listening?.[s.key]),
   };
   if (prev) {
     const dv = (s.valence - prev.valence) / stats.sdV;
@@ -289,6 +301,9 @@ export function explain(path, i, stats, direction, prefs = preferences()) {
   else if (prefs.instruments.size && prefersInstrument(path[i], prefs)) {
     const match = path[i].instruments.filter((x) => prefs.instruments.has(x)).map((x) => INSTRUMENT_WORDS[x] ?? x);
     notes.push(`Features ${match.length > 1 ? `${match.slice(0, -1).join(", ")} and ${match.at(-1)}` : match[0]}, as you asked.`);
+  }
+  if (!prefs.favourites.has(path[i].key) && listeningLean(prefs.listening?.[path[i].key]) >= 2 / LISTENING_CAP) {
+    notes.push("You often listen to this one to the end.");
   }
   const extra = notes.length ? ` ${notes.join(" ")}` : "";
   return reason(path, i, stats, direction) + extra;

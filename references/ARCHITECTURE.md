@@ -116,7 +116,12 @@ cost = (v - pv)² + (a - pa)²                        closeness to the planned p
      + 0.3 × ((tempo - previous tempo) / 30 bpm)²   gradual tempo changes
      + 0.6   if it has none of the preferred instruments
      - 0.25  if it is a favourite
+     ± 0.24  at most, from listening counts: pieces usually played to the end are a little cheaper, pieces usually left early a little dearer
 ```
+
+Listening counts are kept per piece only while saving is on. Leaving a piece by choice in its first 30 seconds (Next, Previous, playing another piece, or swapping it) counts as an early skip; reaching the end counts as a full play. Stopping, starting a new path and pieces that fail to load do not count. The difference is capped at three either way. "Your listening" shows the counts and can forget them.
+
+`pathQuality` measures how gradual a path is: the average and largest step between neighbouring pieces in catalogue standard deviations, the step variation (spread of step sizes over their average) and the largest tempo change. These follow the smoothness and even-step ideas used to judge mood playlists (Donnelly and Gaur, 2022). Tests keep every path within today's limits.
 
 Three hard rules come first: a piece already in the path, a performer already in the path, and a piece marked "not for me" are never chosen.
 
@@ -313,6 +318,7 @@ flowchart LR
     B2["truly.favourites.v1"]
     B3["truly.not-for-me.v1"]
     B4["truly.preferences.v1<br/>instruments and length"]
+    B5["truly.listening.v1<br/>per piece: full plays, early skips"]
   end
   Nowhere["Never stored or sent:<br/>mood answers, images, sound"]
 ```
@@ -326,7 +332,7 @@ Saving is off by default (`truly.saving.v1` is absent). Switching it off stops n
 | `docs/app/index.html` | The app's views: check-in, music, your listening, privacy |
 | `docs/app/app.js` | Wires the views together: check-in, camera and voice, path, player, preferences, history |
 | `docs/app/music.js` | Pure functions for the map, goals, planned points, piece choice, swaps, nudges and explanations |
-| `docs/app/store.js` | The only code that touches `localStorage` |
+| `docs/app/store.js` | The only code that touches `localStorage`: history, favourites, preferences and listening counts |
 | `docs/app/face.js` | Camera, face detection and the face model |
 | `docs/app/readout.js` | Turns face model output into a tone; pure functions |
 | `docs/app/voice.js` | Microphone, loudness step and the voice model |

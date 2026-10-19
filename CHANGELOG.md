@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- The music view shows the path as a small map of mood and energy, with the playing piece marked.
+- With saving on, Truly learns which pieces you usually play to the end and which you leave early, and leans a little towards the first. "Your listening" shows what it has learned and can forget it.
+- Path quality measures (average and largest step, step variation, largest tempo change), with tests and a live view on the Inside Truly page.
+
 ## 0.1.0 (2026-10-19)
 
 The first release of Truly, a free, open source, privacy-first music recommender.

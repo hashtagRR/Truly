@@ -20,6 +20,7 @@ People who want to find music suited to their current mood and preferences, for 
 - Builds gradual transitions between pieces, a sequencing technique that starts close to the listener's chosen mood and moves a little at a time.
 - Lets listeners skip, swap, slow down or regenerate recommendations, and plays music inside the app.
 - Lets listeners prefer instruments, choose a path length, mark favourites and rule pieces out.
+- With saving on, learns which pieces a listener usually plays to the end or leaves early, and shows and forgets this on request. It learns about pieces, never about the person.
 - Keeps optional listening history, favourite pieces and music preferences in the listener's own browser, only when the listener switches saving on, and lets them delete it at any time. Mood answers are never saved.
 - Explains why each piece was chosen.
 - Offers optional camera and voice inputs that only adjust where a music path starts. They are presented as a playful suggestion and never as a reading of how anyone feels.
@@ -51,6 +52,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
 | Mood and energy answers | yes | The starting point of the music path | Any conclusion about the person |
 | Listening direction | yes, with a suggested default | The target of the music path | Anything else |
 | Camera expression | optional, off by default | A small adjustment to the first pieces | Any statement about how the person feels; it is never stored |
+| Listening counts | optional, only with saving on | Choosing pieces a listener tends to play to the end a little more often | Any conclusion about the person; no times, moods or order are kept |
 | Voice sound | optional, off by default | A small adjustment to the first pieces, mainly their energy | Words, identity, age, gender or any statement about how the person feels; it is never stored |
 
 ## Privacy
@@ -59,7 +61,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
 - Everything runs in the browser. Camera frames and the five seconds of microphone sound are processed in memory and never stored or sent. Speech is never transcribed.
 - Music plays from Truly's own site. No streaming service, analytics, tracking or cookies are used.
 - Mood and energy answers are used for the current visit only and are never saved.
-- Saving is off by default. When the listener switches it on, only the paths they played, their favourite pieces, the pieces they ruled out and their instrument and length choices are kept, in the browser, and they can be deleted at any time.
+- Saving is off by default. When the listener switches it on, only the paths they played, their favourite pieces, the pieces they ruled out and their instrument and length choices, and per-piece counts of full plays and early skips are kept, in the browser, and they can be deleted at any time.
 - No health records, risk scores or psychological profiles are created.
 
 ## Architecture

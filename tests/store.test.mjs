@@ -79,3 +79,18 @@ test("preferences and pieces ruled out are saved only with saving on, and delete
   store.clear();
   assert.deepEqual(localStorage.keys(), []);
 });
+
+test("listening counts are kept per piece, capped, only with saving on, and can be forgotten", () => {
+  assert.equal(store.recordListen(piece.key, "full", piece.title), false);
+  assert.deepEqual(localStorage.keys(), []);
+  store.setSaving(true);
+  for (let i = 0; i < 25; i++) store.recordListen(piece.key, "full", piece.title);
+  store.recordListen(piece.key, "early");
+  assert.deepEqual(store.loadListening()[piece.key], { full: 20, early: 1, title: piece.title });
+  assert.equal(store.recordListen(piece.key, "paused"), false);
+  store.forgetListening();
+  assert.deepEqual(store.loadListening(), {});
+  store.recordListen(piece.key, "early", piece.title);
+  store.clear();
+  assert.deepEqual(localStorage.keys(), []);
+});

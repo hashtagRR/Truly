@@ -10,6 +10,8 @@ const PATHS_KEY = "truly.paths.v1";
 const FAVOURITES_KEY = "truly.favourites.v1";
 const PREFERENCES_KEY = "truly.preferences.v1";
 const NOT_FOR_ME_KEY = "truly.not-for-me.v1";
+const LISTENING_KEY = "truly.listening.v1";
+const MAX_COUNT = 20;
 const LEGACY_KEYS = ["truly.checkins.v1", "truly.keep-history.v1"];
 const MAX_PATHS = 50;
 
@@ -124,16 +126,42 @@ export function removeNotForMe(key) {
   write(NOT_FOR_ME_KEY, loadNotForMe().filter((p) => p.key !== key));
 }
 
+// How often each piece was played to the end or left within its first
+// seconds. Only counts per piece are kept: no times, moods or order.
+export function loadListening() {
+  const data = read(LISTENING_KEY, {});
+  return data && typeof data === "object" && !Array.isArray(data) ? data : {};
+}
+
+// kind is "full" or "early"; the title is kept so the list can be shown.
+// Returns false when saving is off.
+export function recordListen(key, kind, title = "") {
+  if (!savingOn() || (kind !== "full" && kind !== "early")) return false;
+  const data = loadListening();
+  const counts = { full: 0, early: 0, ...data[key], title: title || data[key]?.title || key };
+  counts[kind] = Math.min(MAX_COUNT, counts[kind] + 1);
+  data[key] = counts;
+  return write(LISTENING_KEY, data);
+}
+
+export function forgetListening() {
+  try {
+    localStorage.removeItem(LISTENING_KEY);
+  } catch {
+    // Storage blocked: nothing to remove.
+  }
+}
+
 export function clear() {
   try {
-    for (const key of [SAVING_KEY, PATHS_KEY, FAVOURITES_KEY, PREFERENCES_KEY, NOT_FOR_ME_KEY, ...LEGACY_KEYS]) localStorage.removeItem(key);
+    for (const key of [SAVING_KEY, PATHS_KEY, FAVOURITES_KEY, PREFERENCES_KEY, NOT_FOR_ME_KEY, LISTENING_KEY, ...LEGACY_KEYS]) localStorage.removeItem(key);
   } catch {
     // Nothing stored, or storage blocked: nothing to remove.
   }
 }
 
 export function exportFile() {
-  const data = { paths: loadPaths(), favourites: loadFavourites(), notForMe: loadNotForMe(), preferences: loadPreferences() };
+  const data = { paths: loadPaths(), favourites: loadFavourites(), notForMe: loadNotForMe(), preferences: loadPreferences(), listening: loadListening() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

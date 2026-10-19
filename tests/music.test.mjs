@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  buildPath, defaultDirection, explain, goalPoint, INSTRUMENTS, loadCatalogue, makeCatalogue, pathQuality, preferences, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
+  buildPath, cost, defaultDirection, explain, goalPoint, INSTRUMENTS, listeningLean, loadCatalogue, makeCatalogue, pathQuality, preferences, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
 } from "../docs/app/music.js";
 
 const catalogue = makeCatalogue(
@@ -209,4 +209,21 @@ test("paths stay within today's measured step and tempo limits", () => {
   assert.ok(worst.step <= 2.2, `largest step ${worst.step}`);
   assert.ok(worst.average <= 1.2, `average step ${worst.average}`);
   assert.ok(worst.tempo <= 45, `tempo change ${worst.tempo}`);
+});
+
+test("listening history shifts the choice a little and explains itself", () => {
+  assert.equal(listeningLean(undefined), 0);
+  assert.equal(listeningLean({ full: 9, early: 0 }), 1);
+  assert.equal(listeningLean({ full: 0, early: 9 }), -1);
+  const point = { v: catalogue.songs[0].valence, a: catalogue.songs[0].arousal };
+  const s = catalogue.songs[0];
+  const plain = cost(s, point, null, null, stats).total;
+  const liked = cost(s, point, null, null, stats, preferences({ listening: { [s.key]: { full: 5, early: 0 } } })).total;
+  const left = cost(s, point, null, null, stats, preferences({ listening: { [s.key]: { full: 0, early: 5 } } })).total;
+  assert.ok(Math.abs(plain - liked - 0.24) < 1e-9 && Math.abs(left - plain - 0.24) < 1e-9);
+  const path = buildPath(catalogue, plan({ f: 3, e: 3, dir: "steady" }, 4), { rng: seeded(3) });
+  const often = preferences({ listening: { [path[0].key]: { full: 3, early: 0 } } });
+  assert.match(explain(path, 0, stats, "steady", often), /You often listen to this one to the end/);
+  const rarely = preferences({ listening: { [path[0].key]: { full: 0, early: 3 } } });
+  assert.doesNotMatch(explain(path, 0, stats, "steady", rarely), /often|early|skip/);
 });
