@@ -59,6 +59,6 @@ Mean arousal on the teacher scale for CREMA-D test clips, grouped by the emotion
 
 CREMA-D actors speak the same neutral sentences in every emotion, so the teacher's valence varies little on them; Truly gives valence only a light weight.
 
-## Citation
+## Credit
 
 If you use this model, please credit Truly and the teacher and data sources listed in [references/DATASETS.md](../../references/DATASETS.md).

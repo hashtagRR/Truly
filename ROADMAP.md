@@ -8,7 +8,6 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 
 - Tagged release with release notes and a changelog.
 - Face and voice model weights attached under CC BY 4.0, with their model cards.
-- Zenodo DOI.
 
 ## v0.2: a larger catalogue
 
