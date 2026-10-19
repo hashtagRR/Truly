@@ -17,7 +17,7 @@ Proposals for diagnosis, screening, risk scores, health monitoring, clinical que
 ## Good places to start
 
 - **Recordings.** Freely licensed recordings of public domain works, with valence, arousal and tempo from a published source. See `music/recordings.json` and the credits rules in the [Truly-music](https://github.com/hashtagRR/Truly-music) repository.
-- **Listening preferences.** Ways for listeners to shape paths, such as instruments or tempo.
+- **Listening preferences.** More ways for listeners to shape paths, such as tempo.
 - **Translations** of the check-in questions in `docs/app/checkin.json`.
 - **Accessibility** improvements to the app and the website.
 
@@ -26,5 +26,12 @@ Proposals for diagnosis, screening, risk scores, health monitoring, clinical que
 - Plain HTML, CSS and JavaScript modules in the app, with no build step.
 - Short, plain sentences in the interface and documentation.
 - New files carry the SPDX licence header used across the repository.
+
+## Releasing
+
+1. Move the notes under a new version heading in `CHANGELOG.md`, and set `version` and `date-released` in `CITATION.cff`.
+2. Run the tests: `node --test tests/`.
+3. Package the models: `python scripts/package_models.py X.Y.Z`.
+4. Tag the release commit `vX.Y.Z`, publish a GitHub release with the changelog section as notes, and attach `build/release/truly-models-X.Y.Z.zip`. Publishing the release archives it on Zenodo, using `.zenodo.json`.
 
 By contributing, you agree that your contribution is released under AGPL-3.0-or-later.

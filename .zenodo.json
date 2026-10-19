@@ -1,0 +1,21 @@
+{
+  "title": "Truly: a privacy-first music recommender",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "hashtagRR"
+    }
+  ],
+  "description": "<p>Truly is a free, open source, privacy-first music recommender. A listener describes their mood and energy, and Truly plays a short path of classical music that starts where they are and moves one piece at a time towards calmer or brighter, with a reason for every piece.</p><p>Optional camera and voice inputs run on the listener's device with small models distilled from LAION's Empathic-Insight models, and only nudge where a path starts. Code is licensed under AGPL-3.0-or-later; the Truly face and voice model weights are licensed under CC BY 4.0.</p><p>Truly is not designed or intended for medical, diagnostic, psychological assessment, therapeutic or clinical purposes.</p>",
+  "license": "AGPL-3.0-or-later",
+  "access_right": "open",
+  "keywords": [
+    "music recommendation",
+    "valence and arousal",
+    "iso principle",
+    "privacy",
+    "on-device machine learning",
+    "knowledge distillation",
+    "ONNX Runtime Web"
+  ]
+}

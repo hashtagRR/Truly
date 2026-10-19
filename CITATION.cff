@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use Truly, please cite it as below."
+title: "Truly: a privacy-first music recommender"
+type: software
+authors:
+  - alias: hashtagRR
+version: 0.1.0
+date-released: 2026-10-19
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/hashtagRR/Truly"
+url: "https://hashtagrr.github.io/Truly"
+abstract: >-
+  Truly is a free, open source, privacy-first music recommender. A listener
+  describes their mood and energy, and Truly plays a short path of classical
+  music that starts where they are and moves one piece at a time towards
+  calmer or brighter, with a reason for every piece. Optional on-device
+  camera and voice models only nudge where a path starts. Truly is not
+  designed or intended for medical, diagnostic, psychological assessment,
+  therapeutic or clinical purposes.
+keywords:
+  - music recommendation
+  - valence and arousal
+  - iso principle
+  - privacy
+  - on-device machine learning
+  - knowledge distillation
+  - ONNX Runtime Web
