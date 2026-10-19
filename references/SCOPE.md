@@ -19,7 +19,7 @@ People who want to find music suited to their current mood and preferences, for 
 - Recommends music using its valence, arousal and tempo.
 - Builds gradual transitions between pieces, a sequencing technique that starts close to the listener's chosen mood and moves a little at a time.
 - Lets listeners skip, swap, slow down or regenerate recommendations, and plays music inside the app.
-- Keeps an optional history of check-ins in the listener's own browser, which the listener can switch off or delete.
+- Keeps optional listening history and favourite pieces in the listener's own browser, only when the listener switches saving on, and lets them delete it at any time. Mood answers are never saved.
 - Explains why each piece was chosen.
 - Offers an optional camera input that only adjusts where a music path starts. It is presented as a playful suggestion and never as a reading of how anyone feels.
 
@@ -56,7 +56,8 @@ A mood answer is a subjective music preference. It is not a medical observation,
 - No account or personal information is needed.
 - Everything runs in the browser. Camera frames are processed in memory and never stored or sent.
 - Music plays from Truly's own site. No streaming service, analytics, tracking or cookies are used.
-- Check-in history is optional, stays in the browser, and can be switched off or deleted at any time.
+- Mood and energy answers are used for the current visit only and are never saved.
+- Saving is off by default. When the listener switches it on, only the paths they played and their favourite pieces are kept, in the browser, and they can be deleted at any time.
 - No health records, risk scores or psychological profiles are created.
 
 ## Architecture
@@ -66,7 +67,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
  direction        ──┼──> start point and target ──> music path ──> in-app player
  camera (optional)──┘                                    │
                                                          └──> explanation per piece
- optional local history (browser only)
+ optional listening history and favourites (browser only, off by default)
 ```
 
 | Component | Job | Interface for builders |
@@ -76,7 +77,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
 | Music path | Builds a sequence of pieces from a start point to a target in valence and arousal | Pure functions in `docs/app/music.js` |
 | Catalogue | Freely licensed recordings with valence, arousal and tempo | `tracks.json` in the [Truly-music](https://github.com/hashtagRR/Truly-music) repository |
 | Player | Plays the path in the page with credits | `docs/app/app.js` |
-| History | Optional local list of check-ins | Browser storage only |
+| Listening history | Optional list of played paths and favourite pieces, off by default | Browser storage only |
 
 ## Music
 

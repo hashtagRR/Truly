@@ -43,7 +43,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 ## The app
 
-The app runs entirely in the browser at [hashtagrr.github.io/Truly/app/](https://hashtagrr.github.io/Truly/app/). A check-in asks for a mood and an energy level; the music view builds a path through the catalogue and plays it with credits for every recording. Check-ins can be kept in the browser's local storage or not saved at all. The optional camera experiment finds the face with UltraFace and reads its expression with the Truly face model, both through ONNX Runtime Web; the result only nudges where a path starts and is never stored. To run the app locally with the same layout as GitHub Pages, link both repositories into one folder and serve it:
+The app runs entirely in the browser at [hashtagrr.github.io/Truly/app/](https://hashtagrr.github.io/Truly/app/). A check-in asks for a mood and an energy level; the music view builds a path through the catalogue and plays it with credits for every recording. Mood answers are used only for the current visit and never saved; if the listener switches saving on, the paths they played and their favourite pieces are kept in the browser's local storage. The optional camera experiment finds the face with UltraFace and reads its expression with the Truly face model, both through ONNX Runtime Web; the result only nudges where a path starts and is never stored. To run the app locally with the same layout as GitHub Pages, link both repositories into one folder and serve it:
 
 ```bash
 mkdir -p site && ln -sfn ../Truly/docs site/Truly && ln -sfn ../Truly-music site/Truly-music

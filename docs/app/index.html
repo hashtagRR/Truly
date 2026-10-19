@@ -24,7 +24,7 @@
     <nav aria-label="Sections">
       <a href="#checkin" data-view="checkin">Check in</a>
       <a href="#music" data-view="music">Music</a>
-      <a href="#history" data-view="history">History</a>
+      <a href="#history" data-view="history">Your listening</a>
       <a href="#privacy" data-view="privacy">Privacy</a>
     </nav>
   </div>
@@ -47,12 +47,6 @@
           <legend id="energy-question"></legend>
           <div class="options" id="energy-options"></div>
         </fieldset>
-
-        <div class="field">
-          <label for="note" id="note-label"></label>
-          <p class="hint" id="note-hint"></p>
-          <textarea id="note" name="note" rows="3" maxlength="1000"></textarea>
-        </div>
 
         <div class="camera card" id="camera">
           <h2>Shape the start with your expression <span class="optional">optional experiment</span></h2>
@@ -120,37 +114,42 @@
     </section>
 
     <section id="view-history" class="view" aria-labelledby="history-title" hidden>
-      <h1 id="history-title">Your history</h1>
-      <p class="lead">Your recent check-ins, newest first. They are stored only in this browser, and you can switch this off on the Privacy page.</p>
-      <div id="history-chart"></div>
-      <ol class="entries" id="history-list"></ol>
-      <p class="empty" id="history-empty">No check-ins saved. <a href="#checkin">Check in</a> to find some music.</p>
+      <h1 id="history-title">Your listening</h1>
+      <p class="lead" id="history-lead">The music paths you played and the pieces you marked as favourites, newest first. They are kept only in this browser.</p>
+      <p class="empty" id="history-off">Saving is off, so nothing is kept. You can switch it on in <a href="#privacy">Privacy</a>.</p>
+      <h2 id="favourites-title">Favourites</h2>
+      <ul class="entries" id="favourites-list"></ul>
+      <p class="empty" id="favourites-empty">No favourites yet. Mark a piece as a favourite while you listen.</p>
+      <h2 id="paths-title">Paths you played</h2>
+      <ol class="entries" id="paths-list"></ol>
+      <p class="empty" id="paths-empty">No paths yet. <a href="#checkin">Check in</a> to find some music.</p>
     </section>
 
     <section id="view-privacy" class="view" aria-labelledby="privacy-title" hidden>
       <h1 id="privacy-title">Privacy</h1>
       <ul class="promise">
         <li>Truly needs no account and uses no cookies, analytics or tracking.</li>
-        <li>Your mood answers are used only to choose music.</li>
+        <li>Your mood and energy answers are used only to choose music for this visit. They are never saved.</li>
         <li>The camera is off until you try it, and it switches off by itself after a few seconds. Frames are read into memory on this device and then discarded. No image is ever saved or sent, and the camera result is never stored.</li>
         <li>Music plays from Truly's own site, so no streaming service learns what you listen to.</li>
+        <li>Saving is off unless you switch it on. When it is on, Truly keeps the paths you played and your favourite pieces in this browser, and nowhere else.</li>
       </ul>
       <div class="card">
         <h2>Your data</h2>
         <div class="toggle">
-          <input type="checkbox" id="keep-history">
-          <label for="keep-history">Keep my check-ins on this device</label>
+          <input type="checkbox" id="saving">
+          <label for="saving">Keep my listening history and favourites on this device</label>
         </div>
-        <p class="hint">When this is off, check-ins are used for this visit only and nothing is saved.</p>
+        <p class="hint">When this is off, nothing is saved. Switching it off keeps what is already saved until you delete it.</p>
         <div class="row">
-          <button type="button" class="button quiet" id="export">Download my check-ins</button>
-          <button type="button" class="button quiet danger" id="delete">Delete all check-ins</button>
+          <button type="button" class="button quiet" id="export">Download my listening history</button>
+          <button type="button" class="button quiet danger" id="delete">Delete everything saved</button>
         </div>
         <div class="confirm" id="delete-confirm" hidden>
-          <p>Delete every check-in on this device? This cannot be undone.</p>
+          <p>Delete your listening history and favourites from this device? This cannot be undone.</p>
           <div class="row">
             <button type="button" class="button primary" id="delete-yes">Yes, delete everything</button>
-            <button type="button" class="button quiet" id="delete-no">Keep my check-ins</button>
+            <button type="button" class="button quiet" id="delete-no">Keep them</button>
           </div>
         </div>
         <p class="status" id="data-status" role="status" aria-live="polite"></p>

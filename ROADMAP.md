@@ -4,12 +4,6 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 
 ## v0.1.0: a reliable first release
 
-### Data minimisation
-
-- **Remove the free-text note from the check-in.** The recommender does not use it, so the app should not collect it.
-- **Make history opt-in.** Music works without saving anything; saving starts only when the listener switches it on.
-- **Make history about music, not mood.** Replace the chart of mood answers with a history of played paths and favourite pieces.
-
 ### Quality
 
 - **More tests.** Add the face readout and model shape checks to `tests/`, next to the music path tests that run with GitHub Actions on every pull request.
@@ -18,7 +12,7 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 ### Listener preferences
 
 - **Instruments.** Let listeners prefer piano, strings, orchestra or winds, with one instrument tag per recording.
-- **Favourites and "not for me".** Pieces the listener likes or wants to avoid, kept only in the browser.
+- **Use favourites in paths, and add "not for me".** Let favourite pieces appear more often and let listeners rule pieces out, kept only in the browser.
 - **Path length.** Shorter or longer listening sessions.
 
 ### Wording

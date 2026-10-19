@@ -16,15 +16,11 @@ const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 
 let questions = null;
 let camera = null;
-// The current check-in lives here for this visit; it is saved only if history is on.
+// The current check-in lives here for this visit only; mood answers are never saved.
 // A camera reading waits in pendingFace and belongs only to the next check-in;
 // it is kept in memory with that check-in and never saved.
 const session = { entry: null, entryFace: null, pendingFace: null };
-const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1 };
-
-function labelFor(group, value) {
-  return questions[group].options.find((o) => o.value === value)?.label ?? String(value);
-}
+const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1, record: null };
 
 function renderScale(group) {
   const q = questions[group];
@@ -50,7 +46,7 @@ function show(view) {
   });
   if (view === "history") renderHistory();
   if (view === "music") openMusic();
-  if (view === "privacy") $("keep-history").checked = store.keepsHistory();
+  if (view === "privacy") $("saving").checked = store.savingOn();
 }
 
 // Camera input: an optional nudge to where the music starts
@@ -117,11 +113,10 @@ function submitCheckin(event) {
     return;
   }
   $("form-error").textContent = "";
-  const entry = { at: new Date().toISOString(), feeling, energy, note: form.note.value.trim() || null };
+  const entry = { at: new Date().toISOString(), feeling, energy };
   session.entry = entry;
   session.entryFace = session.pendingFace;
   session.pendingFace = null;
-  if (store.keepsHistory()) store.add(entry);
   form.reset();
   $("camera-status").textContent = "";
   $("camera-start").textContent = "Try the camera";
@@ -129,9 +124,7 @@ function submitCheckin(event) {
 }
 
 function currentEntry() {
-  if (session.entry) return session.entry;
-  const entries = store.load();
-  return entries[entries.length - 1] ?? null;
+  return session.entry;
 }
 
 // Music path
@@ -170,6 +163,7 @@ function newPath(entry = currentEntry(), keep = []) {
   music.points = lib.pathPoints(start, goal, music.steps);
   music.path = lib.buildPath(catalogue, music.points, { keep });
   music.skipped = new Set();
+  music.record = null;
   resetPlayer();
   renderMusic();
 }
@@ -256,7 +250,26 @@ function renderMusic() {
       }
       $("music-status").textContent = added >= 0 ? `Piece ${added + 1} is new.` : "No other piece fits here.";
     });
-    links.append(play, swap);
+    const fav = Object.assign(document.createElement("button"), { type: "button", className: "link" });
+    const isFav = store.isFavourite(song.key);
+    fav.textContent = isFav ? "Favourite" : "Add to favourites";
+    fav.setAttribute("aria-pressed", String(isFav));
+    fav.addEventListener("click", () => {
+      if (isFav) {
+        store.removeFavourite(song.key);
+        $("music-status").textContent = `${song.title} is no longer a favourite.`;
+        renderMusic();
+        return;
+      }
+      const now = store.toggleFavourite({ key: song.key, title: song.title, composer: song.composer, performer: song.artist });
+      if (now === null) {
+        $("music-status").textContent = "Favourites need saving switched on. You can switch it on in Privacy.";
+        return;
+      }
+      $("music-status").textContent = now ? `${song.title} is now a favourite.` : `${song.title} is no longer a favourite.`;
+      renderMusic();
+    });
+    links.append(play, swap, fav);
     li.append(text, links);
     list.append(li);
   });
@@ -285,9 +298,21 @@ function stopMusic() {
 
 // Player
 
+// Records the path being played, only when saving is on.
+function recordPlay(song) {
+  if (!store.savingOn()) return;
+  if (!music.record) {
+    music.record = { id: `${Date.now()}`, at: new Date().toISOString(), direction: music.direction, pieces: [], played: [] };
+  }
+  music.record.pieces = music.path.map((s) => ({ key: s.key, title: s.title, composer: s.composer }));
+  if (!music.record.played.includes(song.key)) music.record.played.push(song.key);
+  store.savePath(music.record);
+}
+
 function playAt(i) {
   const song = music.path[i];
   if (!song) return;
+  recordPlay(song);
   const audio = $("np-audio");
   music.playing = i;
   audio.src = song.audio;
@@ -341,65 +366,55 @@ function wirePlayer() {
   $("np-next").addEventListener("click", () => playAt(music.playing + 1));
 }
 
-// History
+// Your listening
 
-function renderChart(entries) {
-  const recent = entries.slice(-14);
-  const box = $("history-chart");
-  box.replaceChildren();
-  if (recent.length < 2) return;
-  const W = 640, H = 200, L = 84, R = 16, T = 14, B = 26;
-  const x = (i) => L + (i * (W - L - R)) / (recent.length - 1);
-  const y = (v) => T + ((5 - v) * (H - T - B)) / 4;
-  const ns = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(ns, "svg");
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("class", "chart");
-  svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", `Your mood answers across your last ${recent.length} check-ins`);
-  const el = (tag, attrs, text) => {
-    const n = document.createElementNS(ns, tag);
-    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-    if (text) n.textContent = text;
-    svg.append(n);
-  };
-  for (const o of questions.feeling.options) {
-    el("line", { x1: L, x2: W - R, y1: y(o.value), y2: y(o.value), class: "grid" });
-    el("text", { x: L - 10, y: y(o.value) + 4, "text-anchor": "end", class: "label" }, o.label);
-  }
-  el("polyline", { points: recent.map((e, i) => `${x(i)},${y(e.feeling)}`).join(" "), class: "line" });
-  recent.forEach((e, i) => el("circle", { cx: x(i), cy: y(e.feeling), r: 5, class: "point" }));
-  el("text", { x: L, y: H - 6, class: "label" }, "older");
-  el("text", { x: W - R, y: H - 6, "text-anchor": "end", class: "label" }, "newest");
-  box.append(svg);
+const DIRECTION_TEXT = { calmer: "Calmer path", brighter: "Gently brighter path", steady: "Steady path" };
+
+function item(title, detail) {
+  const li = document.createElement("li");
+  li.append(
+    Object.assign(document.createElement("div"), { className: "values", textContent: title }),
+    Object.assign(document.createElement("div"), { className: "detail", textContent: detail }),
+  );
+  return li;
 }
 
 function renderHistory() {
-  const entries = store.load();
-  const list = $("history-list");
-  list.replaceChildren();
-  $("history-empty").hidden = entries.length > 0;
-  renderChart(entries);
-  const fmt = new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" });
-  for (const e of [...entries].reverse()) {
-    const li = document.createElement("li");
-    const time = Object.assign(document.createElement("time"), { dateTime: e.at, textContent: fmt.format(new Date(e.at)) });
-    const values = Object.assign(document.createElement("div"), {
-      className: "values",
-      textContent: `Mood ${labelFor("feeling", e.feeling).toLowerCase()}, energy ${labelFor("energy", e.energy).toLowerCase()}`,
+  const on = store.savingOn();
+  const favourites = store.loadFavourites();
+  const paths = store.loadPaths();
+  $("history-off").hidden = on;
+  const favList = $("favourites-list");
+  favList.replaceChildren();
+  for (const f of [...favourites].reverse()) {
+    const li = item(f.title, `${f.composer}. Performed by ${f.performer}.`);
+    const remove = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Remove" });
+    remove.setAttribute("aria-label", `Remove ${f.title} from favourites`);
+    remove.addEventListener("click", () => {
+      store.removeFavourite(f.key);
+      renderHistory();
     });
-    li.append(time, values);
-    if (e.note) li.append(Object.assign(document.createElement("p"), { className: "note", textContent: e.note }));
-    list.append(li);
+    li.append(remove);
+    favList.append(li);
   }
+  $("favourites-empty").hidden = favourites.length > 0;
+  const pathList = $("paths-list");
+  pathList.replaceChildren();
+  const fmt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+  for (const p of [...paths].reverse()) {
+    const played = p.pieces.filter((x) => p.played.includes(x.key)).map((x) => x.title);
+    const li = item(`${DIRECTION_TEXT[p.direction] ?? "Path"}, ${fmt.format(new Date(p.at))}`,
+      `Played ${played.length} of ${p.pieces.length}: ${played.join("; ")}`);
+    pathList.append(li);
+  }
+  $("paths-empty").hidden = paths.length > 0;
 }
 
 async function init() {
   questions = await fetch(new URL("./checkin.json", import.meta.url)).then((r) => r.json());
   renderScale("feeling");
   renderScale("energy");
-  $("note-label").textContent = questions.note.label;
-  $("note-hint").textContent = questions.note.hint;
+  store.removeLegacy();
 
   $("checkin-form").addEventListener("submit", submitCheckin);
   $("camera-start").addEventListener("click", startCamera);
@@ -412,22 +427,23 @@ async function init() {
   $("music-stop").addEventListener("click", stopMusic);
   wirePlayer();
 
-  $("keep-history").addEventListener("change", (e) => {
-    store.setKeepHistory(e.target.checked);
+  $("saving").addEventListener("change", (e) => {
+    store.setSaving(e.target.checked);
     $("data-status").textContent = e.target.checked
-      ? "Check-ins will be kept on this device."
-      : "Check-ins will no longer be saved. Existing ones stay until you delete them.";
+      ? "Your listening history and favourites will be kept on this device."
+      : "Nothing new will be saved. What is already saved stays until you delete it.";
   });
   $("export").addEventListener("click", () => {
     store.exportFile();
-    $("data-status").textContent = "Your check-ins were downloaded.";
+    $("data-status").textContent = "Your listening history was downloaded.";
   });
   $("delete").addEventListener("click", () => { $("delete-confirm").hidden = false; $("delete-yes").focus(); });
   $("delete-no").addEventListener("click", () => { $("delete-confirm").hidden = true; });
   $("delete-yes").addEventListener("click", () => {
     store.clear();
     $("delete-confirm").hidden = true;
-    $("data-status").textContent = "All check-ins were deleted from this device.";
+    $("saving").checked = false;
+    $("data-status").textContent = "Your listening history and favourites were deleted from this device.";
   });
 
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));

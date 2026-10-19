@@ -158,17 +158,14 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 .np-time { font-variant-numeric: tabular-nums; color: var(--soft-ink); font-size: 0.95rem; min-width: 3.2em; text-align: right; }
 .saved h2 { font-size: 1.5rem; }
 
-#history-chart { margin-bottom: 24px; }
 .chart { width: 100%; height: auto; display: block; }
-.chart .grid { stroke: var(--line); stroke-width: 1; }
 .chart .label { fill: var(--soft-ink); font-family: var(--font); font-size: 12px; }
-.chart .line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.chart .point { fill: var(--accent); }
 .entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .entries li { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; }
 .entries time { display: block; font-size: 0.95rem; color: var(--soft-ink); }
 .entries .values { font-weight: 700; }
-.entries .note { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.entries .detail { color: var(--soft-ink); font-size: 0.95rem; overflow-wrap: anywhere; }
+main h2 { margin-top: 28px; }
 .empty { color: var(--soft-ink); }
 
 .promise { margin: 0 0 24px; padding-left: 1.2em; display: grid; gap: 10px; }

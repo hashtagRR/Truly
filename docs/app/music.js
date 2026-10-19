@@ -20,6 +20,7 @@ export async function loadCatalogue(base) {
 export function makeCatalogue(data, base) {
   const songs = data.tracks.map((t, id) => ({
     id,
+    key: t.key,
     title: t.title,
     composer: t.composer,
     artist: t.performer,
