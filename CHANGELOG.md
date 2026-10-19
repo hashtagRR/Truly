@@ -1,11 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-10-19)
+
+### Listening
 
 - The music view shows the path as a small map of mood and energy, with the playing piece marked.
 - With saving on, Truly learns which pieces you usually play to the end and which you leave early, and leans a little towards the first. "Your listening" shows what it has learned and can forget it.
+
+### Offline
+
 - Truly can be installed as an app and works offline. "Keep this path for offline listening" saves a path's recordings on the device; without a connection, new paths use only those. The Privacy page shows and removes offline music.
-- Path quality measures (average and largest step, step variation, largest tempo change), with tests and a live view on the technical design page.
+
+### For developers
+
+- Path quality measures (average and largest step, step variation, largest tempo change), with tests that keep paths within today's limits.
+- A technical design document, `references/ARCHITECTURE.md`, covering the system structure, the recommendation engine with its equations, both model pipelines layer by layer with training and evaluation, the runtime, storage, testing and design decisions. It is also published on the website with a contents panel, a live path explorer, the cost terms of each candidate and the voice model's front end.
 
 ## 0.1.0 (2026-10-19)
 
