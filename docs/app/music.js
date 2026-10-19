@@ -201,6 +201,21 @@ export function nudgeStart(start, tone, stats) {
   return { ...start, v: start.v + NUDGE[tone] * stats.sdV };
 }
 
+// The optional voice input moves mainly the starting energy and, very lightly,
+// the starting mood. Scores are the voice model's standardised outputs, capped
+// so the mood and energy answers always lead.
+const VOICE_ENERGY = 0.4;
+const VOICE_MOOD = 0.12;
+
+export function nudgeVoice(start, voice, stats) {
+  if (!voice) return start;
+  const cap = (x) => Math.max(-1, Math.min(1, x / 1.5));
+  return {
+    v: start.v + cap(voice.valence) * VOICE_MOOD * stats.sdV,
+    a: start.a + cap(voice.arousal) * VOICE_ENERGY * stats.sdA,
+  };
+}
+
 // A short reason for each piece, from its place in the path.
 export function explain(path, i, stats, direction) {
   if (i === 0) return "Chosen to match the mood and energy you described.";

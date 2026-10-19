@@ -1,0 +1,16 @@
+{
+  "id": "{user}/truly-voice-distill",
+  "title": "truly-voice-distill",
+  "code_file": "voice_distill.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [
+    "{user}/truly-voice-teacher"
+  ],
+  "machine_shape": "NvidiaTeslaP100"
+}

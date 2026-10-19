@@ -22,12 +22,11 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 ### Release
 
 - Tagged release with release notes and a changelog.
-- Face model weights attached under CC BY 4.0, with the model card.
+- Face and voice model weights attached under CC BY 4.0, with their model cards.
 - Zenodo DOI.
 
-## v0.2: voice and a larger catalogue
+## v0.2: a larger catalogue
 
-- **Optional voice input.** A small browser model distilled from LAION's Empathic-Insight-Voice (CC BY 4.0, non-clinical) that reads valence and arousal from a few seconds of sound and only nudges where a path starts, on the same terms as the camera: off by default, sound only and never words, processed in memory, never stored, and never presented as how someone feels. Age and gender outputs are never used. Clinical models are out of scope.
 - **More recordings.** Freely licensed recordings of the remaining public domain works in MCUD 1.0, found through Musopen, the Internet Archive and Wikimedia Commons, each checked by hand like the first 18.
 - **Recommendation evaluation.** Measure whether paths suit listeners' preferences and whether transitions feel gradual, through optional, local "this fits" and "not for me" feedback that never leaves the browser.
 

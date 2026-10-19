@@ -13,7 +13,7 @@ Truly is a music app. It does not assess, diagnose or monitor anyone's health; t
 - **Mood on a map.** Emotions can be placed by valence and arousal (Russell, 1980), and so can music, which lets Truly place a listener's answers and each piece on one map.
 - **Published values for every piece.** Each recording takes its valence, arousal and tempo from MCUD 1.0 (Du et al., 2026).
 - **Start where you are.** Paths begin near the chosen mood and move gradually, a sequencing idea studied in listening research (Starcke and von Georgi, 2024).
-- **A face is only a hint.** Facial movements do not reliably reveal feelings (Barrett et al., 2019), so the optional camera only nudges where a path starts.
+- **A face or a voice is only a hint.** Facial movements do not reliably reveal feelings (Barrett et al., 2019), so the optional camera and voice inputs only nudge where a path starts.
 
 Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
@@ -35,7 +35,8 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 | `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
 | `models/face/` | Face model card and readout settings |
-| `training/` | Face model scripts, run as Kaggle kernels |
+| `models/voice/` | Voice model card |
+| `training/` | Face and voice model scripts, run as Kaggle kernels |
 | `training/kernels/` | Kaggle kernel metadata templates |
 | `music/` | Music selection and audio preparation |
 
@@ -43,7 +44,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 ## The app
 
-The app runs entirely in the browser at [hashtagrr.github.io/Truly/app/](https://hashtagrr.github.io/Truly/app/). A check-in asks for a mood and an energy level; the music view builds a path through the catalogue and plays it with credits for every recording. Mood answers are used only for the current visit and never saved; if the listener switches saving on, the paths they played and their favourite pieces are kept in the browser's local storage. The optional camera experiment finds the face with UltraFace and reads its expression with the Truly face model, both through ONNX Runtime Web; the result only nudges where a path starts and is never stored. To run the app locally with the same layout as GitHub Pages, link both repositories into one folder and serve it:
+The app runs entirely in the browser at [hashtagrr.github.io/Truly/app/](https://hashtagrr.github.io/Truly/app/). A check-in asks for a mood and an energy level; the music view builds a path through the catalogue and plays it with credits for every recording. Mood answers are used only for the current visit and never saved; if the listener switches saving on, the paths they played and their favourite pieces are kept in the browser's local storage. The optional camera experiment finds the face with UltraFace and reads its expression with the Truly face model, both through ONNX Runtime Web. The optional voice experiment records five seconds of sound into memory and reads its energy, and lightly its mood, with the Truly voice model; nothing is transcribed. Both results only nudge where a path starts and are never stored. To run the app locally with the same layout as GitHub Pages, link both repositories into one folder and serve it:
 
 ```bash
 mkdir -p site && ln -sfn ../Truly/docs site/Truly && ln -sfn ../Truly-music site/Truly-music
@@ -60,7 +61,7 @@ node --test tests/
 
 The music path tests check that every path has the right length, never repeats a performer and only moves forward, including after a piece is swapped or the path is slowed down. They run with GitHub Actions on every push and pull request.
 
-## Face model pipeline
+## Model pipelines
 
 | Script | Purpose |
 |---|---|
@@ -70,7 +71,8 @@ The music path tests check that every path has the right length, never repeats a
 | `readout.py` | Compares ways of turning 40 category scores into the 7 FER classes (runs locally) |
 | `face_teacher.py` | Scores FairFace, EmoNet-Face and CREMA-D images with the LAION teacher |
 | `face_distill.py` | Distils the teacher into EfficientNet-B0, calibrates on CREMA-D and evaluates |
-| `voice_teacher.py` | Scores 5 second voice clips with a non-clinical valence and arousal teacher (LAION Empathic-Insight-Voice on BUD-E-Whisper) for a future on-device voice input |
+| `voice_teacher.py` | Scores 5 second voice clips with a non-clinical valence and arousal teacher (LAION Empathic-Insight-Voice on BUD-E-Whisper) |
+| `voice_distill.py` | Distils the voice teacher into a small model with a built-in log-mel front end, exported to ONNX, and tests it on CREMA-D |
 
 FER-2013 is used for evaluation only. No FER-2013 image or label is used for training or calibration.
 
@@ -83,9 +85,11 @@ export KAGGLE_CONFIG_DIR=~/.kaggle KAGGLE_API_TOKEN=$(cat ~/.kaggle/access_token
 training/kaggle_inputs.sh <user>                 # private input dataset
 training/kaggle_push.sh face_teacher <user> full
 training/kaggle_push.sh face_distill <user> full # after face_teacher finishes
+training/kaggle_push.sh voice_teacher <user> full
+training/kaggle_push.sh voice_distill <user> full # after voice_teacher finishes
 ```
 
-`face_probe` and `face_distill` read the output of an earlier kernel by the same user, so run the kernels in the order listed above.
+`face_probe`, `face_distill` and `voice_distill` read the output of an earlier kernel by the same user, so run the kernels in the order listed above.
 
 ## Music
 

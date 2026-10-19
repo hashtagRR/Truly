@@ -21,7 +21,7 @@ People who want to find music suited to their current mood and preferences, for 
 - Lets listeners skip, swap, slow down or regenerate recommendations, and plays music inside the app.
 - Keeps optional listening history and favourite pieces in the listener's own browser, only when the listener switches saving on, and lets them delete it at any time. Mood answers are never saved.
 - Explains why each piece was chosen.
-- Offers an optional camera input that only adjusts where a music path starts. It is presented as a playful suggestion and never as a reading of how anyone feels.
+- Offers optional camera and voice inputs that only adjust where a music path starts. They are presented as a playful suggestion and never as a reading of how anyone feels.
 
 All recommendations are suggestions. The listener stays in control.
 
@@ -50,11 +50,12 @@ A mood answer is a subjective music preference. It is not a medical observation,
 | Mood and energy answers | yes | The starting point of the music path | Any conclusion about the person |
 | Listening direction | yes, with a suggested default | The target of the music path | Anything else |
 | Camera expression | optional, off by default | A small adjustment to the first pieces | Any statement about how the person feels; it is never stored |
+| Voice sound | optional, off by default | A small adjustment to the first pieces, mainly their energy | Words, identity, age, gender or any statement about how the person feels; it is never stored |
 
 ## Privacy
 
 - No account or personal information is needed.
-- Everything runs in the browser. Camera frames are processed in memory and never stored or sent.
+- Everything runs in the browser. Camera frames and the five seconds of microphone sound are processed in memory and never stored or sent. Speech is never transcribed.
 - Music plays from Truly's own site. No streaming service, analytics, tracking or cookies are used.
 - Mood and energy answers are used for the current visit only and are never saved.
 - Saving is off by default. When the listener switches it on, only the paths they played and their favourite pieces are kept, in the browser, and they can be deleted at any time.
@@ -63,10 +64,10 @@ A mood answer is a subjective music preference. It is not a medical observation,
 ## Architecture
 
 ```
- mood and energy  ──┐
- direction        ──┼──> start point and target ──> music path ──> in-app player
- camera (optional)──┘                                    │
-                                                         └──> explanation per piece
+ mood and energy   ──┐
+ direction         ──┼──> start point and target ──> music path ──> in-app player
+ camera (optional) ──┤                                    │
+ voice (optional)  ──┘                                    └──> explanation per piece
  optional listening history and favourites (browser only, off by default)
 ```
 
@@ -74,6 +75,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
 |---|---|---|
 | Check-in | Mood and energy answers and an optional note | Questions in `docs/app/checkin.json` |
 | Camera input | Suggests a slightly calmer or brighter start | Any face model exported to ONNX with the documented input and output |
+| Voice input | Suggests a slightly calmer or livelier start from the sound of the voice | Any audio model exported to ONNX that takes 5 seconds of 16 kHz audio and returns valence and arousal |
 | Music path | Builds a sequence of pieces from a start point to a target in valence and arousal | Pure functions in `docs/app/music.js` |
 | Catalogue | Freely licensed recordings with valence, arousal and tempo | `tracks.json` in the [Truly-music](https://github.com/hashtagRR/Truly-music) repository |
 | Player | Plays the path in the page with credits | `docs/app/app.js` |
@@ -112,4 +114,4 @@ Code is released under AGPL-3.0-or-later. Free software licences allow anyone to
 3. Check-in app.
 4. Music paths with self-hosted recordings and an in-app player.
 5. Scope boundary, optional history and recommendation explanations.
-6. First tagged release, then voice input and a larger catalogue. Planned work is listed in [ROADMAP.md](../ROADMAP.md).
+6. Optional voice input, then the first tagged release and a larger catalogue. Planned work is listed in [ROADMAP.md](../ROADMAP.md).

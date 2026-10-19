@@ -61,6 +61,16 @@
           </div>
         </div>
 
+        <div class="camera card" id="voice">
+          <h2>Shape the start with your voice <span class="optional">optional experiment</span></h2>
+          <p>Hum, read a line, or talk about anything for five seconds. Truly listens to the sound, never the words, and starts the music a little calmer or livelier. It is a playful guess, not a reading of how you feel. The recording stays in memory and is discarded straight after.</p>
+          <p class="status" id="voice-status" role="status" aria-live="polite"></p>
+          <div class="row">
+            <button type="button" class="button quiet" id="voice-start">Try your voice</button>
+            <button type="button" class="button quiet" id="voice-stop" hidden>Stop</button>
+          </div>
+        </div>
+
         <p class="error" id="form-error" role="alert"></p>
         <button type="submit" class="button primary big">Find my music</button>
       </form>
@@ -131,6 +141,7 @@
         <li>Truly needs no account and uses no cookies, analytics or tracking.</li>
         <li>Your mood and energy answers are used only to choose music for this visit. They are never saved.</li>
         <li>The camera is off until you try it, and it switches off by itself after a few seconds. Frames are read into memory on this device and then discarded. No image is ever saved or sent, and the camera result is never stored.</li>
+        <li>The microphone is off until you try your voice. Five seconds of sound are scored on this device and then discarded. Nothing is transcribed, saved or sent, and the voice result is never stored.</li>
         <li>Music plays from Truly's own site, so no streaming service learns what you listen to.</li>
         <li>Saving is off unless you switch it on. When it is on, Truly keeps the paths you played and your favourite pieces in this browser, and nowhere else.</li>
       </ul>

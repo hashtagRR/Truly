@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  buildPath, defaultDirection, explain, goalPoint, makeCatalogue, nudgeStart, pathPoints, replaceSong, startPoint,
+  buildPath, defaultDirection, explain, goalPoint, makeCatalogue, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
 } from "../docs/app/music.js";
 
 const catalogue = makeCatalogue(
@@ -102,6 +102,19 @@ test("the camera nudge moves only the starting mood, by a small amount", () => {
   assert.equal(bright.a, start.a);
   assert.ok(Math.abs(bright.v - start.v) <= 0.5 * stats.sdV);
   assert.deepEqual(nudgeStart(start, null, stats), start);
+});
+
+test("the voice nudge mostly follows energy and stays small", () => {
+  const start = startPoint(3, 3, stats);
+  const lively = nudgeVoice(start, { valence: 0, arousal: 1.5 }, stats);
+  const calm = nudgeVoice(start, { valence: 0, arousal: -1.5 }, stats);
+  assert.ok(lively.a > start.a && calm.a < start.a);
+  assert.equal(lively.v, start.v);
+  const extreme = nudgeVoice(start, { valence: 9, arousal: 9 }, stats);
+  assert.ok(extreme.a - start.a <= 0.4 * stats.sdA + 1e-9);
+  assert.ok(extreme.v - start.v <= 0.12 * stats.sdV + 1e-9);
+  assert.ok((extreme.v - start.v) / stats.sdV < (extreme.a - start.a) / stats.sdA);
+  assert.deepEqual(nudgeVoice(start, null, stats), start);
 });
 
 test("every piece has an explanation and directions follow the answers", () => {

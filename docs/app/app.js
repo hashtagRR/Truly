@@ -16,10 +16,11 @@ const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 
 let questions = null;
 let camera = null;
+let voiceCheck = null;
 // The current check-in lives here for this visit only; mood answers are never saved.
 // A camera reading waits in pendingFace and belongs only to the next check-in;
 // it is kept in memory with that check-in and never saved.
-const session = { entry: null, entryFace: null, pendingFace: null };
+const session = { entry: null, entryFace: null, pendingFace: null, entryVoice: null, pendingVoice: null };
 const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1, record: null };
 
 function renderScale(group) {
@@ -101,6 +102,53 @@ function stopCamera(userStopped = true) {
   if (userStopped) $("camera-status").textContent = "Camera stopped.";
 }
 
+// Voice input: an optional nudge to where the music starts
+
+function voiceText(v) {
+  if (v.arousal > 0.5) return "Your voice suggests starting a little livelier.";
+  if (v.arousal < -0.5) return "Your voice suggests starting a little calmer.";
+  return "Your voice suggests starting about where you are.";
+}
+
+async function startVoice() {
+  const status = $("voice-status");
+  $("voice-start").hidden = true;
+  $("voice-stop").hidden = false;
+  status.textContent = "Getting ready.";
+  const check = new AbortController();
+  voiceCheck = check;
+  try {
+    const voice = await import("./voice.js");
+    await voice.loadModel();
+    if (check.signal.aborted) return;
+    status.textContent = "Listening for five seconds. Hum, read a line or talk about anything.";
+    const result = await voice.readVoice(check.signal);
+    if (check.signal.aborted) return;
+    session.pendingVoice = result;
+    status.textContent = result
+      ? `${voiceText(result)} It is only a playful guess, and your answers above still lead.`
+      : "Truly could not hear enough sound. That is fine, it is optional.";
+  } catch (err) {
+    if (check.signal.aborted) return;
+    status.textContent = err?.name === "NotAllowedError"
+      ? "Microphone access was not allowed. That is fine, it is optional."
+      : "The voice check is not available on this device. That is fine, it is optional.";
+  } finally {
+    if (voiceCheck === check) stopVoice(false);
+  }
+}
+
+function stopVoice(userStopped = true) {
+  if (voiceCheck) {
+    voiceCheck.abort();
+    voiceCheck = null;
+  }
+  $("voice-stop").hidden = true;
+  $("voice-start").hidden = false;
+  $("voice-start").textContent = "Try your voice again";
+  if (userStopped) $("voice-status").textContent = "Stopped.";
+}
+
 // Check-in
 
 function submitCheckin(event) {
@@ -117,9 +165,13 @@ function submitCheckin(event) {
   session.entry = entry;
   session.entryFace = session.pendingFace;
   session.pendingFace = null;
+  session.entryVoice = session.pendingVoice;
+  session.pendingVoice = null;
   form.reset();
   $("camera-status").textContent = "";
   $("camera-start").textContent = "Try the camera";
+  $("voice-status").textContent = "";
+  $("voice-start").textContent = "Try your voice";
   location.hash = "#music";
 }
 
@@ -157,8 +209,9 @@ async function openMusic() {
 
 function newPath(entry = currentEntry(), keep = []) {
   const { lib, catalogue } = music;
-  const face = entry === session.entry ? session.entryFace : null;
-  const start = lib.nudgeStart(lib.startPoint(entry.feeling, entry.energy, catalogue.stats), face, catalogue.stats);
+  const current = entry === session.entry;
+  const fromFace = lib.nudgeStart(lib.startPoint(entry.feeling, entry.energy, catalogue.stats), current ? session.entryFace : null, catalogue.stats);
+  const start = lib.nudgeVoice(fromFace, current ? session.entryVoice : null, catalogue.stats);
   const goal = lib.goalPoint(start, music.direction, catalogue.stats);
   music.points = lib.pathPoints(start, goal, music.steps);
   music.path = lib.buildPath(catalogue, music.points, { keep });
@@ -419,6 +472,8 @@ async function init() {
   $("checkin-form").addEventListener("submit", submitCheckin);
   $("camera-start").addEventListener("click", startCamera);
   $("camera-stop").addEventListener("click", () => stopCamera(true));
+  $("voice-start").addEventListener("click", startVoice);
+  $("voice-stop").addEventListener("click", () => stopVoice(true));
 
   document.querySelectorAll('input[name="direction"]').forEach((r) =>
     r.addEventListener("change", () => setDirection(r.value)));

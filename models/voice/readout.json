@@ -1,0 +1,22 @@
+{
+  "targets": [
+    "valence",
+    "arousal"
+  ],
+  "target_mean": [
+    0.32791,
+    1.246779
+  ],
+  "target_std": [
+    0.684376,
+    0.59142
+  ],
+  "sample_rate": 16000,
+  "seconds": 5,
+  "input": "mono float32 audio in [-1, 1], brought to speech RMS 0.05",
+  "reference": [
+    0.1622,
+    1.1678
+  ],
+  "reference_source": "teacher mean on natural speech (Emolia YODAS training windows)"
+}
