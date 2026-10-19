@@ -85,13 +85,23 @@ export function pathPoints(start, goal, steps) {
   });
 }
 
+// Position of a piece along the path's direction.
+function along(s, heading, stats) {
+  return (s.valence / stats.sdV) * heading.v + (s.arousal / stats.sdA) * heading.a;
+}
+
 // Scores songs by closeness to the planned point, with gentle steps from the
-// previous song and no movement back against the path's direction.
-function pick(catalogue, point, prev, avoid, rng, heading = null) {
+// previous song and no movement back against the path's direction. When
+// bounds are given, only pieces between them along the direction qualify.
+function pick(catalogue, point, prev, avoid, rng, heading = null, bounds = null) {
   const { songs, stats } = catalogue;
   const scored = [];
   for (const s of songs) {
     if (avoid.ids.has(s.id) || avoid.artists.has(s.artist)) continue;
+    if (bounds && heading) {
+      const x = along(s, heading, stats);
+      if (x < bounds.lo || x > bounds.hi) continue;
+    }
     let d = ((s.valence - point.v) / stats.sdV) ** 2 + ((s.arousal - point.a) / stats.sdA) ** 2;
     if (prev) {
       const dv = (s.valence - prev.valence) / stats.sdV;
@@ -123,7 +133,6 @@ function pick(catalogue, point, prev, avoid, rng, heading = null) {
   return pool[0][1];
 }
 
-// Builds a path of songs, one per point, never repeating a song or an artist.
 function headingOf(points, stats) {
   const first = points[0];
   const last = points[points.length - 1];
@@ -133,6 +142,9 @@ function headingOf(points, stats) {
   return n > 1e-6 ? { v: v / n, a: a / n } : null;
 }
 
+// Builds a path of songs, one per point, never repeating a song or an artist.
+// Pieces passed in keep stay in the path; the whole path is then ordered
+// along its direction so it never steps backwards.
 export function buildPath(catalogue, points, { rng = Math.random, keep = [] } = {}) {
   const heading = headingOf(points, catalogue.stats);
   const path = [...keep];
@@ -144,28 +156,39 @@ export function buildPath(catalogue, points, { rng = Math.random, keep = [] } = 
     avoid.ids.add(song.id);
     avoid.artists.add(song.artist);
   }
-  return forwardOrder(path, keep.length, heading, catalogue.stats);
+  return forwardOrder(path, heading, catalogue.stats);
 }
 
-// Orders the newly chosen pieces along the path's direction so it only moves forward.
-function forwardOrder(path, fixed, heading, stats) {
+// Orders a path along its direction so it only moves forward.
+function forwardOrder(path, heading, stats) {
   if (!heading) return path;
-  const along = (s) => (s.valence / stats.sdV) * heading.v + (s.arousal / stats.sdA) * heading.a;
-  return [...path.slice(0, fixed), ...path.slice(fixed).sort((x, y) => along(x) - along(y))];
+  return [...path].sort((x, y) => along(x, heading, stats) - along(y, heading, stats));
 }
 
-// Swaps one song for another close to the same point.
+// Swaps one song for another close to the same point. The replacement is
+// chosen between its neighbours along the path's direction when possible,
+// and the path is reordered afterwards so it still only moves forward.
 export function replaceSong(catalogue, path, points, index, skipped, rng = Math.random) {
+  const { stats } = catalogue;
+  const heading = headingOf(points, stats);
   const others = path.filter((_, i) => i !== index);
   const avoid = {
     ids: new Set([...others.map((s) => s.id), ...skipped]),
     artists: new Set(others.map((s) => s.artist)),
   };
-  const song = pick(catalogue, points[index], path[index - 1], avoid, rng, headingOf(points, catalogue.stats));
+  let bounds = null;
+  if (heading) {
+    bounds = {
+      lo: index > 0 ? along(path[index - 1], heading, stats) : -Infinity,
+      hi: index < path.length - 1 ? along(path[index + 1], heading, stats) : Infinity,
+    };
+  }
+  const song = pick(catalogue, points[index], path[index - 1], avoid, rng, heading, bounds)
+    ?? pick(catalogue, points[index], path[index - 1], avoid, rng, heading);
   if (!song) return path;
   const next = [...path];
   next[index] = song;
-  return next;
+  return forwardOrder(next, heading, stats);
 }
 
 // The optional camera input moves the start point a little; the mood answer

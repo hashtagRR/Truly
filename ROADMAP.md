@@ -4,11 +4,6 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 
 ## v0.1.0: a reliable first release
 
-### Fixes
-
-- **Clear the camera result for each check-in.** A camera reading must apply only to the check-in it was taken for. Clear it when a check-in is submitted, so an earlier reading never shapes a later path.
-- **Guarantee forward paths, or soften the claim.** Recheck the whole sequence after a piece is swapped and after "Slow down" keeps the first piece, so no transition steps backwards against the chosen direction. Add a test that covers swaps and slowing down. If a forward order cannot be kept, describe paths as aiming for gradual progression instead of always moving forward.
-
 ### Data minimisation
 
 - **Remove the free-text note from the check-in.** The recommender does not use it, so the app should not collect it.
@@ -17,7 +12,7 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 
 ### Quality
 
-- **Tests in the repository.** Move the path, readout and model checks into `tests/` and run them with GitHub Actions on every pull request.
+- **More tests.** Add the face readout and model shape checks to `tests/`, next to the music path tests that run with GitHub Actions on every pull request.
 - **Playback reliability.** Handle slow networks and failed loads, and keep the player usable from the keyboard and on phones.
 
 ### Listener preferences

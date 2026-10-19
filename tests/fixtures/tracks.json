@@ -1,0 +1,325 @@
+{
+  "description": "Freely licensed recordings of public domain works from MCUD 1.0, a published dataset of music used in studies. Valence, arousal and tempo are averaged from MCUD 1.0 (Du et al., 2026, CC BY 4.0).",
+  "tracks": [
+    {
+      "key": "bach-air",
+      "title": "Air on the G String, Orchestral Suite No. 3, BWV 1068",
+      "composer": "Johann Sebastian Bach",
+      "performer": "United States Air Force Band, Air Force Strings",
+      "audio": "audio/bach-air.mp3",
+      "seconds": 183,
+      "valence": 4.95,
+      "arousal": 4.17,
+      "bpm": 122,
+      "licence": "Public domain",
+      "licence_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Air_-_Air_Force_Strings_-_United_States_Air_Force_Band.mp3",
+      "mcud": [
+        4,
+        15,
+        18,
+        85,
+        107
+      ]
+    },
+    {
+      "key": "pachelbel-canon",
+      "title": "Canon in D",
+      "composer": "Johann Pachelbel",
+      "performer": "Kevin MacLeod",
+      "audio": "audio/pachelbel-canon.mp3",
+      "seconds": 356,
+      "valence": 5.05,
+      "arousal": 3.77,
+      "bpm": 131,
+      "licence": "CC BY 3.0",
+      "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Kevin_MacLeod_-_Canon_in_D_Major.ogg",
+      "mcud": [
+        24,
+        25,
+        26,
+        86
+      ]
+    },
+    {
+      "key": "debussy-clair-de-lune",
+      "title": "Clair de lune, Suite bergamasque",
+      "composer": "Claude Debussy",
+      "performer": "eldüendesüarez",
+      "audio": "audio/debussy-clair-de-lune.mp3",
+      "seconds": 275,
+      "valence": 4.23,
+      "arousal": 2.67,
+      "bpm": 136,
+      "licence": "CC BY-SA 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Debussy_-_Clair_de_lune.(Piano_Performance_by_eld%C3%BCendes%C3%BCarez).wav",
+      "mcud": [
+        28,
+        147
+      ]
+    },
+    {
+      "key": "debussy-fille",
+      "title": "La fille aux cheveux de lin, Preludes Book I",
+      "composer": "Claude Debussy",
+      "performer": "Mi-Young Park, Park Sisters",
+      "audio": "audio/debussy-fille.mp3",
+      "seconds": 193,
+      "valence": 4.84,
+      "arousal": 2.98,
+      "bpm": 120,
+      "licence": "CC BY 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:7_-_La_fille_aux_cheveux_de_lin_-_Park_Sisters.ogg",
+      "mcud": [
+        94
+      ]
+    },
+    {
+      "key": "mozart-k448",
+      "title": "Sonata for Two Pianos in D major, K. 448: I. Allegro con spirito",
+      "composer": "Wolfgang Amadeus Mozart",
+      "performer": "Alton (Wikimedia Commons user) with a friend",
+      "audio": "audio/mozart-k448.mp3",
+      "seconds": 354,
+      "valence": 5.38,
+      "arousal": 4.52,
+      "bpm": 140,
+      "licence": "CC BY-SA 3.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Mozart_K448.ogg",
+      "mcud": [
+        78
+      ]
+    },
+    {
+      "key": "mozart-vc5-1",
+      "title": "Violin Concerto No. 5 in A major, K. 219: I. Allegro aperto",
+      "composer": "Wolfgang Amadeus Mozart",
+      "performer": "Pandora Records, Al Goldstein collection",
+      "audio": "audio/mozart-vc5-1.mp3",
+      "seconds": 542,
+      "valence": 5.5,
+      "arousal": 4.29,
+      "bpm": 123,
+      "licence": "CC BY-SA 2.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Mozart_-_5th_Concerto,_1st_movement_(Allegro_aperto).ogg",
+      "mcud": [
+        123
+      ]
+    },
+    {
+      "key": "beethoven-fur-elise",
+      "title": "Fur Elise, WoO 59",
+      "composer": "Ludwig van Beethoven",
+      "performer": "Sebion7125",
+      "audio": "audio/beethoven-fur-elise.mp3",
+      "seconds": 177,
+      "valence": 4.97,
+      "arousal": 4.12,
+      "bpm": 112,
+      "licence": "CC BY-SA 3.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Fur_Elise.ogg",
+      "mcud": [
+        46,
+        87
+      ]
+    },
+    {
+      "key": "beethoven-moonlight-1",
+      "title": "Piano Sonata No. 14, Moonlight: I. Adagio sostenuto",
+      "composer": "Ludwig van Beethoven",
+      "performer": "Paul Pitman, Musopen",
+      "audio": "audio/beethoven-moonlight-1.mp3",
+      "seconds": 336,
+      "valence": 4.13,
+      "arousal": 2.59,
+      "bpm": 115,
+      "licence": "Public domain",
+      "licence_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Ludwig_van_Beethoven_-_sonata_no._14_in_c_sharp_minor_%27moonlight%27,_op._27_no._2_-_i._adagio_sostenuto.ogg",
+      "mcud": [
+        196
+      ]
+    },
+    {
+      "key": "satie-gymnopedie-1",
+      "title": "Gymnopedie No. 1",
+      "composer": "Erik Satie",
+      "performer": "Teknopazzo",
+      "audio": "audio/satie-gymnopedie-1.mp3",
+      "seconds": 205,
+      "valence": 3.9,
+      "arousal": 2.68,
+      "bpm": 123,
+      "licence": "CC0",
+      "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Gymnopedie_No._1..ogg",
+      "mcud": [
+        48,
+        49,
+        50
+      ]
+    },
+    {
+      "key": "grieg-morning",
+      "title": "Morning Mood, Peer Gynt Suite No. 1",
+      "composer": "Edvard Grieg",
+      "performer": "Musopen Symphony",
+      "audio": "audio/grieg-morning.mp3",
+      "seconds": 229,
+      "valence": 4.05,
+      "arousal": 3.49,
+      "bpm": 123,
+      "licence": "Public domain",
+      "licence_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Grieg_-_Peer_Gynt_Suite_No._1,_Op._46_-_I._Morning_Mood_(Musopen_Symphony).flac",
+      "mcud": [
+        76
+      ]
+    },
+    {
+      "key": "mendelssohn-vc-1",
+      "title": "Violin Concerto in E minor, Op. 64: I. Allegro molto appassionato",
+      "composer": "Felix Mendelssohn",
+      "performer": "Hankyung Arte Philharmonic",
+      "audio": "audio/mendelssohn-vc-1.mp3",
+      "seconds": 833,
+      "valence": 5.03,
+      "arousal": 4.28,
+      "bpm": 126,
+      "licence": "CC BY 3.0",
+      "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Hankyung_Arte_Philharmonic_-_Mendelssohn%27s_Violin_Concerto_in_E_minor,_Op._64,_MWV_O_14_-_I._Allegro_molto_appassionato.ogg",
+      "mcud": [
+        73
+      ]
+    },
+    {
+      "key": "strauss-blue-danube",
+      "title": "The Blue Danube, Op. 314, arranged for wind ensemble",
+      "composer": "Johann Strauss II",
+      "performer": "United States Marine Band",
+      "audio": "audio/strauss-blue-danube.mp3",
+      "seconds": 549,
+      "valence": 5.35,
+      "arousal": 4.39,
+      "bpm": 100,
+      "licence": "Public domain",
+      "licence_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:%22An_der_sch%C3%B6nen,_blauen_Donau%22_performed_by_the_U.S._Marine_Band.flac",
+      "mcud": [
+        8,
+        65
+      ]
+    },
+    {
+      "key": "tchaikovsky-flowers",
+      "title": "Waltz of the Flowers, The Nutcracker",
+      "composer": "Pyotr Ilyich Tchaikovsky",
+      "performer": "United States Army Band",
+      "audio": "audio/tchaikovsky-flowers.mp3",
+      "seconds": 399,
+      "valence": 4.98,
+      "arousal": 4.34,
+      "bpm": 120,
+      "licence": "Public domain",
+      "licence_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:P.I._Tchaikovsky%27s_Waltz_of_the_Flowers_Performed_by_The_U.S._Army_Band,_c._2019.mp3",
+      "mcud": [
+        117
+      ]
+    },
+    {
+      "key": "vivaldi-spring-largo",
+      "title": "The Four Seasons, Spring: II. Largo",
+      "composer": "Antonio Vivaldi",
+      "performer": "John Harrison",
+      "audio": "audio/vivaldi-spring-largo.mp3",
+      "seconds": 172,
+      "valence": 3.74,
+      "arousal": 3.09,
+      "bpm": 122,
+      "licence": "CC BY-SA 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Vivaldi_-_Four_Seasons_1_Spring_mvt_2_Largo_-_John_Harrison_violin.oga",
+      "mcud": [
+        114,
+        115,
+        116
+      ]
+    },
+    {
+      "key": "holst-jupiter",
+      "title": "Jupiter, The Planets",
+      "composer": "Gustav Holst",
+      "performer": "United States Air Force Band and New York Classical Players",
+      "audio": "audio/holst-jupiter.mp3",
+      "seconds": 480,
+      "valence": 5.35,
+      "arousal": 4.88,
+      "bpm": 144,
+      "licence": "CC BY 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:The_Planets_Op.32_Jupiter_The_Bringer_of_Jollity_Mix_USAF_and_NYCP.opus",
+      "mcud": [
+        119
+      ]
+    },
+    {
+      "key": "bach-flute-1032-1",
+      "title": "Flute Sonata in A major, BWV 1032: I. Vivace",
+      "composer": "Johann Sebastian Bach",
+      "performer": "Pandora Records, Al Goldstein collection",
+      "audio": "audio/bach-flute-1032-1.mp3",
+      "seconds": 386,
+      "valence": 6.81,
+      "arousal": 5.79,
+      "bpm": 115,
+      "licence": "CC BY-SA 2.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Bach_-_Flute_Sonata_Amaj_-_1._Vivace.ogg",
+      "mcud": [
+        288
+      ]
+    },
+    {
+      "key": "bach-flute-1032-2",
+      "title": "Flute Sonata in A major, BWV 1032: II. Largo e dolce",
+      "composer": "Johann Sebastian Bach",
+      "performer": "Pandora Records, Al Goldstein collection",
+      "audio": "audio/bach-flute-1032-2.mp3",
+      "seconds": 212,
+      "valence": 5.31,
+      "arousal": 4.42,
+      "bpm": 140,
+      "licence": "CC BY-SA 2.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Bach_-_Flute_Sonata_Amaj_-_2._Largo_e_Dolce.ogg",
+      "mcud": [
+        289
+      ]
+    },
+    {
+      "key": "bach-flute-1032-3",
+      "title": "Flute Sonata in A major, BWV 1032: III. Allegro",
+      "composer": "Johann Sebastian Bach",
+      "performer": "Pandora Records, Al Goldstein collection",
+      "audio": "audio/bach-flute-1032-3.mp3",
+      "seconds": 275,
+      "valence": 6.71,
+      "arousal": 5.61,
+      "bpm": 123,
+      "licence": "CC BY-SA 2.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Bach_-_Flute_Sonata_Amaj_-_3._Allegro.ogg",
+      "mcud": [
+        290
+      ]
+    }
+  ]
+}

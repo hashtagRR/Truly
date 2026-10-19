@@ -17,7 +17,9 @@ const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 let questions = null;
 let camera = null;
 // The current check-in lives here for this visit; it is saved only if history is on.
-const session = { entry: null, face: null };
+// A camera reading waits in pendingFace and belongs only to the next check-in;
+// it is kept in memory with that check-in and never saved.
+const session = { entry: null, entryFace: null, pendingFace: null };
 const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1 };
 
 function labelFor(group, value) {
@@ -75,7 +77,7 @@ async function startCamera() {
     status.textContent = "Look at the screen as you normally would. This takes a few seconds.";
     const result = await face.readExpression($("camera-video"), { signal });
     if (signal.aborted) return;
-    session.face = result?.tone ?? null;
+    session.pendingFace = result?.tone ?? null;
     status.textContent = result
       ? `${TONE_TEXT[result.tone]} It is only a playful guess, and your answers above still lead.`
       : "The camera could not see a face clearly. That is fine, it is optional.";
@@ -117,6 +119,8 @@ function submitCheckin(event) {
   $("form-error").textContent = "";
   const entry = { at: new Date().toISOString(), feeling, energy, note: form.note.value.trim() || null };
   session.entry = entry;
+  session.entryFace = session.pendingFace;
+  session.pendingFace = null;
   if (store.keepsHistory()) store.add(entry);
   form.reset();
   $("camera-status").textContent = "";
@@ -160,7 +164,8 @@ async function openMusic() {
 
 function newPath(entry = currentEntry(), keep = []) {
   const { lib, catalogue } = music;
-  const start = lib.nudgeStart(lib.startPoint(entry.feeling, entry.energy, catalogue.stats), session.face, catalogue.stats);
+  const face = entry === session.entry ? session.entryFace : null;
+  const start = lib.nudgeStart(lib.startPoint(entry.feeling, entry.energy, catalogue.stats), face, catalogue.stats);
   const goal = lib.goalPoint(start, music.direction, catalogue.stats);
   music.points = lib.pathPoints(start, goal, music.steps);
   music.path = lib.buildPath(catalogue, music.points, { keep });
@@ -236,10 +241,20 @@ function renderMusic() {
     swap.addEventListener("click", () => {
       music.skipped.add(song.id);
       const was = music.playing === i;
+      const before = new Set(music.path.map((s) => s.id));
+      const playingId = music.playing >= 0 ? music.path[music.playing].id : null;
       music.path = music.lib.replaceSong(music.catalogue, music.path, music.points, i, music.skipped);
-      if (was) playAt(i);
-      else renderMusic();
-      $("music-status").textContent = `Piece ${i + 1} changed.`;
+      const added = music.path.findIndex((s) => !before.has(s.id));
+      if (was && added >= 0) playAt(added);
+      else {
+        if (playingId !== null) {
+          music.playing = music.path.findIndex((s) => s.id === playingId);
+          $("np-label").textContent = `Piece ${music.playing + 1} of ${music.path.length}`;
+          $("np-next").hidden = music.playing >= music.path.length - 1;
+        }
+        renderMusic();
+      }
+      $("music-status").textContent = added >= 0 ? `Piece ${added + 1} is new.` : "No other piece fits here.";
     });
     links.append(play, swap);
     li.append(text, links);

@@ -1,0 +1,115 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 hashtagRR
+
+// Music path tests. Run with: node --test tests/
+// tests/fixtures/tracks.json is a copy of tracks.json from the Truly-music
+// repository (valence, arousal and tempo from MCUD 1.0, CC BY 4.0).
+
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import {
+  buildPath, defaultDirection, explain, goalPoint, makeCatalogue, nudgeStart, pathPoints, replaceSong, startPoint,
+} from "../docs/app/music.js";
+
+const catalogue = makeCatalogue(
+  JSON.parse(readFileSync(new URL("./fixtures/tracks.json", import.meta.url))),
+  "https://example.org/",
+);
+const { stats } = catalogue;
+const DIRECTIONS = ["calmer", "brighter", "steady"];
+
+function seeded(seed) {
+  let x = seed;
+  return () => (x = (x * 16807) % 2147483647) / 2147483647;
+}
+
+function heading(points) {
+  const a = points[0];
+  const b = points[points.length - 1];
+  const v = (b.v - a.v) / stats.sdV;
+  const r = (b.a - a.a) / stats.sdA;
+  const n = Math.hypot(v, r);
+  return n > 1e-6 ? { v: v / n, a: r / n } : null;
+}
+
+function assertForward(path, points, context) {
+  const h = heading(points);
+  if (!h) return;
+  const pos = path.map((s) => (s.valence / stats.sdV) * h.v + (s.arousal / stats.sdA) * h.a);
+  for (let i = 1; i < pos.length; i++) {
+    assert.ok(pos[i] >= pos[i - 1] - 1e-9, `backward step at ${i} (${context})`);
+  }
+}
+
+function cases() {
+  const out = [];
+  for (let f = 1; f <= 5; f++) for (let e = 1; e <= 5; e++) for (const dir of DIRECTIONS) out.push({ f, e, dir });
+  return out;
+}
+
+function plan({ f, e, dir }, steps) {
+  const start = startPoint(f, e, stats);
+  return pathPoints(start, goalPoint(start, dir, stats), steps);
+}
+
+test("new paths have the right length, no repeated performer, and only move forward", () => {
+  const rng = seeded(1);
+  for (const c of cases()) {
+    for (const steps of [6, 9]) {
+      const points = plan(c, steps);
+      const path = buildPath(catalogue, points, { rng });
+      assert.equal(path.length, steps);
+      assert.equal(new Set(path.map((s) => s.artist)).size, steps);
+      assertForward(path, points, JSON.stringify({ ...c, steps }));
+    }
+  }
+});
+
+test("slowing down keeps the first piece and still only moves forward", () => {
+  const rng = seeded(2);
+  for (const c of cases()) {
+    const first = buildPath(catalogue, plan(c, 6), { rng });
+    const points = plan(c, 9);
+    const slower = buildPath(catalogue, points, { rng, keep: first.slice(0, 1) });
+    assert.ok(slower.some((s) => s.id === first[0].id), "first piece kept");
+    assertForward(slower, points, JSON.stringify(c));
+  }
+});
+
+test("swapping any piece changes it and keeps the path moving forward", () => {
+  const rng = seeded(3);
+  for (const c of cases()) {
+    const points = plan(c, 6);
+    let path = buildPath(catalogue, points, { rng });
+    const skipped = new Set();
+    for (let i = 0; i < path.length; i++) {
+      skipped.add(path[i].id);
+      const before = new Set(path.map((s) => s.id));
+      path = replaceSong(catalogue, path, points, i, skipped, rng);
+      assert.ok(path.some((s) => !before.has(s.id)), "a new piece was chosen");
+      assert.equal(new Set(path.map((s) => s.artist)).size, path.length);
+      assertForward(path, points, JSON.stringify({ ...c, swap: i }));
+    }
+  }
+});
+
+test("the camera nudge moves only the starting mood, by a small amount", () => {
+  const start = startPoint(2, 2, stats);
+  const bright = nudgeStart(start, "bright", stats);
+  const heavy = nudgeStart(start, "heavy", stats);
+  assert.ok(bright.v > start.v && heavy.v < start.v);
+  assert.equal(bright.a, start.a);
+  assert.ok(Math.abs(bright.v - start.v) <= 0.5 * stats.sdV);
+  assert.deepEqual(nudgeStart(start, null, stats), start);
+});
+
+test("every piece has an explanation and directions follow the answers", () => {
+  const points = plan({ f: 1, e: 1, dir: "brighter" }, 6);
+  const path = buildPath(catalogue, points, { rng: seeded(4) });
+  assert.match(explain(path, 0, stats, "brighter"), /mood and energy you described/);
+  for (let i = 1; i < path.length; i++) assert.ok(explain(path, i, stats, "brighter").length > 10);
+  assert.equal(defaultDirection(1, 5), "calmer");
+  assert.equal(defaultDirection(2, 2), "brighter");
+  assert.equal(defaultDirection(4, 3), "steady");
+});

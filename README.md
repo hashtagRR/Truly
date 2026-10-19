@@ -52,6 +52,14 @@ python3 -m http.server -d site
 
 Then open `http://localhost:8000/Truly/app/`. The check-in questions are in `docs/app/checkin.json`.
 
+## Tests
+
+```bash
+node --test tests/
+```
+
+The music path tests check that every path has the right length, never repeats a performer and only moves forward, including after a piece is swapped or the path is slowed down. They run with GitHub Actions on every push and pull request.
+
 ## Face model pipeline
 
 | Script | Purpose |
