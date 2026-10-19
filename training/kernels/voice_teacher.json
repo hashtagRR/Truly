@@ -9,5 +9,6 @@
   "enable_internet": true,
   "dataset_sources": [],
   "competition_sources": [],
-  "kernel_sources": []
+  "kernel_sources": [],
+  "machine_shape": "NvidiaTeslaP100"
 }

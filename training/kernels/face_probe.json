@@ -14,5 +14,6 @@
   "competition_sources": [],
   "kernel_sources": [
     "{user}/truly-face-train"
-  ]
+  ],
+  "machine_shape": "NvidiaTeslaP100"
 }

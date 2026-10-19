@@ -31,4 +31,11 @@ if [ -n "$mode" ]; then
     sed -i "s/^MODE = .*/MODE = \"$mode\"/" "$out/$script.py"
 fi
 grep -n '^MODE = ' "$out/$script.py" || true
-"${KAGGLE_BIN:-kaggle}" kernels push -p "$out"
+# A GPU kernel without a named accelerator gets Kaggle's default T4 x2, which
+# can queue for a long time; the templates name a single P100 instead.
+accelerator=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1])).get("machine_shape") or "")' "$out/kernel-metadata.json")
+if [ -n "$accelerator" ]; then
+    "${KAGGLE_BIN:-kaggle}" kernels push -p "$out" --accelerator "$accelerator"
+else
+    "${KAGGLE_BIN:-kaggle}" kernels push -p "$out"
+fi
