@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  buildPath, defaultDirection, explain, goalPoint, loadCatalogue, makeCatalogue, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
+  buildPath, defaultDirection, explain, goalPoint, INSTRUMENTS, loadCatalogue, makeCatalogue, preferences, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
 } from "../docs/app/music.js";
 
 const catalogue = makeCatalogue(
@@ -141,4 +141,44 @@ test("the music list is fetched again after a failed or slow request", async () 
   assert.equal(loaded.songs.length, catalogue.songs.length);
   const down = async () => { throw new TypeError("network down"); };
   await assert.rejects(loadCatalogue("https://example.org/", { fetcher: down, wait: 1, attempts: 2 }));
+});
+
+test("preferences shift the choice, and pieces ruled out never appear", () => {
+  const points = plan({ f: 3, e: 3, dir: "steady" }, 4);
+  const count = (prefs, match) => {
+    let n = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      n += buildPath(catalogue, points, { rng: seeded(seed), prefs }).filter(match).length;
+    }
+    return n;
+  };
+  const piano = (s) => s.instruments.includes("piano");
+  assert.ok(count(preferences({ instruments: ["piano"] }), piano) > count(preferences(), piano));
+  const fav = catalogue.songs.find((s) => s.instruments.includes("winds")).key;
+  assert.ok(count(preferences({ favourites: [fav] }), (s) => s.key === fav) >= count(preferences(), (s) => s.key === fav));
+  const ruled = catalogue.songs.slice(0, 6).map((s) => s.key);
+  for (const dir of DIRECTIONS) {
+    for (let seed = 1; seed <= 10; seed++) {
+      const path = buildPath(catalogue, plan({ f: 2, e: 4, dir }, 6), { rng: seeded(seed), prefs: preferences({ ruledOut: ruled }) });
+      assert.ok(path.every((s) => !ruled.includes(s.key)));
+      const swapped = replaceSong(catalogue, path, plan({ f: 2, e: 4, dir }, 6), 0, new Set(), seeded(seed), preferences({ ruledOut: ruled }));
+      assert.ok(swapped.every((s) => !ruled.includes(s.key)));
+    }
+  }
+});
+
+test("explanations mention a matching instrument or a favourite", () => {
+  const path = buildPath(catalogue, plan({ f: 3, e: 2, dir: "calmer" }, 4), { rng: seeded(2) });
+  const first = path[0];
+  assert.match(explain(path, 0, stats, "calmer", preferences({ favourites: [first.key] })), /One of your favourites/);
+  const ins = first.instruments[0];
+  assert.match(explain(path, 0, stats, "calmer", preferences({ instruments: [ins] })), /as you asked/);
+  assert.doesNotMatch(explain(path, 0, stats, "calmer"), /as you asked|favourites/);
+});
+
+test("every recording has at least one known instrument", () => {
+  for (const s of catalogue.songs) {
+    assert.ok(s.instruments.length > 0, s.key);
+    assert.ok(s.instruments.every((i) => INSTRUMENTS.includes(i)), s.key);
+  }
 });

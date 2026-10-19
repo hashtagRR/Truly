@@ -6,6 +6,9 @@
       "title": "Air on the G String, Orchestral Suite No. 3, BWV 1068",
       "composer": "Johann Sebastian Bach",
       "performer": "United States Air Force Band, Air Force Strings",
+      "instruments": [
+        "strings"
+      ],
       "audio": "audio/bach-air.mp3",
       "seconds": 183,
       "valence": 4.95,
@@ -27,6 +30,9 @@
       "title": "Canon in D",
       "composer": "Johann Pachelbel",
       "performer": "Kevin MacLeod",
+      "instruments": [
+        "strings"
+      ],
       "audio": "audio/pachelbel-canon.mp3",
       "seconds": 356,
       "valence": 5.05,
@@ -47,6 +53,9 @@
       "title": "Clair de lune, Suite bergamasque",
       "composer": "Claude Debussy",
       "performer": "eldüendesüarez",
+      "instruments": [
+        "piano"
+      ],
       "audio": "audio/debussy-clair-de-lune.mp3",
       "seconds": 275,
       "valence": 4.23,
@@ -65,6 +74,10 @@
       "title": "La fille aux cheveux de lin, Preludes Book I",
       "composer": "Claude Debussy",
       "performer": "Mi-Young Park, Park Sisters",
+      "instruments": [
+        "strings",
+        "piano"
+      ],
       "audio": "audio/debussy-fille.mp3",
       "seconds": 193,
       "valence": 4.84,
@@ -82,6 +95,9 @@
       "title": "Sonata for Two Pianos in D major, K. 448: I. Allegro con spirito",
       "composer": "Wolfgang Amadeus Mozart",
       "performer": "Alton (Wikimedia Commons user) with a friend",
+      "instruments": [
+        "piano"
+      ],
       "audio": "audio/mozart-k448.mp3",
       "seconds": 354,
       "valence": 5.38,
@@ -99,6 +115,9 @@
       "title": "Violin Concerto No. 5 in A major, K. 219: I. Allegro aperto",
       "composer": "Wolfgang Amadeus Mozart",
       "performer": "Pandora Records, Al Goldstein collection",
+      "instruments": [
+        "strings"
+      ],
       "audio": "audio/mozart-vc5-1.mp3",
       "seconds": 542,
       "valence": 5.5,
@@ -116,6 +135,9 @@
       "title": "Fur Elise, WoO 59",
       "composer": "Ludwig van Beethoven",
       "performer": "Sebion7125",
+      "instruments": [
+        "piano"
+      ],
       "audio": "audio/beethoven-fur-elise.mp3",
       "seconds": 177,
       "valence": 4.97,
@@ -134,6 +156,9 @@
       "title": "Piano Sonata No. 14, Moonlight: I. Adagio sostenuto",
       "composer": "Ludwig van Beethoven",
       "performer": "Paul Pitman, Musopen",
+      "instruments": [
+        "piano"
+      ],
       "audio": "audio/beethoven-moonlight-1.mp3",
       "seconds": 336,
       "valence": 4.13,
@@ -151,6 +176,9 @@
       "title": "Gymnopedie No. 1",
       "composer": "Erik Satie",
       "performer": "Teknopazzo",
+      "instruments": [
+        "piano"
+      ],
       "audio": "audio/satie-gymnopedie-1.mp3",
       "seconds": 205,
       "valence": 3.9,
@@ -170,6 +198,9 @@
       "title": "Morning Mood, Peer Gynt Suite No. 1",
       "composer": "Edvard Grieg",
       "performer": "Musopen Symphony",
+      "instruments": [
+        "orchestra"
+      ],
       "audio": "audio/grieg-morning.mp3",
       "seconds": 229,
       "valence": 4.05,
@@ -187,6 +218,10 @@
       "title": "Violin Concerto in E minor, Op. 64: I. Allegro molto appassionato",
       "composer": "Felix Mendelssohn",
       "performer": "Hankyung Arte Philharmonic",
+      "instruments": [
+        "orchestra",
+        "strings"
+      ],
       "audio": "audio/mendelssohn-vc-1.mp3",
       "seconds": 833,
       "valence": 5.03,
@@ -204,6 +239,9 @@
       "title": "The Blue Danube, Op. 314, arranged for wind ensemble",
       "composer": "Johann Strauss II",
       "performer": "United States Marine Band",
+      "instruments": [
+        "winds"
+      ],
       "audio": "audio/strauss-blue-danube.mp3",
       "seconds": 549,
       "valence": 5.35,
@@ -222,6 +260,9 @@
       "title": "Waltz of the Flowers, The Nutcracker",
       "composer": "Pyotr Ilyich Tchaikovsky",
       "performer": "United States Army Band",
+      "instruments": [
+        "orchestra"
+      ],
       "audio": "audio/tchaikovsky-flowers.mp3",
       "seconds": 399,
       "valence": 4.98,
@@ -239,6 +280,9 @@
       "title": "The Four Seasons, Spring: II. Largo",
       "composer": "Antonio Vivaldi",
       "performer": "John Harrison",
+      "instruments": [
+        "strings"
+      ],
       "audio": "audio/vivaldi-spring-largo.mp3",
       "seconds": 172,
       "valence": 3.74,
@@ -258,6 +302,9 @@
       "title": "Jupiter, The Planets",
       "composer": "Gustav Holst",
       "performer": "United States Air Force Band and New York Classical Players",
+      "instruments": [
+        "orchestra"
+      ],
       "audio": "audio/holst-jupiter.mp3",
       "seconds": 480,
       "valence": 5.35,
@@ -275,6 +322,9 @@
       "title": "Flute Sonata in A major, BWV 1032: I. Vivace",
       "composer": "Johann Sebastian Bach",
       "performer": "Pandora Records, Al Goldstein collection",
+      "instruments": [
+        "winds"
+      ],
       "audio": "audio/bach-flute-1032-1.mp3",
       "seconds": 386,
       "valence": 6.81,
@@ -292,6 +342,9 @@
       "title": "Flute Sonata in A major, BWV 1032: II. Largo e dolce",
       "composer": "Johann Sebastian Bach",
       "performer": "Pandora Records, Al Goldstein collection",
+      "instruments": [
+        "winds"
+      ],
       "audio": "audio/bach-flute-1032-2.mp3",
       "seconds": 212,
       "valence": 5.31,
@@ -309,6 +362,9 @@
       "title": "Flute Sonata in A major, BWV 1032: III. Allegro",
       "composer": "Johann Sebastian Bach",
       "performer": "Pandora Records, Al Goldstein collection",
+      "instruments": [
+        "winds"
+      ],
       "audio": "audio/bach-flute-1032-3.mp3",
       "seconds": 275,
       "valence": 6.71,

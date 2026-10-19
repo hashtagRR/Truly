@@ -10,8 +10,8 @@ const TONE_TEXT = {
   calm: "The camera suggests starting where you are.",
   heavy: "The camera suggests starting a little calmer and softer.",
 };
-const STEPS = 6;
-const SLOW_STEPS = 9;
+// Slowing down spreads the same journey over half as many pieces again.
+const SLOWER = 1.5;
 const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 const STALL_MS = 15000;
 
@@ -22,7 +22,10 @@ let voiceCheck = null;
 // A camera reading waits in pendingFace and belongs only to the next check-in;
 // it is kept in memory with that check-in and never saved.
 const session = { entry: null, entryFace: null, pendingFace: null, entryVoice: null, pendingVoice: null };
-const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1, record: null };
+const music = { lib: null, catalogue: null, entry: null, direction: null, steps: 6, slow: false, points: [], path: [], skipped: new Set(), playing: -1, record: null };
+// Music preferences. They are saved only when saving is on; pieces marked
+// "not for me" with saving off are left out for this visit only.
+const prefs = { instruments: new Set(), length: "standard", notForMe: new Set() };
 // Playback state for the current piece: one retry after an error, a stall
 // timer for slow connections, and the next piece fetched ahead of time.
 const playback = { retried: false, failed: 0, stall: null, ahead: null, seeking: false };
@@ -207,7 +210,8 @@ async function openMusic() {
   if (music.entry !== entry.at) {
     music.entry = entry.at;
     music.direction = music.lib.defaultDirection(entry.feeling, entry.energy);
-    music.steps = STEPS;
+    music.slow = false;
+    music.steps = baseSteps();
     $(`dir-${music.direction}`).checked = true;
     newPath(entry);
   }
@@ -220,7 +224,7 @@ function newPath(entry = currentEntry(), keep = []) {
   const start = lib.nudgeVoice(fromFace, current ? session.entryVoice : null, catalogue.stats);
   const goal = lib.goalPoint(start, music.direction, catalogue.stats);
   music.points = lib.pathPoints(start, goal, music.steps);
-  music.path = lib.buildPath(catalogue, music.points, { keep });
+  music.path = lib.buildPath(catalogue, music.points, { keep, prefs: currentPrefs() });
   music.skipped = new Set();
   music.record = null;
   resetPlayer();
@@ -271,6 +275,7 @@ function renderMusic() {
   renderCurve();
   const list = $("music-list");
   list.replaceChildren();
+  const listPrefs = currentPrefs();
   music.path.forEach((song, i) => {
     const li = document.createElement("li");
     if (i === music.playing) li.className = "playing";
@@ -281,7 +286,7 @@ function renderMusic() {
     creditLine.append(`${credit(song)} `, licence, ", ", source, ".");
     text.append(
       Object.assign(document.createElement("div"), { className: "title", textContent: song.title }),
-      Object.assign(document.createElement("div"), { className: "why", textContent: music.lib.explain(music.path, i, music.catalogue.stats, music.direction) }),
+      Object.assign(document.createElement("div"), { className: "why", textContent: music.lib.explain(music.path, i, music.catalogue.stats, music.direction, listPrefs) }),
       Object.assign(document.createElement("div"), { className: "artist", textContent: formatTime(song.seconds) }),
       creditLine,
     );
@@ -291,24 +296,18 @@ function renderMusic() {
     play.addEventListener("click", () => playAt(i));
     const swap = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Not this one" });
     swap.setAttribute("aria-label", `Choose another piece instead of ${song.title}`);
-    swap.addEventListener("click", () => {
-      music.skipped.add(song.id);
-      const was = music.playing === i;
-      const before = new Set(music.path.map((s) => s.id));
-      const playingId = music.playing >= 0 ? music.path[music.playing].id : null;
-      music.path = music.lib.replaceSong(music.catalogue, music.path, music.points, i, music.skipped);
-      const added = music.path.findIndex((s) => !before.has(s.id));
-      if (was && added >= 0) playAt(added);
-      else {
-        if (playingId !== null) {
-          music.playing = music.path.findIndex((s) => s.id === playingId);
-          $("np-label").textContent = `Piece ${music.playing + 1} of ${music.path.length}`;
-          updateSteps();
-        }
-        renderMusic();
-      }
-      $("music-status").textContent = added >= 0 ? `Piece ${added + 1} is new.` : "No other piece fits here.";
+    swap.addEventListener("click", () => replaceAt(i, song));
+    const notForMe = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Not for me" });
+    notForMe.setAttribute("aria-label", `Leave ${song.title} out of new paths`);
+    notForMe.addEventListener("click", () => {
+      prefs.notForMe.add(song.key);
+      const saved = store.addNotForMe({ key: song.key, title: song.title, composer: song.composer, performer: song.artist });
+      replaceAt(i, song);
+      $("music-status").textContent = saved
+        ? `${song.title} will be left out of new paths. You can allow it again in Your listening.`
+        : `${song.title} is left out for this visit. Switch saving on in Privacy to remember this.`;
     });
+
     const fav = Object.assign(document.createElement("button"), { type: "button", className: "link" });
     const isFav = store.isFavourite(song.key);
     fav.textContent = isFav ? "Favourite" : "Add to favourites";
@@ -328,12 +327,42 @@ function renderMusic() {
       $("music-status").textContent = now ? `${song.title} is now a favourite.` : `${song.title} is no longer a favourite.`;
       renderMusic();
     });
-    links.append(play, swap, fav);
+    links.append(play, swap, fav, notForMe);
     li.append(text, links);
     list.append(li);
   });
-  $("music-slower").disabled = music.steps === SLOW_STEPS;
+  $("music-slower").disabled = music.slow;
   if (!music.path.length) $("music-status").textContent = "No pieces matched. Please try another direction.";
+}
+
+function replaceAt(i, song) {
+  music.skipped.add(song.id);
+  const was = music.playing === i;
+  const before = new Set(music.path.map((s) => s.id));
+  const playingId = music.playing >= 0 ? music.path[music.playing].id : null;
+  music.path = music.lib.replaceSong(music.catalogue, music.path, music.points, i, music.skipped, Math.random, currentPrefs());
+  let added = music.path.findIndex((s) => !before.has(s.id));
+  if (added < 0 && (prefs.notForMe.has(song.key))) {
+    // Nothing else fits here, but a piece marked "not for me" still leaves.
+    music.path = music.path.filter((s) => s.id !== song.id);
+    if (was) {
+      if (i < music.path.length) playAt(i);
+      else resetPlayer();
+      renderMusic();
+      $("music-status").textContent = "";
+      return;
+    }
+  }
+  if (was && added >= 0) playAt(added);
+  else {
+    if (playingId !== null) {
+      music.playing = music.path.findIndex((s) => s.id === playingId);
+      $("np-label").textContent = `Piece ${music.playing + 1} of ${music.path.length}`;
+      updateSteps();
+    }
+    renderMusic();
+  }
+  $("music-status").textContent = added >= 0 ? `Piece ${added + 1} is new.` : music.path.some((s) => s.id === song.id) ? "No other piece fits here." : "";
 }
 
 function setDirection(direction) {
@@ -343,9 +372,51 @@ function setDirection(direction) {
 }
 
 function slowDown() {
-  music.steps = SLOW_STEPS;
+  music.slow = true;
+  music.steps = Math.round(baseSteps() * SLOWER);
   newPath(currentEntry(), music.path.slice(0, 1));
-  $("music-status").textContent = `The path now takes ${SLOW_STEPS} smaller steps.`;
+  $("music-status").textContent = `The path now takes ${music.path.length} smaller steps.`;
+}
+
+// Preferences
+
+function baseSteps() {
+  return music.lib?.LENGTHS[prefs.length] ?? 6;
+}
+
+function currentPrefs() {
+  return music.lib.preferences({
+    instruments: prefs.instruments,
+    favourites: store.loadFavourites().map((f) => f.key),
+    ruledOut: [...store.loadNotForMe().map((p) => p.key), ...prefs.notForMe],
+  });
+}
+
+function prefsNote() {
+  $("prefs-note").textContent = store.savingOn()
+    ? "Your preferences are kept in this browser."
+    : "These preferences last for this visit. Switch saving on in Privacy to keep them.";
+}
+
+function loadPrefs() {
+  const saved = store.loadPreferences();
+  if (Array.isArray(saved.instruments)) prefs.instruments = new Set(saved.instruments);
+  if (["short", "standard", "long"].includes(saved.length)) prefs.length = saved.length;
+  document.querySelectorAll('input[name="instrument"]').forEach((c) => { c.checked = prefs.instruments.has(c.value); });
+  $(`len-${prefs.length}`).checked = true;
+  prefsNote();
+}
+
+function changePrefs() {
+  prefs.instruments = new Set([...document.querySelectorAll('input[name="instrument"]:checked')].map((c) => c.value));
+  prefs.length = document.querySelector('input[name="length"]:checked')?.value ?? "standard";
+  store.savePreferences(prefs);
+  prefsNote();
+  if (!music.catalogue || !currentEntry()) return;
+  music.slow = false;
+  music.steps = baseSteps();
+  newPath();
+  $("music-status").textContent = "A new path is ready with your preferences.";
 }
 
 function stopMusic() {
@@ -611,6 +682,22 @@ function renderHistory() {
     pathList.append(li);
   }
   $("paths-empty").hidden = paths.length > 0;
+  const notForMe = store.loadNotForMe();
+  const notList = $("not-for-me-list");
+  notList.replaceChildren();
+  for (const n of [...notForMe].reverse()) {
+    const li = item(n.title, `${n.composer}. Performed by ${n.performer}.`);
+    const allow = Object.assign(document.createElement("button"), { type: "button", className: "link", textContent: "Allow again" });
+    allow.setAttribute("aria-label", `Allow ${n.title} in new paths again`);
+    allow.addEventListener("click", () => {
+      store.removeNotForMe(n.key);
+      prefs.notForMe.delete(n.key);
+      renderHistory();
+    });
+    li.append(allow);
+    notList.append(li);
+  }
+  $("not-for-me-empty").hidden = notForMe.length > 0;
 }
 
 async function init() {
@@ -631,12 +718,16 @@ async function init() {
   $("music-new").addEventListener("click", () => { newPath(); $("music-status").textContent = "A new path is ready."; });
   $("music-stop").addEventListener("click", stopMusic);
   $("music-retry").addEventListener("click", openMusic);
+  document.querySelectorAll('input[name="instrument"], input[name="length"]').forEach((c) => c.addEventListener("change", changePrefs));
+  loadPrefs();
   wirePlayer();
 
   $("saving").addEventListener("change", (e) => {
     store.setSaving(e.target.checked);
+    if (e.target.checked) store.savePreferences(prefs);
+    prefsNote();
     $("data-status").textContent = e.target.checked
-      ? "Your listening history and favourites will be kept on this device."
+      ? "Your listening history, favourites and music preferences will be kept on this device."
       : "Nothing new will be saved. What is already saved stays until you delete it.";
   });
   $("export").addEventListener("click", () => {
@@ -649,7 +740,8 @@ async function init() {
     store.clear();
     $("delete-confirm").hidden = true;
     $("saving").checked = false;
-    $("data-status").textContent = "Your listening history and favourites were deleted from this device.";
+    prefsNote();
+    $("data-status").textContent = "Your listening history, favourites and music preferences were deleted from this device.";
   });
 
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));

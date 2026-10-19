@@ -92,7 +92,7 @@ def main():
         rows = m.loc[rec["mcud"]]
         tracks.append({
             "key": rec["key"], "title": rec["title"], "composer": rec["composer"], "performer": rec["performer"],
-            "audio": f"audio/{rec['key']}.mp3", "seconds": duration(ffprobe, dest),
+            "instruments": rec["instruments"], "audio": f"audio/{rec['key']}.mp3", "seconds": duration(ffprobe, dest),
             "valence": round(float(rows["Valence"].mean()), 2), "arousal": round(float(rows["Arousal"].mean()), 2),
             "bpm": None if rows["BPM"].isna().all() else round(float(rows["BPM"].mean())),
             "licence": rec["licence"], "licence_url": LICENCES[rec["licence"]], "source": rec["source"], "mcud": rec["mcud"],

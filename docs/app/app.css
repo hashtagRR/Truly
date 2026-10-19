@@ -135,6 +135,11 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 .segmented input:checked + label { border-color: var(--accent); background: var(--chosen); }
 .segmented input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 3px; }
 #music-curve { margin-bottom: 12px; }
+.prefs { margin: 0 0 20px; }
+.prefs summary { font-weight: 700; font-size: 1.05rem; color: var(--accent); cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.prefs summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.prefs[open] summary { margin-bottom: 12px; }
+.prefs .direction { margin-bottom: 16px; }
 .curve .path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-dasharray: 2 9; stroke-linecap: round; }
 .curve .stop { fill: var(--accent); }
 .curve .label { fill: var(--soft-ink); font-family: var(--font); font-size: 13px; }

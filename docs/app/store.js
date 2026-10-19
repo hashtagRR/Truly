@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 hashtagRR
 
-// Listening history and favourites, kept only in this browser and only when
-// the listener switches saving on. Mood answers are never saved.
+// Listening history, favourites and music preferences, kept only in this
+// browser and only when the listener switches saving on. Mood answers are
+// never saved.
 
 const SAVING_KEY = "truly.saving.v1";
 const PATHS_KEY = "truly.paths.v1";
 const FAVOURITES_KEY = "truly.favourites.v1";
+const PREFERENCES_KEY = "truly.preferences.v1";
+const NOT_FOR_ME_KEY = "truly.not-for-me.v1";
 const LEGACY_KEYS = ["truly.checkins.v1", "truly.keep-history.v1"];
 const MAX_PATHS = 50;
 
@@ -92,16 +95,45 @@ export function removeFavourite(key) {
   write(FAVOURITES_KEY, loadFavourites().filter((f) => f.key !== key));
 }
 
+// Instrument choices and path length. Saved only when saving is on.
+export function loadPreferences() {
+  const prefs = read(PREFERENCES_KEY, {});
+  return prefs && typeof prefs === "object" && !Array.isArray(prefs) ? prefs : {};
+}
+
+export function savePreferences(prefs) {
+  if (!savingOn()) return false;
+  return write(PREFERENCES_KEY, { instruments: [...(prefs.instruments ?? [])], length: prefs.length });
+}
+
+export function loadNotForMe() {
+  const pieces = read(NOT_FOR_ME_KEY, []);
+  return Array.isArray(pieces) ? pieces : [];
+}
+
+// Remembers a piece the listener does not want suggested. Returns false when
+// saving is off; the app then keeps it for this visit only.
+export function addNotForMe(piece) {
+  if (!savingOn()) return false;
+  const pieces = loadNotForMe().filter((p) => p.key !== piece.key);
+  return write(NOT_FOR_ME_KEY, [...pieces, piece]);
+}
+
+// Allowing a piece again is always possible, even with saving off.
+export function removeNotForMe(key) {
+  write(NOT_FOR_ME_KEY, loadNotForMe().filter((p) => p.key !== key));
+}
+
 export function clear() {
   try {
-    for (const key of [SAVING_KEY, PATHS_KEY, FAVOURITES_KEY, ...LEGACY_KEYS]) localStorage.removeItem(key);
+    for (const key of [SAVING_KEY, PATHS_KEY, FAVOURITES_KEY, PREFERENCES_KEY, NOT_FOR_ME_KEY, ...LEGACY_KEYS]) localStorage.removeItem(key);
   } catch {
     // Nothing stored, or storage blocked: nothing to remove.
   }
 }
 
 export function exportFile() {
-  const data = { paths: loadPaths(), favourites: loadFavourites() };
+  const data = { paths: loadPaths(), favourites: loadFavourites(), notForMe: loadNotForMe(), preferences: loadPreferences() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

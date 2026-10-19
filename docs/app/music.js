@@ -11,6 +11,23 @@ const POOL = 4;
 const POOL_MARGIN = 0.25;
 const CONTINUITY = 0.35;
 const BACKWARD = 1.0;
+// Listener preferences shift the choice without overriding the path: a piece
+// without a preferred instrument counts as a little further away, and a
+// favourite as a little closer. Pieces marked "not for me" are never chosen.
+const INSTRUMENT_MISS = 0.6;
+const FAVOURITE_PULL = 0.25;
+export const INSTRUMENTS = ["piano", "strings", "orchestra", "winds"];
+export const LENGTHS = { short: 4, standard: 6, long: 9 };
+const INSTRUMENT_WORDS = { piano: "piano", strings: "strings", orchestra: "a full orchestra", winds: "wind instruments" };
+
+// Normalises listener preferences; every field is optional.
+export function preferences({ instruments = [], favourites = [], ruledOut = [] } = {}) {
+  return { instruments: new Set(instruments), favourites: new Set(favourites), ruledOut: new Set(ruledOut) };
+}
+
+function prefersInstrument(song, prefs) {
+  return !prefs.instruments.size || song.instruments.some((i) => prefs.instruments.has(i));
+}
 
 // Fetches tracks.json, retrying slow or failed requests a few times.
 export async function loadCatalogue(base, { fetcher = fetch, attempts = 3, timeout = 10000, wait = 1000 } = {}) {
@@ -35,6 +52,7 @@ export function makeCatalogue(data, base) {
     title: t.title,
     composer: t.composer,
     artist: t.performer,
+    instruments: Array.isArray(t.instruments) ? t.instruments : [],
     valence: t.valence,
     arousal: t.arousal,
     bpm: t.bpm,
@@ -105,11 +123,11 @@ function along(s, heading, stats) {
 // Scores songs by closeness to the planned point, with gentle steps from the
 // previous song and no movement back against the path's direction. When
 // bounds are given, only pieces between them along the direction qualify.
-function pick(catalogue, point, prev, avoid, rng, heading = null, bounds = null) {
+function pick(catalogue, point, prev, avoid, rng, heading = null, bounds = null, prefs = preferences()) {
   const { songs, stats } = catalogue;
   const scored = [];
   for (const s of songs) {
-    if (avoid.ids.has(s.id) || avoid.artists.has(s.artist)) continue;
+    if (avoid.ids.has(s.id) || avoid.artists.has(s.artist) || prefs.ruledOut.has(s.key)) continue;
     if (bounds && heading) {
       const x = along(s, heading, stats);
       if (x < bounds.lo || x > bounds.hi) continue;
@@ -125,6 +143,8 @@ function pick(catalogue, point, prev, avoid, rng, heading = null, bounds = null)
       }
     }
     if (prev?.bpm && s.bpm) d += 0.3 * ((s.bpm - prev.bpm) / 30) ** 2;
+    if (!prefersInstrument(s, prefs)) d += INSTRUMENT_MISS;
+    if (prefs.favourites.has(s.key)) d -= FAVOURITE_PULL;
     if (scored.length < CANDIDATES) {
       scored.push([d, s]);
       scored.sort((x, y) => x[0] - y[0]);
@@ -157,12 +177,12 @@ function headingOf(points, stats) {
 // Builds a path of songs, one per point, never repeating a song or an artist.
 // Pieces passed in keep stay in the path; the whole path is then ordered
 // along its direction so it never steps backwards.
-export function buildPath(catalogue, points, { rng = Math.random, keep = [] } = {}) {
+export function buildPath(catalogue, points, { rng = Math.random, keep = [], prefs = preferences() } = {}) {
   const heading = headingOf(points, catalogue.stats);
   const path = [...keep];
   const avoid = { ids: new Set(path.map((s) => s.id)), artists: new Set(path.map((s) => s.artist)) };
   for (const point of points.slice(keep.length)) {
-    const song = pick(catalogue, point, path[path.length - 1], avoid, rng, heading);
+    const song = pick(catalogue, point, path[path.length - 1], avoid, rng, heading, null, prefs);
     if (!song) break;
     path.push(song);
     avoid.ids.add(song.id);
@@ -180,7 +200,7 @@ function forwardOrder(path, heading, stats) {
 // Swaps one song for another close to the same point. The replacement is
 // chosen between its neighbours along the path's direction when possible,
 // and the path is reordered afterwards so it still only moves forward.
-export function replaceSong(catalogue, path, points, index, skipped, rng = Math.random) {
+export function replaceSong(catalogue, path, points, index, skipped, rng = Math.random, prefs = preferences()) {
   const { stats } = catalogue;
   const heading = headingOf(points, stats);
   const others = path.filter((_, i) => i !== index);
@@ -195,8 +215,8 @@ export function replaceSong(catalogue, path, points, index, skipped, rng = Math.
       hi: index < path.length - 1 ? along(path[index + 1], heading, stats) : Infinity,
     };
   }
-  const song = pick(catalogue, points[index], path[index - 1], avoid, rng, heading, bounds)
-    ?? pick(catalogue, points[index], path[index - 1], avoid, rng, heading);
+  const song = pick(catalogue, points[index], path[index - 1], avoid, rng, heading, bounds, prefs)
+    ?? pick(catalogue, points[index], path[index - 1], avoid, rng, heading, null, prefs);
   if (!song) return path;
   const next = [...path];
   next[index] = song;
@@ -228,7 +248,18 @@ export function nudgeVoice(start, voice, stats) {
 }
 
 // A short reason for each piece, from its place in the path.
-export function explain(path, i, stats, direction) {
+export function explain(path, i, stats, direction, prefs = preferences()) {
+  const notes = [];
+  if (prefs.favourites.has(path[i].key)) notes.push("One of your favourites.");
+  else if (prefs.instruments.size && prefersInstrument(path[i], prefs)) {
+    const match = path[i].instruments.filter((x) => prefs.instruments.has(x)).map((x) => INSTRUMENT_WORDS[x] ?? x);
+    notes.push(`Features ${match.length > 1 ? `${match.slice(0, -1).join(", ")} and ${match.at(-1)}` : match[0]}, as you asked.`);
+  }
+  const extra = notes.length ? ` ${notes.join(" ")}` : "";
+  return reason(path, i, stats, direction) + extra;
+}
+
+function reason(path, i, stats, direction) {
   if (i === 0) return "Chosen to match the mood and energy you described.";
   const prev = path[i - 1];
   const dv = (path[i].valence - prev.valence) / stats.sdV;

@@ -19,7 +19,8 @@ People who want to find music suited to their current mood and preferences, for 
 - Recommends music using its valence, arousal and tempo.
 - Builds gradual transitions between pieces, a sequencing technique that starts close to the listener's chosen mood and moves a little at a time.
 - Lets listeners skip, swap, slow down or regenerate recommendations, and plays music inside the app.
-- Keeps optional listening history and favourite pieces in the listener's own browser, only when the listener switches saving on, and lets them delete it at any time. Mood answers are never saved.
+- Lets listeners prefer instruments, choose a path length, mark favourites and rule pieces out.
+- Keeps optional listening history, favourite pieces and music preferences in the listener's own browser, only when the listener switches saving on, and lets them delete it at any time. Mood answers are never saved.
 - Explains why each piece was chosen.
 - Offers optional camera and voice inputs that only adjust where a music path starts. They are presented as a playful suggestion and never as a reading of how anyone feels.
 
@@ -58,7 +59,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
 - Everything runs in the browser. Camera frames and the five seconds of microphone sound are processed in memory and never stored or sent. Speech is never transcribed.
 - Music plays from Truly's own site. No streaming service, analytics, tracking or cookies are used.
 - Mood and energy answers are used for the current visit only and are never saved.
-- Saving is off by default. When the listener switches it on, only the paths they played and their favourite pieces are kept, in the browser, and they can be deleted at any time.
+- Saving is off by default. When the listener switches it on, only the paths they played, their favourite pieces, the pieces they ruled out and their instrument and length choices are kept, in the browser, and they can be deleted at any time.
 - No health records, risk scores or psychological profiles are created.
 
 ## Architecture
@@ -68,7 +69,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
  direction         ──┼──> start point and target ──> music path ──> in-app player
  camera (optional) ──┤                                    │
  voice (optional)  ──┘                                    └──> explanation per piece
- optional listening history and favourites (browser only, off by default)
+ optional listening history, favourites and preferences (browser only, off by default)
 ```
 
 | Component | Job | Interface for builders |
@@ -84,8 +85,8 @@ A mood answer is a subjective music preference. It is not a medical observation,
 ## Music
 
 - **Catalogue.** Freely licensed recordings of public domain works whose valence, arousal and tempo come from MCUD 1.0, a published dataset of music used in studies. Each recording is chosen by hand: a lyric-free public domain composition, a recording licensed for redistribution worldwide, and the work and movement checked against the dataset entry. Recordings and credits live in the [Truly-music](https://github.com/hashtagRR/Truly-music) repository, listed in `music/recordings.json` and prepared by `music/prepare_audio.py`.
-- **Paths.** Six pieces from the listener's starting point towards the chosen target. Calmer mainly lowers energy; gently brighter mainly lifts mood; staying keeps close. Each piece is a small step from the last, tempo changes gradually, no performer repeats, and the path always moves forward.
-- **Control.** The listener can swap a piece, slow down to nine smaller steps, start a new path or stop at any time.
+- **Paths.** Four, six or nine pieces, as the listener chooses, from their starting point towards the chosen target. Calmer mainly lowers energy; gently brighter mainly lifts mood; staying keeps close. Each piece is a small step from the last, tempo changes gradually, no performer repeats, and the path always moves forward.
+- **Control.** The listener can swap a piece, rule a piece out, prefer instruments, slow down to smaller steps, start a new path or stop at any time. Preferences shift the choice a little; the path's direction always leads.
 
 ## Research and evidence
 

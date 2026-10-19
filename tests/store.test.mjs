@@ -62,3 +62,20 @@ test("legacy mood answers are removed on start", () => {
   store.removeLegacy();
   assert.deepEqual(localStorage.keys(), []);
 });
+
+test("preferences and pieces ruled out are saved only with saving on, and deleted with everything else", () => {
+  assert.equal(store.savePreferences({ instruments: new Set(["piano"]), length: "long" }), false);
+  assert.equal(store.addNotForMe(piece), false);
+  assert.deepEqual(localStorage.keys(), []);
+  store.setSaving(true);
+  store.savePreferences({ instruments: new Set(["piano", "winds"]), length: "long" });
+  assert.deepEqual(store.loadPreferences(), { instruments: ["piano", "winds"], length: "long" });
+  store.addNotForMe(piece);
+  store.addNotForMe(piece);
+  assert.equal(store.loadNotForMe().length, 1, "a piece is listed once");
+  store.removeNotForMe(piece.key);
+  assert.deepEqual(store.loadNotForMe(), []);
+  store.addNotForMe(piece);
+  store.clear();
+  assert.deepEqual(localStorage.keys(), []);
+});
