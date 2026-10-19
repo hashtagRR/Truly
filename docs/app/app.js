@@ -231,34 +231,58 @@ function newPath(entry = currentEntry(), keep = []) {
   renderMusic();
 }
 
+// A small mood and energy map of the path: the planned line, every piece
+// in order, and the piece that is playing. It explains the path as a picture.
 function renderCurve() {
-  const { points } = music;
+  const { points, path } = music;
   const box = $("music-curve");
   box.replaceChildren();
-  const vs = points.map((p) => p.v);
-  const lo = Math.min(...vs), hi = Math.max(...vs);
-  const W = 640, H = 120, L = 24, R = 24, T = 26, B = 30;
-  const x = (i) => L + (i * (W - L - R)) / Math.max(1, points.length - 1);
-  const y = (v) => (hi - lo < 0.05 ? (T + H - B) / 2 : T + ((hi - v) * (H - T - B)) / (hi - lo));
+  $("music-curve-key").hidden = !path.length;
+  if (!path.length) return;
+  const narrow = box.clientWidth > 0 && box.clientWidth < 480;
+  const W = narrow ? 360 : 640, H = narrow ? 230 : 220, L = 30, R = 18, T = 18, B = 34;
+  // Both axes use the same unit, a standard deviation of the collection, so
+  // distances in the picture match the distances used to choose pieces.
+  const { sdV, sdA } = music.catalogue.stats;
+  const vs = [...points.map((p) => p.v), ...path.map((s) => s.valence)].map((v) => v / sdV);
+  const as = [...points.map((p) => p.a), ...path.map((s) => s.arousal)].map((a) => a / sdA);
+  const [vLo, vHi, aLo, aHi] = [Math.min(...vs), Math.max(...vs), Math.min(...as), Math.max(...as)];
+  const scale = Math.min((W - L - R) / Math.max(vHi - vLo + 0.6, 1), (H - T - B) / Math.max(aHi - aLo + 0.6, 1));
+  const vMid = (vLo + vHi) / 2, aMid = (aLo + aHi) / 2;
+  const x = (v) => (L + W - R) / 2 + (v / sdV - vMid) * scale;
+  const y = (a) => (T + H - B) / 2 - (a / sdA - aMid) * scale;
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("class", "curve chart");
+  svg.setAttribute("class", narrow ? "curve chart narrow" : "curve chart");
   svg.setAttribute("role", "img");
   const label = music.direction === "steady" ? "staying close to the mood you chose"
     : music.direction === "calmer" ? "moving step by step towards calmer music" : "moving step by step towards brighter music";
-  svg.setAttribute("aria-label", `A path of ${points.length} pieces, ${label}`);
+  const now = music.playing >= 0 ? ` Piece ${music.playing + 1} is playing.` : "";
+  svg.setAttribute("aria-label", `A map of the path's ${path.length} pieces by mood and energy, ${label}.${now}`);
   const el = (tag, attrs, text) => {
     const n = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
     if (text) n.textContent = text;
     svg.append(n);
+    return n;
   };
-  el("polyline", { points: points.map((p, i) => `${x(i)},${y(p.v)}`).join(" "), class: "path" });
-  points.forEach((p, i) => el("circle", { cx: x(i), cy: y(p.v), r: i === 0 || i === points.length - 1 ? 7 : 4, class: "stop" }));
-  el("text", { x: L, y: H - 8, class: "label" }, "your mood");
-  const endLabel = music.direction === "steady" ? "staying with you" : music.direction === "calmer" ? "calmer" : "brighter";
-  el("text", { x: W - R, y: H - 8, "text-anchor": "end", class: "label" }, endLabel);
+  el("line", { x1: L, y1: H - B, x2: W - R, y2: H - B, class: "axis" });
+  el("line", { x1: L, y1: T, x2: L, y2: H - B, class: "axis" });
+  el("text", { x: W - R, y: H - 10, "text-anchor": "end", class: "label" }, "brighter mood →");
+  const mid = (T + H - B) / 2;
+  el("text", { x: 16, y: mid, "text-anchor": "middle", class: "label", transform: `rotate(-90 16 ${mid})` }, "more energy →");
+  el("polyline", { points: points.map((p) => `${x(p.v)},${y(p.a)}`).join(" "), class: "plan" });
+  el("polyline", { points: path.map((s) => `${x(s.valence)},${y(s.arousal)}`).join(" "), class: "path" });
+  // The playing piece is drawn last so a nearby piece never hides it.
+  const order = path.map((_, i) => i).filter((i) => i !== music.playing);
+  if (music.playing >= 0) order.push(music.playing);
+  for (const i of order) {
+    const s = path[i];
+    if (i === music.playing) el("circle", { cx: x(s.valence), cy: y(s.arousal), r: 17, class: "now" });
+    el("circle", { cx: x(s.valence), cy: y(s.arousal), r: 11, class: "stop" });
+    el("text", { x: x(s.valence), y: y(s.arousal) + 4, "text-anchor": "middle", class: "num" }, String(i + 1));
+  }
   box.append(svg);
 }
 
@@ -423,6 +447,7 @@ function stopMusic() {
   resetPlayer();
   $("music-list").replaceChildren();
   $("music-curve").replaceChildren();
+  $("music-curve-key").hidden = true;
   $("music-status").textContent = "Stopped. You can come back to the music any time.";
 }
 

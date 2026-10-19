@@ -140,9 +140,16 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 .prefs summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .prefs[open] summary { margin-bottom: 12px; }
 .prefs .direction { margin-bottom: 16px; }
-.curve .path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-dasharray: 2 9; stroke-linecap: round; }
+.curve { width: 100%; height: auto; display: block; }
+.curve .axis { stroke: var(--line); stroke-width: 1.5; }
+.curve .plan { fill: none; stroke: var(--sun); stroke-width: 2; stroke-dasharray: 3 7; stroke-linecap: round; }
+.curve .path { fill: none; stroke: var(--accent); stroke-width: 2.5; }
 .curve .stop { fill: var(--accent); }
+.curve .now { fill: none; stroke: var(--sun); stroke-width: 3; }
+.curve .num { fill: var(--on-accent); font-family: var(--font); font-size: 12px; font-weight: 700; }
 .curve .label { fill: var(--soft-ink); font-family: var(--font); font-size: 13px; }
+.curve.narrow .label { font-size: 15px; }
+.curve.narrow .num { font-size: 13px; }
 .tracks { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 12px; counter-reset: track; }
 .tracks li { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 4px 14px; counter-increment: track; }
 .tracks li::before { content: counter(track); grid-row: span 3; width: 36px; height: 36px; border-radius: 50%; background: var(--chosen); display: grid; place-items: center; font-weight: 700; }
