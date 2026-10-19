@@ -154,7 +154,10 @@ textarea { width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink); ba
 .np-title { font-weight: 700; font-size: 1.15rem; overflow-wrap: anywhere; }
 .np-credit { font-size: 0.9rem; color: var(--soft-ink); overflow-wrap: anywhere; }
 .np-bar { display: flex; align-items: center; gap: 12px; }
-.np-bar progress { flex: 1; height: 10px; accent-color: var(--accent); }
+.np-bar input[type="range"] { flex: 1; min-width: 0; height: 28px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.np-bar input[type="range"]:disabled { cursor: default; opacity: 0.6; }
+.np-steps { display: flex; flex-wrap: wrap; gap: 6px 20px; }
+.np-steps .link { font-weight: 700; padding: 6px 0; }
 .np-time { font-variant-numeric: tabular-nums; color: var(--soft-ink); font-size: 0.95rem; min-width: 3.2em; text-align: right; }
 .saved h2 { font-size: 1.5rem; }
 

@@ -13,6 +13,7 @@ const TONE_TEXT = {
 const STEPS = 6;
 const SLOW_STEPS = 9;
 const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
+const STALL_MS = 15000;
 
 let questions = null;
 let camera = null;
@@ -22,6 +23,9 @@ let voiceCheck = null;
 // it is kept in memory with that check-in and never saved.
 const session = { entry: null, entryFace: null, pendingFace: null, entryVoice: null, pendingVoice: null };
 const music = { lib: null, catalogue: null, entry: null, direction: null, steps: STEPS, points: [], path: [], skipped: new Set(), playing: -1, record: null };
+// Playback state for the current piece: one retry after an error, a stall
+// timer for slow connections, and the next piece fetched ahead of time.
+const playback = { retried: false, failed: 0, stall: null, ahead: null, seeking: false };
 
 function renderScale(group) {
   const q = questions[group];
@@ -189,12 +193,14 @@ async function openMusic() {
   const status = $("music-status");
   if (!music.catalogue) {
     status.textContent = "Loading the music list.";
+    $("music-retry").hidden = true;
     try {
-      music.lib = await import("./music.js");
+      music.lib ??= await import("./music.js");
       music.catalogue = await music.lib.loadCatalogue(MUSIC_BASE);
       status.textContent = "";
     } catch {
-      status.textContent = "The music could not be loaded. Please check your connection and try again.";
+      status.textContent = "The music library could not be reached right now.";
+      $("music-retry").hidden = false;
       return;
     }
   }
@@ -297,7 +303,7 @@ function renderMusic() {
         if (playingId !== null) {
           music.playing = music.path.findIndex((s) => s.id === playingId);
           $("np-label").textContent = `Piece ${music.playing + 1} of ${music.path.length}`;
-          $("np-next").hidden = music.playing >= music.path.length - 1;
+          updateSteps();
         }
         renderMusic();
       }
@@ -362,19 +368,30 @@ function recordPlay(song) {
   store.savePath(music.record);
 }
 
-function playAt(i) {
+function playAt(i, { from = 0, retry = false } = {}) {
   const song = music.path[i];
   if (!song) return;
   recordPlay(song);
   const audio = $("np-audio");
+  if (!retry) playback.retried = false;
   music.playing = i;
   audio.src = song.audio;
-  audio.play().catch(() => { $("music-status").textContent = "The piece could not start. Please press play again."; });
+  if (from) audio.currentTime = from;
+  startStallTimer();
+  audio.play().catch((err) => {
+    if (err?.name === "NotAllowedError") $("music-status").textContent = "Press play to start the music.";
+  });
   $("np-label").textContent = `Piece ${i + 1} of ${music.path.length}`;
   $("np-title").textContent = song.title;
   $("np-credit").textContent = `${credit(song)} ${song.licence}.`;
-  $("np-next").hidden = i >= music.path.length - 1;
+  updateSteps();
+  setMediaSession(song);
   renderMusic();
+}
+
+function updateSteps() {
+  $("np-prev").hidden = music.playing <= 0;
+  $("np-next").hidden = music.playing < 0 || music.playing >= music.path.length - 1;
 }
 
 function togglePlay() {
@@ -384,30 +401,135 @@ function togglePlay() {
   else audio.pause();
 }
 
+function startStallTimer() {
+  clearTimeout(playback.stall);
+  playback.stall = setTimeout(() => {
+    $("music-status").textContent = "The piece is taking a while to load. The connection may be slow; it will start when it is ready.";
+  }, STALL_MS);
+}
+
+function clearStall() {
+  clearTimeout(playback.stall);
+  playback.stall = null;
+}
+
+// Starts downloading the next piece once the current one is ready, so the
+// change between pieces does not wait on the network.
+function fetchAhead() {
+  const next = music.path[music.playing + 1];
+  if (!next || playback.ahead?.dataset.key === next.key) return;
+  const ahead = new Audio();
+  ahead.preload = "auto";
+  ahead.dataset.key = next.key;
+  ahead.src = next.audio;
+  playback.ahead = ahead;
+}
+
+function pieceFailed() {
+  const audio = $("np-audio");
+  clearStall();
+  if (music.playing < 0 || !audio.getAttribute("src")) return;
+  if (!playback.retried) {
+    playback.retried = true;
+    const at = audio.currentTime || 0;
+    $("music-status").textContent = "The connection dropped. Trying the piece again.";
+    const piece = music.playing;
+    setTimeout(() => { if (music.playing === piece) playAt(piece, { from: at, retry: true }); }, 2000);
+    return;
+  }
+  playback.failed += 1;
+  const failedAt = music.playing;
+  if (playback.failed >= 3 || failedAt >= music.path.length - 1) {
+    $("music-status").textContent = "The music could not be played. Please check the connection and press play to try again.";
+    playback.failed = 0;
+    const keep = failedAt;
+    resetPlayer();
+    music.resumeAt = keep;
+    renderMusic();
+    return;
+  }
+  $("music-status").textContent = `Piece ${failedAt + 1} could not be played, so the path moves on to the next one.`;
+  playAt(failedAt + 1);
+}
+
+function setMediaSession(song) {
+  if (!("mediaSession" in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: song.title, artist: song.artist, album: "Truly" });
+  } catch {
+    // Older browsers have mediaSession without MediaMetadata.
+  }
+}
+
+function wireMediaSession() {
+  if (!("mediaSession" in navigator)) return;
+  const audio = $("np-audio");
+  const handlers = {
+    play: () => (music.playing < 0 ? playAt(0) : audio.play().catch(() => {})),
+    pause: () => audio.pause(),
+    nexttrack: () => playAt(music.playing + 1),
+    previoustrack: () => playAt(Math.max(0, music.playing - 1)),
+    seekto: (d) => { if (Number.isFinite(d.seekTime)) audio.currentTime = d.seekTime; },
+  };
+  for (const [action, fn] of Object.entries(handlers)) {
+    try {
+      navigator.mediaSession.setActionHandler(action, fn);
+    } catch {
+      // Not every browser supports every action.
+    }
+  }
+}
+
 function resetPlayer() {
   const audio = $("np-audio");
+  clearStall();
   audio.pause();
   audio.removeAttribute("src");
   audio.load();
   music.playing = -1;
+  music.resumeAt = null;
+  playback.ahead = null;
   $("np-label").textContent = "Ready when you are";
   $("np-title").textContent = "";
   $("np-credit").textContent = "";
-  $("np-progress").value = 0;
+  const seek = $("np-seek");
+  seek.value = 0;
+  seek.disabled = true;
+  seek.setAttribute("aria-valuetext", "0:00");
   $("np-time").textContent = "0:00";
   $("np-toggle").textContent = "Play the path";
-  $("np-next").hidden = true;
+  updateSteps();
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = null;
+}
+
+function showTime() {
+  const audio = $("np-audio");
+  const seek = $("np-seek");
+  const total = Number.isFinite(audio.duration) ? audio.duration : 0;
+  if (total && !playback.seeking) seek.value = Math.round((audio.currentTime / total) * 1000);
+  seek.disabled = !total;
+  const text = total ? `${formatTime(audio.currentTime)} / ${formatTime(total)}` : formatTime(audio.currentTime);
+  $("np-time").textContent = text;
+  seek.setAttribute("aria-valuetext", total ? `${formatTime(audio.currentTime)} of ${formatTime(total)}` : text);
 }
 
 function wirePlayer() {
   const audio = $("np-audio");
   audio.addEventListener("play", () => { $("np-toggle").textContent = "Pause"; });
   audio.addEventListener("pause", () => { if (music.playing >= 0) $("np-toggle").textContent = "Play"; });
-  audio.addEventListener("timeupdate", () => {
-    if (audio.duration) $("np-progress").value = audio.currentTime / audio.duration;
-    $("np-time").textContent = formatTime(audio.currentTime);
+  audio.addEventListener("waiting", startStallTimer);
+  audio.addEventListener("playing", () => {
+    clearStall();
+    playback.failed = 0;
+    const status = $("music-status");
+    if (/taking a while|Trying the piece again|Press play to start/.test(status.textContent)) status.textContent = "";
   });
+  audio.addEventListener("canplaythrough", fetchAhead);
+  audio.addEventListener("error", pieceFailed);
+  audio.addEventListener("timeupdate", showTime);
+  audio.addEventListener("durationchange", showTime);
   audio.addEventListener("ended", () => {
+    clearStall();
     if (music.playing < music.path.length - 1) playAt(music.playing + 1);
     else {
       $("music-status").textContent = "That is the end of this path.";
@@ -415,8 +537,36 @@ function wirePlayer() {
       renderMusic();
     }
   });
-  $("np-toggle").addEventListener("click", togglePlay);
+  const seek = $("np-seek");
+  seek.addEventListener("input", () => {
+    playback.seeking = true;
+    if (audio.duration) $("np-time").textContent = `${formatTime((seek.value / 1000) * audio.duration)} / ${formatTime(audio.duration)}`;
+  });
+  // Arrow keys move 10 seconds and Page Up or Down 30, which suits a piece of
+  // music better than the slider's own small steps.
+  const JUMP = { ArrowRight: 10, ArrowUp: 10, ArrowLeft: -10, ArrowDown: -10, PageUp: 30, PageDown: -30 };
+  seek.addEventListener("keydown", (e) => {
+    if (!audio.duration) return;
+    let to = null;
+    if (e.key in JUMP) to = audio.currentTime + JUMP[e.key];
+    else if (e.key === "Home") to = 0;
+    else if (e.key === "End") to = audio.duration - 1;
+    if (to === null) return;
+    e.preventDefault();
+    audio.currentTime = Math.max(0, Math.min(audio.duration - 0.5, to));
+    showTime();
+  });
+  seek.addEventListener("change", () => {
+    playback.seeking = false;
+    if (audio.duration) audio.currentTime = (seek.value / 1000) * audio.duration;
+  });
+  $("np-toggle").addEventListener("click", () => {
+    if (music.playing < 0 && music.resumeAt != null) return playAt(music.resumeAt);
+    togglePlay();
+  });
   $("np-next").addEventListener("click", () => playAt(music.playing + 1));
+  $("np-prev").addEventListener("click", () => playAt(Math.max(0, music.playing - 1)));
+  wireMediaSession();
 }
 
 // Your listening
@@ -480,6 +630,7 @@ async function init() {
   $("music-slower").addEventListener("click", slowDown);
   $("music-new").addEventListener("click", () => { newPath(); $("music-status").textContent = "A new path is ready."; });
   $("music-stop").addEventListener("click", stopMusic);
+  $("music-retry").addEventListener("click", openMusic);
   wirePlayer();
 
   $("saving").addEventListener("change", (e) => {

@@ -59,7 +59,7 @@ Then open `http://localhost:8000/Truly/app/`. The check-in questions are in `doc
 node --test tests/
 ```
 
-The music path tests check that every path has the right length, never repeats a performer and only moves forward, including after a piece is swapped or the path is slowed down. They run with GitHub Actions on every push and pull request.
+The music path tests check that every path has the right length, never repeats a performer and only moves forward, including after a piece is swapped or the path is slowed down, and that the music list is fetched again after a failed request. The voice tests check the loudness step and the voice readout. They run with GitHub Actions on every push and pull request.
 
 ## Model pipelines
 

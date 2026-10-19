@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  buildPath, defaultDirection, explain, goalPoint, makeCatalogue, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
+  buildPath, defaultDirection, explain, goalPoint, loadCatalogue, makeCatalogue, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
 } from "../docs/app/music.js";
 
 const catalogue = makeCatalogue(
@@ -125,4 +125,20 @@ test("every piece has an explanation and directions follow the answers", () => {
   assert.equal(defaultDirection(1, 5), "calmer");
   assert.equal(defaultDirection(2, 2), "brighter");
   assert.equal(defaultDirection(4, 3), "steady");
+});
+
+test("the music list is fetched again after a failed or slow request", async () => {
+  const data = JSON.parse(readFileSync(new URL("./fixtures/tracks.json", import.meta.url)));
+  let calls = 0;
+  const flaky = async () => {
+    calls += 1;
+    if (calls === 1) throw new TypeError("network down");
+    if (calls === 2) return { ok: false, status: 503 };
+    return { ok: true, json: async () => data };
+  };
+  const loaded = await loadCatalogue("https://example.org/", { fetcher: flaky, wait: 1 });
+  assert.equal(calls, 3);
+  assert.equal(loaded.songs.length, catalogue.songs.length);
+  const down = async () => { throw new TypeError("network down"); };
+  await assert.rejects(loadCatalogue("https://example.org/", { fetcher: down, wait: 1, attempts: 2 }));
 });

@@ -104,14 +104,18 @@
             <button type="button" class="button primary" id="np-toggle">Play the path</button>
           </div>
           <div class="np-bar">
-            <progress id="np-progress" max="1" value="0" aria-label="Progress through this piece"></progress>
+            <input type="range" id="np-seek" min="0" max="1000" step="1" value="0" aria-label="Position in this piece" aria-valuetext="0:00" disabled>
             <span class="np-time" id="np-time">0:00</span>
           </div>
-          <button type="button" class="link" id="np-next" hidden>Next piece</button>
+          <div class="np-steps">
+            <button type="button" class="link" id="np-prev" hidden>Previous piece</button>
+            <button type="button" class="link" id="np-next" hidden>Next piece</button>
+          </div>
           <audio id="np-audio" preload="none"></audio>
         </div>
 
         <p class="status" id="music-status" role="status" aria-live="polite"></p>
+        <button type="button" class="button quiet" id="music-retry" hidden>Try again</button>
         <ol class="tracks" id="music-list"></ol>
 
         <div class="row">

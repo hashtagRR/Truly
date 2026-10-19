@@ -12,9 +12,20 @@ const POOL_MARGIN = 0.25;
 const CONTINUITY = 0.35;
 const BACKWARD = 1.0;
 
-export async function loadCatalogue(base) {
-  const data = await fetch(new URL("tracks.json", base)).then((r) => r.json());
-  return makeCatalogue(data, base);
+// Fetches tracks.json, retrying slow or failed requests a few times.
+export async function loadCatalogue(base, { fetcher = fetch, attempts = 3, timeout = 10000, wait = 1000 } = {}) {
+  let last;
+  for (let i = 0; i < attempts; i++) {
+    if (i) await new Promise((r) => setTimeout(r, wait * 2 ** (i - 1)));
+    try {
+      const res = await fetcher(new URL("tracks.json", base), { signal: AbortSignal.timeout(timeout) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return makeCatalogue(await res.json(), base);
+    } catch (err) {
+      last = err;
+    }
+  }
+  throw last;
 }
 
 export function makeCatalogue(data, base) {

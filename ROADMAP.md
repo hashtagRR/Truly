@@ -7,7 +7,6 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 ### Quality
 
 - **More tests.** Add the face readout and model shape checks to `tests/`, next to the music path tests that run with GitHub Actions on every pull request.
-- **Playback reliability.** Handle slow networks and failed loads, and keep the player usable from the keyboard and on phones.
 
 ### Listener preferences
 
