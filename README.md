@@ -70,6 +70,7 @@ The music path tests check that every path has the right length, never repeats a
 | `readout.py` | Compares ways of turning 40 category scores into the 7 FER classes (runs locally) |
 | `face_teacher.py` | Scores FairFace, EmoNet-Face and CREMA-D images with the LAION teacher |
 | `face_distill.py` | Distils the teacher into EfficientNet-B0, calibrates on CREMA-D and evaluates |
+| `voice_teacher.py` | Scores 5 second voice clips with a non-clinical valence and arousal teacher (LAION Empathic-Insight-Voice on BUD-E-Whisper) for a future on-device voice input |
 
 FER-2013 is used for evaluation only. No FER-2013 image or label is used for training or calibration.
 

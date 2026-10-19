@@ -1,0 +1,13 @@
+{
+  "id": "{user}/truly-voice-teacher",
+  "title": "truly-voice-teacher",
+  "code_file": "voice_teacher.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}
