@@ -30,8 +30,9 @@ Proposals for diagnosis, screening, risk scores, health monitoring, clinical que
 ## Releasing
 
 1. Move the notes under a new version heading in `CHANGELOG.md`, and update the version in the app footer (`docs/app/index.html`).
-2. Run the tests: `node --test tests/`.
-3. Package the models: `python scripts/package_models.py X.Y.Z`.
-4. Tag the release commit `vX.Y.Z`, publish a GitHub release with the changelog section as notes, and attach `build/release/truly-models-X.Y.Z.zip`.
+2. If a model or the ONNX runtime changed without a new file name, raise `VERSION` in `docs/app/sw.js` so browsers fetch the new copy.
+3. Run the tests: `node --test tests/`.
+4. Package the models: `python scripts/package_models.py X.Y.Z`.
+5. Tag the release commit `vX.Y.Z`, publish a GitHub release with the changelog section as notes, and attach `build/release/truly-models-X.Y.Z.zip`.
 
 By contributing, you agree that your contribution is released under AGPL-3.0-or-later.
