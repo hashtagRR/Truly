@@ -4,7 +4,7 @@
 
 **[hashtagRR.github.io/Truly](https://hashtagRR.github.io/Truly)**
 
-Truly is a free, open source, privacy-first music recommender. Tell it your mood and how much energy you have, and it plays a short path of music that starts where you are and moves, one piece at a time, towards calmer or brighter, with a reason for every piece.
+Truly is a free, open source, privacy-first music recommender. Tell it your mood and how much energy you have, and it plays a short path of classical music that starts where you are and moves, one piece at a time, towards calmer or brighter, with a reason for every piece.
 
 Truly is a music app. It does not assess, diagnose or monitor anyone's health; the [scope](references/SCOPE.md) sets this out as a permanent boundary for the project.
 
@@ -59,7 +59,7 @@ Then open `http://localhost:8000/Truly/app/`. The check-in questions are in `doc
 node --test tests/
 ```
 
-The music path tests check that every path has the right length, never repeats a performer and only moves forward, including after a piece is swapped or the path is slowed down, and that the music list is fetched again after a failed request. The voice tests check the loudness step and the voice readout. They run with GitHub Actions on every push and pull request.
+The music path tests check that every path has the right length, never repeats a performer and only moves forward, including after a piece is swapped or the path is slowed down, and that the music list is fetched again after a failed request. The face and voice tests check the readouts and the loudness step, and the model tests load each shipped ONNX model and check the inputs and outputs the app relies on. They run with GitHub Actions on every push and pull request.
 
 ## Model pipelines
 
