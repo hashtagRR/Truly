@@ -120,6 +120,31 @@ function along(s, heading, stats) {
   return (s.valence / stats.sdV) * heading.v + (s.arousal / stats.sdA) * heading.a;
 }
 
+// The parts of a piece's cost at one planned point; lower is better. Every
+// distance is in standard deviations of the catalogue.
+export function cost(s, point, prev, heading, stats, prefs = preferences()) {
+  const parts = {
+    closeness: ((s.valence - point.v) / stats.sdV) ** 2 + ((s.arousal - point.a) / stats.sdA) ** 2,
+    step: 0,
+    backward: 0,
+    tempo: 0,
+    instrument: prefersInstrument(s, prefs) ? 0 : INSTRUMENT_MISS,
+    favourite: prefs.favourites.has(s.key) ? -FAVOURITE_PULL : 0,
+  };
+  if (prev) {
+    const dv = (s.valence - prev.valence) / stats.sdV;
+    const da = (s.arousal - prev.arousal) / stats.sdA;
+    parts.step = CONTINUITY * (dv * dv + da * da);
+    if (heading) {
+      const forward = dv * heading.v + da * heading.a;
+      if (forward < 0) parts.backward = BACKWARD * forward * forward;
+    }
+    if (prev.bpm && s.bpm) parts.tempo = 0.3 * ((s.bpm - prev.bpm) / 30) ** 2;
+  }
+  parts.total = Object.values(parts).reduce((a, b) => a + b, 0);
+  return parts;
+}
+
 // Scores songs by closeness to the planned point, with gentle steps from the
 // previous song and no movement back against the path's direction. When
 // bounds are given, only pieces between them along the direction qualify.
@@ -132,19 +157,7 @@ function pick(catalogue, point, prev, avoid, rng, heading = null, bounds = null,
       const x = along(s, heading, stats);
       if (x < bounds.lo || x > bounds.hi) continue;
     }
-    let d = ((s.valence - point.v) / stats.sdV) ** 2 + ((s.arousal - point.a) / stats.sdA) ** 2;
-    if (prev) {
-      const dv = (s.valence - prev.valence) / stats.sdV;
-      const da = (s.arousal - prev.arousal) / stats.sdA;
-      d += CONTINUITY * (dv * dv + da * da);
-      if (heading) {
-        const along = dv * heading.v + da * heading.a;
-        if (along < 0) d += BACKWARD * along * along;
-      }
-    }
-    if (prev?.bpm && s.bpm) d += 0.3 * ((s.bpm - prev.bpm) / 30) ** 2;
-    if (!prefersInstrument(s, prefs)) d += INSTRUMENT_MISS;
-    if (prefs.favourites.has(s.key)) d -= FAVOURITE_PULL;
+    const d = cost(s, point, prev, heading, stats, prefs).total;
     if (scored.length < CANDIDATES) {
       scored.push([d, s]);
       scored.sort((x, y) => x[0] - y[0]);
@@ -165,7 +178,7 @@ function pick(catalogue, point, prev, avoid, rng, heading = null, bounds = null,
   return pool[0][1];
 }
 
-function headingOf(points, stats) {
+export function headingOf(points, stats) {
   const first = points[0];
   const last = points[points.length - 1];
   const v = (last.v - first.v) / stats.sdV;

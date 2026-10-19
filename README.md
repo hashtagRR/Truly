@@ -19,9 +19,11 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 ## Documents
 
+- [How Truly works](references/ARCHITECTURE.md): a step by step blueprint of the app and its models, with diagrams. A visual version with live examples is at [hashtagrr.github.io/Truly/how-it-works.html](https://hashtagrr.github.io/Truly/how-it-works.html).
 - [Scope](references/SCOPE.md): the project's purpose, what it never does, the feature acceptance rule, privacy and milestones.
 - [Contributing](CONTRIBUTING.md): how to propose changes and the scope check every pull request answers.
 - [Roadmap](ROADMAP.md): planned work for the next releases.
+- [Changelog](CHANGELOG.md): what each release contains.
 - [Research basis](references/RESEARCH.md): the research behind how music is chosen, with references.
 - [Data and models](references/DATASETS.md): every dataset and model Truly uses, its licence and how to cite it.
 - [Related work](references/RELATED_WORK.md): the projects and studies Truly builds on.
@@ -30,7 +32,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 | Path | Contents |
 |---|---|
-| `docs/` | Project website, published with GitHub Pages |
+| `docs/` | Project website, published with GitHub Pages, including the visual blueprint `how-it-works.html` |
 | `docs/app/` | The web app: plain HTML, CSS and JavaScript modules, no build step |
 | `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
@@ -39,6 +41,8 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 | `training/` | Face and voice model scripts, run as Kaggle kernels |
 | `training/kernels/` | Kaggle kernel metadata templates |
 | `music/` | Music selection and audio preparation |
+| `scripts/` | Release helpers |
+| `tests/` | Tests run with `node --test tests/` |
 
 `data/`, `runs/`, `build/` and `legacy/` hold downloaded datasets, run outputs, generated files and the original prototype. They are not tracked.
 

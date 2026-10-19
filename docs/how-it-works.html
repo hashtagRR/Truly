@@ -1,0 +1,592 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 hashtagRR -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inside Truly</title>
+<meta name="description" content="A step by step blueprint of Truly: how answers become a music path, how pieces are chosen, and how the on-device face and voice models work and were trained.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
+<style>
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("fonts/atkinson-hyperlegible-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("fonts/atkinson-hyperlegible-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Same palette and type as the landing page; one reading column with wide figures. */
+:root {
+  --page: #fbf7f2;
+  --surface: #ffffff;
+  --ink: #1d2633;
+  --soft-ink: #4a5363;
+  --accent: #1c6b73;
+  --on-accent: #ffffff;
+  --sun: #e8955a;
+  --sun-ink: #a64f14;
+  --plum: #7a5a8c;
+  --line: #e6ded3;
+  --grid: #efe8de;
+  --focus: #b5541c;
+  --band-top: #eef3f6;
+  --band-low: #fbeee2;
+  --tint-teal: #d7ecec;
+  --tint-sun: #fbe1cc;
+  --code: #f3eee7;
+  --muted-bar: #cbbfae;
+  --font: "Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #131922;
+    --surface: #1b2330;
+    --ink: #e9edf2;
+    --soft-ink: #b4bcc8;
+    --accent: #7cc7c4;
+    --on-accent: #0f1a1f;
+    --sun: #e8a86a;
+    --sun-ink: #f0b27a;
+    --plum: #c4a6d6;
+    --line: #2a3342;
+    --grid: #222b38;
+    --focus: #f0b27a;
+    --band-top: #172131;
+    --band-low: #2a2433;
+    --tint-teal: #1e3a3d;
+    --tint-sun: #43322a;
+    --code: #222b38;
+    --muted-bar: #5d6878;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #131922;
+  --surface: #1b2330;
+  --ink: #e9edf2;
+  --soft-ink: #b4bcc8;
+  --accent: #7cc7c4;
+  --on-accent: #0f1a1f;
+  --sun: #e8a86a;
+  --sun-ink: #f0b27a;
+  --plum: #c4a6d6;
+  --line: #2a3342;
+  --grid: #222b38;
+  --focus: #f0b27a;
+  --band-top: #172131;
+  --band-low: #2a2433;
+  --tint-teal: #1e3a3d;
+  --tint-sun: #43322a;
+  --code: #222b38;
+  --muted-bar: #5d6878;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); font-size: 1.125rem; line-height: 1.7; }
+a { color: var(--accent); text-underline-offset: 0.18em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+code { font-family: var(--mono); font-size: 0.88em; background: var(--code); border-radius: 6px; padding: 1px 6px; overflow-wrap: anywhere; }
+pre { font-family: var(--mono); font-size: 0.92rem; line-height: 1.6; background: var(--code); border-radius: 14px; padding: 16px 18px; overflow-x: auto; margin: 0 0 20px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.column { max-width: 1040px; margin: 0 auto; }
+.read { max-width: 40em; }
+
+.skip { position: absolute; left: 16px; top: -60px; background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; z-index: 20; }
+.skip:focus { top: 12px; }
+.topbar { position: sticky; top: 0; z-index: 10; background: var(--page); border-bottom: 1px solid var(--line); }
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: var(--ink); text-decoration: none; }
+.brand-mark { width: 30px; height: 30px; flex: none; }
+.brand-mark .sun { fill: var(--sun); }
+.brand-mark .hill { fill: var(--accent); }
+.topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.button { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 1rem; text-decoration: none; border: 2px solid var(--accent); cursor: pointer; }
+.button.primary { background: var(--accent); color: var(--on-accent); }
+.button.quiet { color: var(--accent); background: transparent; }
+
+.hero { background: linear-gradient(170deg, var(--band-top) 0%, var(--band-low) 100%); }
+.hero .column { padding-block: 44px 40px; }
+.eyebrow { font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.9rem; margin: 0 0 8px; }
+h1 { font-size: clamp(2.2rem, 5.6vw, 3.4rem); line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 16px; text-wrap: balance; }
+.hero p { margin: 0 0 22px; font-size: 1.2rem; }
+.toc { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.toc a { display: inline-flex; min-height: 40px; align-items: center; background: var(--surface); border-radius: 999px; padding: 4px 14px; font-size: 0.95rem; font-weight: 700; text-decoration: none; border: 1px solid var(--line); }
+
+main section { padding-block: 52px; }
+main section + section { border-top: 1px solid var(--line); }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); line-height: 1.2; margin: 0 0 12px; text-wrap: balance; }
+h2 .n { color: var(--sun-ink); margin-right: 0.35em; }
+h3 { font-size: 1.2rem; margin: 28px 0 8px; }
+.lead { color: var(--soft-ink); margin: 0 0 24px; }
+p { margin: 0 0 16px; }
+
+.figure { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; margin: 0 0 24px; }
+.figure figcaption, .caption { color: var(--soft-ink); font-size: 0.95rem; margin-top: 10px; }
+.note { font-size: 0.95rem; color: var(--soft-ink); }
+
+/* Two-panel diagrams */
+.panels { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.panel { background: var(--page); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+.panel h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.panel ul { margin: 0; padding-left: 1.1em; }
+.panel li + li { margin-top: 4px; }
+.panel.teal { background: var(--tint-teal); border-color: transparent; }
+.panel.sun { background: var(--tint-sun); border-color: transparent; }
+.bridge { display: grid; place-items: center; color: var(--accent); font-weight: 700; text-align: center; font-size: 0.95rem; min-width: 90px; }
+.bridge svg { width: 48px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Pipelines: numbered stages that read left to right, then wrap */
+.pipe { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; counter-reset: stage; }
+.pipe li { counter-increment: stage; background: var(--page); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px 16px; position: relative; min-width: 0; }
+.pipe li::before { content: counter(stage); display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
+.pipe li.model { background: var(--tint-teal); border-color: transparent; }
+.pipe li.privacy { background: var(--tint-sun); border-color: transparent; }
+.pipe strong { display: block; line-height: 1.3; }
+.pipe span { display: block; font-size: 0.92rem; color: var(--soft-ink); line-height: 1.5; margin-top: 4px; }
+.pipe .dims { font-family: var(--mono); font-size: 0.8rem; color: var(--ink); background: var(--surface); border-radius: 8px; padding: 2px 8px; display: inline-block; margin-top: 8px; }
+
+/* Explorer */
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 22px; margin-bottom: 14px; }
+.controls fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.controls legend { font-weight: 700; font-size: 1rem; margin-bottom: 6px; padding: 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg label { border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; min-height: 40px; min-width: 40px; display: inline-flex; align-items: center; justify-content: center; }
+.seg input:checked + label { border-color: var(--accent); background: var(--tint-teal); }
+.seg input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 2px; }
+.explorer-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { font-family: var(--font); fill: var(--soft-ink); font-size: 12px; }
+.chart .axis { stroke: var(--line); stroke-width: 1.5; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .piece { fill: var(--surface); stroke: var(--soft-ink); stroke-width: 1.5; }
+.chart .piece.in-path { fill: var(--accent); stroke: var(--accent); }
+.chart .planned { fill: var(--sun); }
+.chart .line-plan { stroke: var(--sun); stroke-width: 2; stroke-dasharray: 3 6; fill: none; }
+.chart .line-path { stroke: var(--accent); stroke-width: 2.5; fill: none; }
+.chart .start { fill: none; stroke: var(--sun-ink); stroke-width: 3; }
+.chart .num { fill: var(--on-accent); font-size: 11px; font-weight: 700; }
+.chart.narrow text { font-size: 15px; }
+.chart.narrow .num { font-size: 12px; }
+.chart .strong { fill: var(--ink); font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.9rem; color: var(--soft-ink); margin: 8px 0 0; padding: 0; list-style: none; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.path-list { margin: 0; padding-left: 1.4em; }
+.path-list li { margin-bottom: 10px; }
+.path-list .t { font-weight: 700; display: block; line-height: 1.35; }
+.path-list .w { font-size: 0.92rem; color: var(--soft-ink); display: block; line-height: 1.45; }
+.steps-picker { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.steps-picker button { font: inherit; font-weight: 700; min-width: 40px; min-height: 40px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.steps-picker button[aria-pressed="true"] { border-color: var(--accent); background: var(--tint-teal); }
+
+.formula { font-family: var(--mono); font-size: 0.9rem; line-height: 1.75; background: var(--code); border-radius: 14px; padding: 14px 16px; overflow-x: auto; white-space: pre; margin: 0 0 18px; }
+.k-close { color: var(--accent); font-weight: 700; }
+.k-step { color: var(--sun-ink); font-weight: 700; }
+.k-back { color: var(--plum); font-weight: 700; }
+.k-tempo { color: var(--soft-ink); font-weight: 700; }
+
+/* Spectrogram demo */
+.demo-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 14px; }
+.demo-row label { display: grid; gap: 4px; font-weight: 700; font-size: 0.95rem; flex: 1 1 260px; min-width: 0; }
+select { font: inherit; font-size: 1rem; min-height: 44px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); padding: 6px 10px; width: 100%; min-width: 0; text-overflow: ellipsis; }
+canvas { width: 100%; display: block; border-radius: 10px; background: var(--page); }
+.wave { height: 70px; }
+.spec { height: 190px; image-rendering: auto; }
+.canvas-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--soft-ink); margin: 10px 0 4px; }
+.status { color: var(--soft-ink); min-height: 1.6em; margin: 6px 0 0; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.98rem; margin: 0 0 20px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 700; }
+.table-wrap { overflow-x: auto; }
+
+footer { border-top: 1px solid var(--line); color: var(--soft-ink); font-size: 1rem; }
+footer .column { padding-block: 32px 44px; display: grid; gap: 8px; }
+footer p { margin: 0; }
+
+@media (max-width: 820px) {
+  .explorer-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .panels { grid-template-columns: 1fr; }
+  .bridge { min-width: 0; }
+  .bridge svg { transform: rotate(90deg); }
+  main section { padding-block: 40px; }
+  .figure { padding: 14px; }
+}
+@media (max-width: 420px) {
+  .topbar .wide { display: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<header class="topbar gutter">
+  <div class="column topbar-inner">
+    <a class="brand" href="./">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="9" class="sun"/><path d="M2 24c6-4 10-4 14-1s8 3 14-1v8H2z" class="hill"/></svg>
+      <span>Truly</span>
+    </a>
+    <nav class="topbar-actions" aria-label="Quick actions">
+      <a class="button quiet wide" href="https://github.com/hashtagRR/Truly">Source</a>
+      <a class="button primary" href="app/">Find music</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero gutter">
+  <div class="column">
+    <p class="eyebrow">Blueprint</p>
+    <h1>Inside Truly</h1>
+    <p class="read">A step by step tour of how Truly turns two answers into a path of music, how it chooses each piece, and how its two small on-device models hear and see. The interactive parts below run the app's own code on the real music collection.</p>
+    <ul class="toc" aria-label="Contents">
+      <li><a href="#big-picture">1. Big picture</a></li>
+      <li><a href="#map">2. The map</a></li>
+      <li><a href="#path">3. Answers to a path</a></li>
+      <li><a href="#choice">4. Choosing pieces</a></li>
+      <li><a href="#player">5. The player</a></li>
+      <li><a href="#camera">6. Camera</a></li>
+      <li><a href="#voice">7. Voice</a></li>
+      <li><a href="#training">8. Training</a></li>
+      <li><a href="#storage">9. What is stored</a></li>
+      <li><a href="#code">10. Code map</a></li>
+    </ul>
+  </div>
+</div>
+
+<main id="main">
+
+<section id="big-picture" class="gutter" aria-labelledby="h-big">
+  <div class="column">
+    <h2 id="h-big"><span class="n">1</span>The big picture</h2>
+    <p class="lead read">Truly is a static website. There is no server code, no database and no account. Once the page has loaded, everything happens on your device.</p>
+    <figure class="figure">
+      <div class="panels">
+        <div class="panel">
+          <h3>Served by GitHub Pages</h3>
+          <ul>
+            <li>The app: HTML, CSS and JavaScript modules, no build step</li>
+            <li><code>tracks.json</code> and 18 MP3 recordings, from the Truly-music repository</li>
+            <li>Two ONNX models, fetched only if you try the camera or voice</li>
+          </ul>
+        </div>
+        <div class="bridge" aria-hidden="true"><svg viewBox="0 0 48 24"><path d="M4 12h38M34 5l8 7-8 7"/></svg>downloads once</div>
+        <div class="panel teal">
+          <h3>Runs in your browser</h3>
+          <ul>
+            <li>Check-in, path builder and player</li>
+            <li>ONNX Runtime Web runs the models with WebAssembly</li>
+            <li>Optional saving in <code>localStorage</code>, off by default</li>
+            <li>Nothing is sent back</li>
+          </ul>
+        </div>
+      </div>
+      <figcaption>Both repositories are served from the same domain, so the app fetches music without any cross-site requests, cookies or third parties.</figcaption>
+    </figure>
+    <ol class="pipe" aria-label="One session, in order">
+      <li><strong>Check-in</strong><span>Mood and energy, each 1 to 5.</span></li>
+      <li class="privacy"><strong>Camera or voice</strong><span>Optional. A small, capped nudge to the start.</span></li>
+      <li><strong>Start point</strong><span>The answers placed on the music map.</span></li>
+      <li><strong>Direction</strong><span>Calmer, gently brighter or stay.</span></li>
+      <li><strong>Planned points</strong><span>A straight line, one point per piece.</span></li>
+      <li><strong>Pieces</strong><span>One per point, with your preferences.</span></li>
+      <li><strong>Play and explain</strong><span>A reason for every piece.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="map" class="gutter" aria-labelledby="h-map">
+  <div class="column">
+    <h2 id="h-map"><span class="n">2</span>The map: mood and energy as numbers</h2>
+    <div class="read">
+      <p>Truly puts people and music on one map with two axes (Russell, 1980). <strong>Valence</strong> is how pleasant or bright something feels; <strong>arousal</strong> is how lively it is. Every recording takes its valence, arousal and tempo from MCUD 1.0, a published dataset of music used in studies (Du et al., 2026), so no value is a guess.</p>
+      <p>Your answers are placed using the collection's own spread. Each answer from 1 to 5 picks a quantile of the catalogue: 8%, 25%, 50%, 75% or 92%. A mood of 3 means "the median valence of the music Truly has". Distances are measured in standard deviations of the catalogue, so a step in mood and a step in energy count the same.</p>
+    </div>
+  </div>
+</section>
+
+<section id="path" class="gutter band" aria-labelledby="h-path" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
+  <div class="column">
+    <h2 id="h-path"><span class="n">3</span>From answers to a path</h2>
+    <p class="lead read">Try it. This runs <code>music.js</code>, the same module the app uses, on the real collection. The ring is your start point, the orange dots are the planned points, and the numbered pieces are the path.</p>
+    <div class="figure" id="explorer">
+      <form class="controls" id="explorer-form" aria-label="Path explorer settings">
+        <fieldset><legend>Mood</legend><div class="seg" data-group="mood"></div></fieldset>
+        <fieldset><legend>Energy</legend><div class="seg" data-group="energy"></div></fieldset>
+        <fieldset><legend>Direction</legend><div class="seg">
+          <input type="radio" name="direction" id="x-dir-calmer" value="calmer"><label for="x-dir-calmer">Calmer</label>
+          <input type="radio" name="direction" id="x-dir-brighter" value="brighter"><label for="x-dir-brighter">Brighter</label>
+          <input type="radio" name="direction" id="x-dir-steady" value="steady"><label for="x-dir-steady">Stay</label>
+        </div></fieldset>
+        <fieldset><legend>Pieces</legend><div class="seg">
+          <input type="radio" name="length" id="x-len-4" value="4"><label for="x-len-4">4</label>
+          <input type="radio" name="length" id="x-len-6" value="6" checked><label for="x-len-6">6</label>
+          <input type="radio" name="length" id="x-len-9" value="9"><label for="x-len-9">9</label>
+        </div></fieldset>
+        <fieldset><legend>Prefer</legend><div class="seg">
+          <input type="checkbox" name="instrument" id="x-ins-piano" value="piano"><label for="x-ins-piano">Piano</label>
+          <input type="checkbox" name="instrument" id="x-ins-strings" value="strings"><label for="x-ins-strings">Strings</label>
+          <input type="checkbox" name="instrument" id="x-ins-orchestra" value="orchestra"><label for="x-ins-orchestra">Orchestra</label>
+          <input type="checkbox" name="instrument" id="x-ins-winds" value="winds"><label for="x-ins-winds">Winds</label>
+        </div></fieldset>
+        <div><button type="button" class="button quiet" id="x-shuffle">Another path</button></div>
+      </form>
+      <div class="explorer-grid">
+        <div>
+          <div id="x-map" aria-live="polite"></div>
+          <ul class="legend" aria-hidden="true">
+            <li><i style="border: 3px solid var(--sun-ink)"></i>Start point</li>
+            <li><i style="background: var(--sun)"></i>Planned point</li>
+            <li><i style="background: var(--accent)"></i>Piece in the path</li>
+            <li><i style="border: 1.5px solid var(--soft-ink); background: var(--surface)"></i>Other recordings</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="margin-top: 0">The path</h3>
+          <ol class="path-list" id="x-list"></ol>
+        </div>
+      </div>
+      <p class="status" id="x-status" role="status"></p>
+    </div>
+    <div class="read">
+      <h3>Direction and goal</h3>
+      <p>Each direction mainly moves one thing. <strong>Calmer</strong> lowers energy to the catalogue's 25% quantile and lifts mood a little. <strong>Gently brighter</strong> raises mood to at least the 70% quantile and moves energy a little towards the middle. <strong>Stay</strong> keeps the goal at the start. Truly suggests a direction from your answers, and you can always change it.</p>
+      <h3>Planned points</h3>
+      <p>A straight line runs from the start to the goal, with one point per piece. Slowing down keeps the first piece and spreads the same journey over half as many points again, so each step is smaller. Starting near your mood and moving gradually is the iso principle, a sequencing idea from music therapy practice (Heiderscheit and Madson, 2015) that changed listeners' affective state in an experiment (Starcke and von Georgi, 2024). Truly borrows the sequencing only, and makes no health claims.</p>
+    </div>
+  </div>
+</section>
+
+<section id="choice" class="gutter" aria-labelledby="h-choice">
+  <div class="column">
+    <h2 id="h-choice"><span class="n">4</span>Choosing each piece</h2>
+    <p class="lead read">At every planned point, each remaining piece gets a cost. Lower is better. All distances are in standard deviations of the catalogue.</p>
+<div class="formula" role="img" aria-label="Cost equals closeness to the planned point, plus 0.35 times the step from the previous piece, plus the squared backward part of that step, plus 0.3 times the squared tempo change over 30 beats per minute, plus 0.6 if no preferred instrument, minus 0.25 for a favourite."><span class="k-close">closeness</span>  (v - point.v)² + (a - point.a)²
+<span class="k-step">step</span>     + 0.35 × [(v - prev.v)² + (a - prev.a)²]
+<span class="k-back">backward</span> + 1.0  × (part of that step going backwards)²
+<span class="k-tempo">tempo</span>    + 0.3  × ((bpm - prev.bpm) / 30)²
+         + 0.6  if none of your preferred instruments
+         - 0.25 if it is a favourite</div>
+    <div class="read">
+      <p>Three rules come first: no piece twice, no performer twice, and never a piece marked "not for me". Truly then keeps the eight cheapest pieces and picks among those within 0.25 of the best, with weights 1, 1/4, 1/9 and 1/16, so the best match wins most of the time and near-ties sometimes swap. Finally the path is sorted along its direction, so it never steps backwards.</p>
+    </div>
+    <figure class="figure">
+      <h3 style="margin-top: 0">Why this piece? The cost of each candidate</h3>
+      <p class="note">Choose a step of the path above. The bars show the cheapest candidates at that step, given the pieces already chosen before it. These numbers come from <code>cost()</code> in <code>music.js</code>.</p>
+      <div class="steps-picker" id="c-steps" role="group" aria-label="Step of the path"></div>
+      <div id="c-chart"></div>
+      <ul class="legend" aria-hidden="true">
+        <li><i style="background: var(--accent)"></i>Closeness</li>
+        <li><i style="background: var(--sun)"></i>Step</li>
+        <li><i style="background: var(--plum)"></i>Backward</li>
+        <li><i style="background: var(--soft-ink)"></i>Tempo</li>
+        <li><i style="background: var(--muted-bar)"></i>No preferred instrument</li>
+      </ul>
+    </figure>
+    <div class="read">
+      <h3>Explaining each piece</h3>
+      <p>Each reason is written from the piece's place in the path. The first piece matches the answers. Every later piece is compared with the one before: a change of more than 0.15 standard deviations reads as calmer or livelier, brighter or more reflective. The last piece of a moving path is "where the path settles". When a preference applies, a short note follows, such as "Features piano, as you asked."</p>
+    </div>
+  </div>
+</section>
+
+<section id="player" class="gutter" aria-labelledby="h-player">
+  <div class="column">
+    <h2 id="h-player"><span class="n">5</span>The player</h2>
+    <p class="lead read">One <code>&lt;audio&gt;</code> element, built to keep going on poor connections.</p>
+    <ol class="pipe">
+      <li><strong>Music list</strong><span>Fetched with a 10 second timeout and up to three attempts, then a "Try again" button.</span></li>
+      <li><strong>Play</strong><span>If a piece has not started after 15 seconds, Truly says the connection is slow and keeps waiting.</span></li>
+      <li><strong>Read ahead</strong><span>Once a piece can play through, the next one starts downloading.</span></li>
+      <li><strong>Dropped connection</strong><span>Retried once from the same position after 2 seconds, then the path moves on.</span></li>
+      <li><strong>Controls</strong><span>Arrow keys move 10 seconds, Page Up and Down 30. Lock screen and headset buttons work through the Media Session API.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="camera" class="gutter" aria-labelledby="h-camera">
+  <div class="column">
+    <h2 id="h-camera"><span class="n">6</span>The camera input</h2>
+    <p class="lead read">Optional, off until tried, and only a small nudge to the starting mood. Faces are not a reliable guide to feelings (Barrett et al., 2019), so the result is offered as a playful guess.</p>
+    <ol class="pipe" aria-label="Camera pipeline">
+      <li class="privacy"><strong>Frame</strong><span>Drawn from the video into memory. Never stored or sent.</span><span class="dims">640 × 480</span></li>
+      <li class="model"><strong>Find the face</strong><span>UltraFace RFB-320 checks 4,420 candidate boxes; the most confident above 0.7 wins.</span><span class="dims">1 × 3 × 240 × 320</span></li>
+      <li><strong>Crop</strong><span>A square around the face, 25% larger each side, with ImageNet colour normalisation.</span><span class="dims">1 × 3 × 224 × 224</span></li>
+      <li class="model"><strong>Truly face model</strong><span>EfficientNet-B0 scores 40 emotion categories from the EmoNet-Face taxonomy.</span><span class="dims">1 × 40</span></li>
+      <li><strong>Read out</strong><span>Averaged into seven expression groups; neutral is minus the strongest group; calibration offsets added.</span><span class="dims">7 classes</span></li>
+      <li><strong>Average</strong><span>Up to ten frames 0.4 s apart. Fewer than three usable frames: no result.</span></li>
+      <li><strong>Nudge</strong><span>Bright moves the start up 0.35 standard deviations of valence, heavy down 0.35, calm not at all. Energy is untouched.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="voice" class="gutter" aria-labelledby="h-voice">
+  <div class="column">
+    <h2 id="h-voice"><span class="n">7</span>The voice input</h2>
+    <p class="lead read">Optional, off until tried. It listens to the sound of the voice and never the words: nothing is transcribed. It mainly nudges the starting energy, and mood only lightly.</p>
+    <ol class="pipe" aria-label="Voice pipeline">
+      <li class="privacy"><strong>Record</strong><span>Five seconds into memory. Echo cancellation on; noise suppression and automatic gain off.</span></li>
+      <li><strong>Resample</strong><span>To 16 kHz with an OfflineAudioContext.</span><span class="dims">80,000 samples</span></li>
+      <li><strong>Loudness step</strong><span>Sounding parts brought to an RMS of 0.05, peaks kept under 0.99. Too quiet: no result.</span></li>
+      <li class="model"><strong>Truly voice model</strong><span>Spectrogram and CNN, all inside one ONNX file.</span><span class="dims">1 × 80000 → 1 × 2</span></li>
+      <li><strong>Read out</strong><span>Shifted so 0 means "about as lively as everyday speech", then capped.</span></li>
+      <li><strong>Nudge</strong><span>Energy moves at most 0.4 standard deviations, mood at most 0.12.</span></li>
+      <li class="privacy"><strong>Forget</strong><span>The sound buffers are overwritten with zeros.</span></li>
+    </ol>
+
+    <h3>Why a loudness step?</h3>
+    <p class="read">A voice close to a phone and a voice across the room differ far more in loudness than in expression. Training clips and microphone audio both go through the same step, so the model judges how lively the sound is, not how close the microphone was.</p>
+
+    <h3>Inside the model</h3>
+    <ol class="pipe" aria-label="Voice model layers">
+      <li><strong>DFT as a convolution</strong><span>402 fixed filters: cosine and sine waves for 201 frequencies, times a Hann window. 400-sample window, 160-sample hop.</span><span class="dims">201 × 498</span></li>
+      <li><strong>Mel bands</strong><span>64 bands from 50 Hz to 8 kHz, spaced like pitch hearing.</span><span class="dims">64 × 498</span></li>
+      <li><strong>Log and standardise</strong><span>Per clip, so any remaining level difference disappears.</span></li>
+      <li class="model"><strong>Four conv blocks</strong><span>Two 3 × 3 convolutions with batch norm and ReLU, then 2 × 2 max pooling, in each block.</span><span class="dims">24 → 48 → 96 → 128</span></li>
+      <li class="model"><strong>Average and output</strong><span>Global average pool over time and pitch, then one linear layer.</span><span class="dims">128 → 2</span></li>
+    </ol>
+    <p class="read" style="margin-top: 16px">The spectrogram filters are fixed buffers, not trained weights. Writing the Fourier transform as a convolution keeps the whole model in standard ONNX operators, so the browser only passes raw samples in.</p>
+
+    <figure class="figure" id="spectro">
+      <h3 style="margin-top: 0">See what the voice model sees</h3>
+      <p class="note">This runs the same steps in the page on five seconds of a recording from the collection: resampling to 16 kHz, the loudness step from <code>voice.js</code>, and the log-mel front end. It uses no microphone, and downloads the chosen recording only when you press the button.</p>
+      <div class="demo-row">
+        <label>Recording<select id="s-track"></select></label>
+        <button type="button" class="button primary" id="s-run">Show the spectrogram</button>
+      </div>
+      <div id="s-out" hidden>
+        <div class="canvas-label"><span>Before the loudness step</span><span id="s-rms-in"></span></div>
+        <canvas class="wave" id="s-wave-in" width="800" height="70" role="img" aria-label="Waveform before the loudness step"></canvas>
+        <div class="canvas-label"><span>After the loudness step</span><span id="s-rms-out"></span></div>
+        <canvas class="wave" id="s-wave-out" width="800" height="70" role="img" aria-label="Waveform after the loudness step"></canvas>
+        <div class="canvas-label"><span>Log-mel spectrogram, 64 bands by 498 frames: low pitches at the bottom, time left to right</span></div>
+        <canvas class="spec" id="s-spec" width="498" height="64" role="img" aria-label="Log-mel spectrogram of the clip"></canvas>
+      </div>
+      <p class="status" id="s-status" role="status"></p>
+    </figure>
+  </div>
+</section>
+
+<section id="training" class="gutter band" aria-labelledby="h-training" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
+  <div class="column">
+    <h2 id="h-training"><span class="n">8</span>How the models were trained</h2>
+    <p class="lead read">Both models are students distilled from larger LAION models. The small model learns to reproduce the big model's outputs on many examples, so the knowledge fits in a size that runs in a browser. Only non-clinical outputs of the teachers were ever computed.</p>
+    <ol class="pipe" aria-label="Distillation">
+      <li><strong>Collect</strong><span>Images or five-second clips from openly licensed datasets.</span></li>
+      <li class="model"><strong>Teacher</strong><span>The large LAION model scores each one, once, on a Kaggle GPU.</span></li>
+      <li class="model"><strong>Student</strong><span>The small model predicts the same scores.</span></li>
+      <li><strong>Learn</strong><span>Smooth L1 loss between student and teacher; AdamW with a one-cycle schedule.</span></li>
+      <li><strong>Test</strong><span>On people the student never saw: CREMA-D actors with odd identifiers.</span></li>
+      <li><strong>Export</strong><span>To ONNX, checked against PyTorch and the browser runtime.</span></li>
+    </ol>
+
+    <div class="explorer-grid" style="margin-top: 24px">
+      <figure class="figure">
+        <h3 style="margin-top: 0">Voice: arousal by heard emotion</h3>
+        <div id="t-voice"></div>
+        <ul class="legend" aria-hidden="true">
+          <li><i style="background: var(--sun)"></i>Teacher</li>
+          <li><i style="background: var(--accent)"></i>Truly student</li>
+        </ul>
+        <figcaption>Average arousal for CREMA-D clips by the emotion listeners heard in the audio, on test actors the student never saw. Correlation with the teacher: 0.90 on validation, 0.79 on these actors.</figcaption>
+      </figure>
+      <figure class="figure">
+        <h3 style="margin-top: 0">Face: expression accuracy</h3>
+        <div id="t-face"></div>
+        <figcaption>Accuracy over seven expression classes; the dashed line is chance (14.3%). CREMA-D frames come from actors never used for calibration.</figcaption>
+      </figure>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col">Face model</th><th scope="col">Voice model</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Teacher</th><td>Empathic-Insight-Face-Large on SigLIP 2</td><td>Empathic-Insight-Voice-Small, Valence and Arousal, on BUD-E-Whisper</td></tr>
+          <tr><th scope="row">Student</th><td>EfficientNet-B0, 4.1 million parameters, 16.2 MB</td><td>Log-mel CNN, 420,410 parameters, 2.4 MB</td></tr>
+          <tr><th scope="row">Data</th><td>79,999 images: FairFace, EmoNet-Face Big and Binary</td><td>12,932 clips: Got Talent, Emolia YODAS, CREMA-D</td></tr>
+          <tr><th scope="row">Training</th><td>8 epochs, two T4 GPUs, 32 minutes</td><td>30 epochs, one T4 GPU, 19 minutes</td></tr>
+          <tr><th scope="row">Licence</th><td>CC BY 4.0</td><td>CC BY 4.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="read">Read the <a href="https://github.com/hashtagRR/Truly/blob/main/models/face/MODEL_CARD.md">face model card</a> and the <a href="https://github.com/hashtagRR/Truly/blob/main/models/voice/MODEL_CARD.md">voice model card</a> for every setting and result. Both models run with ONNX Runtime Web 1.30.0 on one WebAssembly thread, which works on any static host.</p>
+  </div>
+</section>
+
+<section id="storage" class="gutter" aria-labelledby="h-storage">
+  <div class="column">
+    <h2 id="h-storage"><span class="n">9</span>What is stored, and where</h2>
+    <p class="lead read">Saving is off by default. Nothing is ever sent to a server.</p>
+    <div class="panels">
+      <div class="panel">
+        <h3>In memory, for this visit</h3>
+        <ul>
+          <li>Mood and energy answers</li>
+          <li>Camera and voice results</li>
+          <li>Video frames and sound, cleared after use</li>
+          <li>Preferences, when saving is off</li>
+        </ul>
+      </div>
+      <div class="bridge" aria-hidden="true"><svg viewBox="0 0 48 24"><path d="M4 12h38M34 5l8 7-8 7"/></svg>only if you switch saving on</div>
+      <div class="panel sun">
+        <h3>In this browser's <code>localStorage</code></h3>
+        <ul>
+          <li><code>truly.paths.v1</code>: paths played, up to 50</li>
+          <li><code>truly.favourites.v1</code></li>
+          <li><code>truly.not-for-me.v1</code></li>
+          <li><code>truly.preferences.v1</code>: instruments and length</li>
+        </ul>
+      </div>
+    </div>
+    <p class="read" style="margin-top: 16px">Mood answers, images and sound are never stored anywhere. The Privacy page in the app downloads or deletes everything saved, and <code>store.js</code> is the only code that touches storage.</p>
+  </div>
+</section>
+
+<section id="code" class="gutter" aria-labelledby="h-code">
+  <div class="column">
+    <h2 id="h-code"><span class="n">10</span>Code map</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">File</th><th scope="col">What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>docs/app/app.js</code></td><td>Wires the views together: check-in, camera and voice, path, player, preferences, history</td></tr>
+          <tr><td><code>docs/app/music.js</code></td><td>Pure functions: the map, goals, planned points, costs, swaps, nudges and explanations</td></tr>
+          <tr><td><code>docs/app/store.js</code></td><td>The only code that touches <code>localStorage</code></td></tr>
+          <tr><td><code>docs/app/face.js</code>, <code>readout.js</code></td><td>Camera, face detection, the face model and its readout</td></tr>
+          <tr><td><code>docs/app/voice.js</code></td><td>Microphone, loudness step and the voice model</td></tr>
+          <tr><td><code>training/</code></td><td>Kaggle scripts for the teachers and the distillation of both models</td></tr>
+          <tr><td><code>tests/</code></td><td>Tests for paths, storage, readouts and the shipped models</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="read">The same blueprint, with diagrams, is in <a href="https://github.com/hashtagRR/Truly/blob/main/references/ARCHITECTURE.md">references/ARCHITECTURE.md</a>.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="gutter">
+  <div class="column">
+    <p><a href="./">About Truly</a> &middot; <a href="app/">The app</a> &middot; <a href="https://github.com/hashtagRR/Truly">Source code</a> &middot; <a href="https://github.com/hashtagRR/Truly-music/blob/main/CREDITS.md">Music credits</a></p>
+    <p>Copyright (C) 2026 hashtagRR. Code under <a href="https://github.com/hashtagRR/Truly/blob/main/LICENSE">AGPL-3.0-or-later</a>. Typeface Atkinson Hyperlegible by the Braille Institute, under the <a href="fonts/OFL.txt">SIL Open Font License</a>.</p>
+  </div>
+</footer>
+
+<script type="module" src="how-it-works.js"></script>
+</body>
+</html>
