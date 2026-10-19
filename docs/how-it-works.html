@@ -185,6 +185,10 @@ p { margin: 0 0 16px; }
 .chart .strong { fill: var(--ink); font-weight: 700; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.9rem; color: var(--soft-ink); margin: 8px 0 0; padding: 0; list-style: none; }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.quality { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 16px 0 0; }
+.quality div { background: var(--page); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.quality dt { font-size: 0.85rem; color: var(--soft-ink); line-height: 1.3; }
+.quality dd { margin: 2px 0 0; font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .path-list { margin: 0; padding-left: 1.4em; }
 .path-list li { margin-bottom: 10px; }
 .path-list .t { font-weight: 700; display: block; line-height: 1.35; }
@@ -361,6 +365,12 @@ footer p { margin: 0; }
           <ol class="path-list" id="x-list"></ol>
         </div>
       </div>
+      <dl class="quality" id="x-quality" aria-label="How gradual this path is">
+        <div><dt>Average step</dt><dd id="q-average"></dd></div>
+        <div><dt>Largest step</dt><dd id="q-largest"></dd></div>
+        <div><dt>Step variation</dt><dd id="q-variation"></dd></div>
+        <div><dt>Largest tempo change</dt><dd id="q-tempo"></dd></div>
+      </dl>
       <p class="status" id="x-status" role="status"></p>
     </div>
     <div class="read">
@@ -368,6 +378,8 @@ footer p { margin: 0; }
       <p>Each direction mainly moves one thing. <strong>Calmer</strong> lowers energy to the catalogue's 25% quantile and lifts mood a little. <strong>Gently brighter</strong> raises mood to at least the 70% quantile and moves energy a little towards the middle. <strong>Stay</strong> keeps the goal at the start. Truly suggests a direction from your answers, and you can always change it.</p>
       <h3>Planned points</h3>
       <p>A straight line runs from the start to the goal, with one point per piece. Slowing down keeps the first piece and spreads the same journey over half as many points again, so each step is smaller. Starting near your mood and moving gradually is the iso principle, a sequencing idea from music therapy practice (Heiderscheit and Madson, 2015) that changed listeners' affective state in an experiment (Starcke and von Georgi, 2024). Truly borrows the sequencing only, and makes no health claims.</p>
+      <h3>How gradual is a path?</h3>
+      <p>The four numbers under the explorer come from <code>pathQuality()</code>. Steps are measured on the map in standard deviations of the collection. Step variation is the spread of the step sizes divided by their average: 0 means every step is the same size. Studies of mood playlists judge paths on the same ideas, smoothness and even steps (Donnelly and Gaur, 2022). With 18 recordings the typical step is about half a standard deviation; a larger collection will make paths more even, and the tests keep paths from getting jumpier than they are today.</p>
     </div>
   </div>
 </section>

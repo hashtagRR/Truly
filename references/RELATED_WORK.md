@@ -11,6 +11,7 @@ Many open projects recommend music from a mood or a facial expression, among the
 | Work | Approach |
 |---|---|
 | [MoodFlow](https://zenodo.org/records/22276710) (White and Belen Saglam, AIMC 2026) | Playlists that blend from a current towards a target mood, weighted by the mood's intensity |
+| [Mood Dynamic Playlist](https://doi.org/10.54941/ahfe100894) (Donnelly and Gaur, 2022) | Paths between two points in valence and arousal, chosen by nearest neighbours and judged on smoothness and even step sizes |
 | [Starcke and von Georgi (2024)](https://doi.org/10.1177/10298649231175029) | Sequences built from a valence and arousal music database, moving from the listener's starting state |
 | [iso-based-playlist-generation](https://github.com/alansun17904/iso-based-playlist-generation), [venti-music](https://github.com/tirthshah7/venti-music) | Open source playlist generators that move gradually between moods |
 

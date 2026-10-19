@@ -81,6 +81,11 @@ function renderExplorer() {
     );
     list.append(li);
   });
+  const q = lib.pathQuality(state.path, stats);
+  $("q-average").textContent = q.averageStep.toFixed(2);
+  $("q-largest").textContent = q.largestStep.toFixed(2);
+  $("q-variation").textContent = q.stepVariation.toFixed(2);
+  $("q-tempo").textContent = `${Math.round(q.largestTempoChange)} bpm`;
   $("x-status").textContent = `${state.path.length} pieces, ${s.direction === "steady" ? "staying close to the start" : `moving ${s.direction === "calmer" ? "towards calmer" : "towards brighter"} music`}.`;
   state.step = Math.min(state.step, state.path.length - 1);
   renderSteps();

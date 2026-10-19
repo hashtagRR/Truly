@@ -236,6 +236,28 @@ export function replaceSong(catalogue, path, points, index, skipped, rng = Math.
   return forwardOrder(next, heading, stats);
 }
 
+// Measures of how gradual a path is, in catalogue standard deviations:
+// the average and largest step between neighbouring pieces, the step
+// variation (standard deviation of the steps over their mean; 0 means every
+// step is the same size) and the largest tempo change in beats per minute.
+export function pathQuality(path, stats) {
+  const steps = path.slice(1).map((s, i) => Math.hypot(
+    (s.valence - path[i].valence) / stats.sdV,
+    (s.arousal - path[i].arousal) / stats.sdA,
+  ));
+  if (!steps.length) return { steps, averageStep: 0, largestStep: 0, stepVariation: 0, largestTempoChange: 0 };
+  const averageStep = steps.reduce((a, b) => a + b, 0) / steps.length;
+  const spread = Math.sqrt(steps.reduce((a, b) => a + (b - averageStep) ** 2, 0) / steps.length);
+  const tempo = path.slice(1).map((s, i) => (s.bpm && path[i].bpm ? Math.abs(s.bpm - path[i].bpm) : 0));
+  return {
+    steps,
+    averageStep,
+    largestStep: Math.max(...steps),
+    stepVariation: averageStep > 0 ? spread / averageStep : 0,
+    largestTempoChange: Math.max(...tempo),
+  };
+}
+
 // The optional camera input moves the start point a little; the mood answer
 // stays in charge.
 const NUDGE = { bright: 0.35, calm: 0, heavy: -0.35 };

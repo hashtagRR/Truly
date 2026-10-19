@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  buildPath, defaultDirection, explain, goalPoint, INSTRUMENTS, loadCatalogue, makeCatalogue, preferences, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
+  buildPath, defaultDirection, explain, goalPoint, INSTRUMENTS, loadCatalogue, makeCatalogue, pathQuality, preferences, nudgeStart, nudgeVoice, pathPoints, replaceSong, startPoint,
 } from "../docs/app/music.js";
 
 const catalogue = makeCatalogue(
@@ -181,4 +181,32 @@ test("every recording has at least one known instrument", () => {
     assert.ok(s.instruments.length > 0, s.key);
     assert.ok(s.instruments.every((i) => INSTRUMENTS.includes(i)), s.key);
   }
+});
+
+test("path quality measures step sizes and tempo changes", () => {
+  const unit = { sdV: 1, sdA: 1 };
+  const even = [0, 1, 2, 3].map((x) => ({ valence: x, arousal: 0, bpm: 60 + x * 10 }));
+  const q = pathQuality(even, unit);
+  assert.deepEqual(q.steps, [1, 1, 1]);
+  assert.equal(q.stepVariation, 0);
+  assert.equal(q.largestTempoChange, 10);
+  const uneven = pathQuality([{ valence: 0, arousal: 0 }, { valence: 0, arousal: 3 }, { valence: 4, arousal: 3 }], unit);
+  assert.equal(uneven.largestStep, 4);
+  assert.ok(Math.abs(uneven.stepVariation - 1 / 7) < 1e-9);
+  assert.equal(pathQuality([even[0]], unit).largestStep, 0);
+});
+
+test("paths stay within today's measured step and tempo limits", () => {
+  // Guard rails from measuring every answer, direction and length with the
+  // current collection; a change that makes paths jumpier fails here.
+  let worst = { step: 0, tempo: 0, average: 0 };
+  for (const steps of [4, 6, 9]) {
+    for (const c of cases()) {
+      const q = pathQuality(buildPath(catalogue, plan(c, steps), { rng: seeded(c.f * 10 + c.e) }), stats);
+      worst = { step: Math.max(worst.step, q.largestStep), tempo: Math.max(worst.tempo, q.largestTempoChange), average: Math.max(worst.average, q.averageStep) };
+    }
+  }
+  assert.ok(worst.step <= 2.2, `largest step ${worst.step}`);
+  assert.ok(worst.average <= 1.2, `average step ${worst.average}`);
+  assert.ok(worst.tempo <= 45, `tempo change ${worst.tempo}`);
 });
