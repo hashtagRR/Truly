@@ -428,6 +428,7 @@ footer p { margin: 0; }
       <li><strong>Read ahead</strong><span>Once a piece can play through, the next one starts downloading.</span></li>
       <li><strong>Dropped connection</strong><span>Retried once from the same position after 2 seconds, then the path moves on.</span></li>
       <li><strong>Controls</strong><span>Arrow keys move 10 seconds, Page Up and Down 30. Lock screen and headset buttons work through the Media Session API.</span></li>
+      <li class="privacy"><strong>Offline</strong><span>A service worker keeps the app and any path you choose to keep, so it plays without a connection. Only public files are cached.</span></li>
     </ol>
   </div>
 </section>
@@ -583,6 +584,7 @@ footer p { margin: 0; }
           <tr><td><code>docs/app/store.js</code></td><td>The only code that touches <code>localStorage</code></td></tr>
           <tr><td><code>docs/app/face.js</code>, <code>readout.js</code></td><td>Camera, face detection, the face model and its readout</td></tr>
           <tr><td><code>docs/app/voice.js</code></td><td>Microphone, loudness step and the voice model</td></tr>
+          <tr><td><code>docs/app/sw.js</code></td><td>Offline use: the app, models once used, and recordings kept for offline listening</td></tr>
           <tr><td><code>training/</code></td><td>Kaggle scripts for the teachers and the distillation of both models</td></tr>
           <tr><td><code>tests/</code></td><td>Tests for paths, storage, readouts and the shipped models</td></tr>
         </tbody>

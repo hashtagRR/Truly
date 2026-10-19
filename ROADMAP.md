@@ -16,5 +16,6 @@ Planned work for Truly, grouped by release. Every item must pass the scope check
 
 ## Later
 
-- **Wider musical range.** Genres and styles beyond classical and instrumental, once a freely licensed source with published valence and arousal values is available.
+- **Wider musical range.** Genres and styles beyond classical and instrumental. [Memo2496](https://figshare.com/articles/dataset/Memo2496/25827034) is the leading candidate: 2,496 instrumental tracks with valence and arousal rated by 30 music experts, released under CC BY 4.0. Each track's audio licence needs checking against its source before it can be played in Truly, as for the first 18 recordings.
+- **Smoother transitions within pieces.** Memo2496 rates mood moment by moment through each track. With it, a path could start a piece at a fitting point, or match how one piece ends to how the next begins.
 - **Translations** of the app and its questions.

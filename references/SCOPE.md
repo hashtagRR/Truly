@@ -60,6 +60,7 @@ A mood answer is a subjective music preference. It is not a medical observation,
 - No account or personal information is needed.
 - Everything runs in the browser. Camera frames and the five seconds of microphone sound are processed in memory and never stored or sent. Speech is never transcribed.
 - Music plays from Truly's own site. No streaming service, analytics, tracking or cookies are used.
+- The app can be installed and works offline. Its offline copies are only Truly's public files: the app, the music list, models once used, and recordings the listener chose to keep, which they can remove at any time.
 - Mood and energy answers are used for the current visit only and are never saved.
 - Saving is off by default. When the listener switches it on, only the paths they played, their favourite pieces, the pieces they ruled out and their instrument and length choices, and per-piece counts of full plays and early skips are kept, in the browser, and they can be deleted at any time.
 - No health records, risk scores or psychological profiles are created.

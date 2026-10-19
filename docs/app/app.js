@@ -16,6 +16,10 @@ const MUSIC_BASE = new URL("../../Truly-music/", import.meta.url);
 const STALL_MS = 15000;
 // Leaving a piece by choice within this many seconds counts as an early skip.
 const EARLY_SECONDS = 30;
+// Recordings kept for offline listening live in this cache (see sw.js).
+const OFFLINE_CACHE = "truly-offline-music";
+// MP3 files are 96 kbps, about 12 kB per second.
+const BYTES_PER_SECOND = 12000;
 
 let questions = null;
 let camera = null;
@@ -28,6 +32,8 @@ const music = { lib: null, catalogue: null, entry: null, direction: null, steps:
 // Music preferences. They are saved only when saving is on; pieces marked
 // "not for me" with saving off are left out for this visit only.
 const prefs = { instruments: new Set(), length: "standard", notForMe: new Set() };
+// Keys of recordings saved for offline listening.
+const offline = { saved: new Set(), busy: false };
 // Playback state for the current piece: one retry after an error, a stall
 // timer for slow connections, and the next piece fetched ahead of time.
 const playback = { retried: false, failed: 0, stall: null, ahead: null, seeking: false };
@@ -56,7 +62,10 @@ function show(view) {
   });
   if (view === "history") renderHistory();
   if (view === "music") openMusic();
-  if (view === "privacy") $("saving").checked = store.savingOn();
+  if (view === "privacy") {
+    $("saving").checked = store.savingOn();
+    renderOfflineSummary();
+  }
 }
 
 // Camera input: an optional nudge to where the music starts
@@ -208,6 +217,12 @@ async function openMusic() {
       $("music-retry").hidden = false;
       return;
     }
+  }
+  if (!navigator.onLine) {
+    await refreshSaved();
+    status.textContent = offline.saved.size
+      ? "You are offline, so new paths use the recordings kept on this device."
+      : "You are offline. Recordings you keep for offline listening will play here.";
   }
   if (music.entry !== entry.at) {
     music.entry = entry.at;
@@ -408,6 +423,96 @@ function slowDown() {
   $("music-status").textContent = `The path now takes ${music.path.length} smaller steps.`;
 }
 
+// Offline listening
+
+function audioKey(url) {
+  return /\/audio\/([^/]+)\.mp3$/.exec(new URL(url).pathname)?.[1] ?? null;
+}
+
+async function refreshSaved() {
+  if (!("caches" in window)) return;
+  try {
+    const cache = await caches.open(OFFLINE_CACHE);
+    offline.saved = new Set((await cache.keys()).map((r) => audioKey(r.url)).filter(Boolean));
+  } catch {
+    offline.saved = new Set();
+  }
+}
+
+// Without a connection, only saved recordings can play.
+function unavailableOffline() {
+  if (navigator.onLine || !music.catalogue || !offline.saved.size) return [];
+  return music.catalogue.songs.filter((s) => !offline.saved.has(s.key)).map((s) => s.key);
+}
+
+async function keepPathOffline() {
+  const status = $("music-status");
+  if (!("caches" in window) || offline.busy) {
+    if (!("caches" in window)) status.textContent = "This browser cannot keep music for offline listening.";
+    return;
+  }
+  const todo = music.path.filter((s) => !offline.saved.has(s.key));
+  if (!todo.length) {
+    status.textContent = "Every piece in this path is already kept for offline listening.";
+    return;
+  }
+  offline.busy = true;
+  $("music-offline").disabled = true;
+  const mb = Math.max(1, Math.round(todo.reduce((a, s) => a + (s.seconds || 0), 0) * BYTES_PER_SECOND / 1e6));
+  try {
+    const cache = await caches.open(OFFLINE_CACHE);
+    for (const [n, song] of todo.entries()) {
+      status.textContent = `Keeping piece ${n + 1} of ${todo.length} for offline listening, about ${mb} MB in all.`;
+      const response = await fetch(song.audio, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      await cache.put(song.audio, response);
+      offline.saved.add(song.key);
+    }
+    status.textContent = "This path is kept on this device and will play without a connection.";
+  } catch {
+    status.textContent = "Not every piece could be kept. Please try again with a connection.";
+  } finally {
+    offline.busy = false;
+    $("music-offline").disabled = false;
+    renderOfflineSummary();
+  }
+}
+
+async function renderOfflineSummary() {
+  const summary = $("offline-summary");
+  if (!summary) return;
+  if (!("caches" in window)) {
+    summary.textContent = "This browser cannot keep music for offline listening.";
+    return;
+  }
+  await refreshSaved();
+  let bytes = 0;
+  try {
+    const cache = await caches.open(OFFLINE_CACHE);
+    for (const request of await cache.keys()) {
+      const response = await cache.match(request);
+      bytes += Number(response?.headers.get("content-length")) || 0;
+    }
+  } catch {
+    // Size unknown; the count is still shown.
+  }
+  const n = offline.saved.size;
+  summary.textContent = n
+    ? `${n} ${n === 1 ? "recording is" : "recordings are"} kept for offline listening${bytes ? `, ${(bytes / 1e6).toFixed(0)} MB` : ""}.`
+    : "No music is kept for offline listening.";
+  $("offline-remove").hidden = n === 0;
+}
+
+async function removeOffline() {
+  try {
+    await caches.delete(OFFLINE_CACHE);
+  } catch {
+    // Nothing to remove.
+  }
+  offline.saved = new Set();
+  renderOfflineSummary();
+}
+
 // Preferences
 
 function baseSteps() {
@@ -418,7 +523,7 @@ function currentPrefs() {
   return music.lib.preferences({
     instruments: prefs.instruments,
     favourites: store.loadFavourites().map((f) => f.key),
-    ruledOut: [...store.loadNotForMe().map((p) => p.key), ...prefs.notForMe],
+    ruledOut: [...store.loadNotForMe().map((p) => p.key), ...prefs.notForMe, ...unavailableOffline()],
     listening: store.loadListening(),
   });
 }
@@ -772,6 +877,10 @@ async function init() {
   $("music-new").addEventListener("click", () => { newPath(); $("music-status").textContent = "A new path is ready."; });
   $("music-stop").addEventListener("click", stopMusic);
   $("music-retry").addEventListener("click", openMusic);
+  $("music-offline").addEventListener("click", keepPathOffline);
+  $("offline-remove").addEventListener("click", removeOffline);
+  refreshSaved();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
   $("learned-forget").addEventListener("click", () => {
     store.forgetListening();
     renderHistory();
@@ -799,7 +908,8 @@ async function init() {
     $("delete-confirm").hidden = true;
     $("saving").checked = false;
     prefsNote();
-    $("data-status").textContent = "Your listening history, favourites and music preferences were deleted from this device.";
+    removeOffline();
+    $("data-status").textContent = "Your listening history, favourites, music preferences and offline music were deleted from this device.";
   });
 
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));

@@ -8,6 +8,9 @@
 <title>Truly</title>
 <meta name="description" content="Tell Truly your mood and energy, and it plays music to match. Everything stays on your device.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c6b73">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="app.css">
 <script type="module" src="app.js"></script>
 </head>
@@ -145,6 +148,7 @@
           <button type="button" class="button quiet" id="music-slower">Slow down</button>
           <button type="button" class="button quiet" id="music-new">New path</button>
           <button type="button" class="button quiet" id="music-stop">Stop</button>
+          <button type="button" class="button quiet" id="music-offline">Keep this path for offline listening</button>
         </div>
         <p class="hint">Music plays from Truly's own site. No streaming service is involved, and nothing about your listening is recorded. The pieces come from a growing collection of classical recordings, all freely licensed; credits are shown with each piece.</p>
       </div>
@@ -192,13 +196,19 @@
           <button type="button" class="button quiet danger" id="delete">Delete everything saved</button>
         </div>
         <div class="confirm" id="delete-confirm" hidden>
-          <p>Delete your listening history, favourites and music preferences from this device? This cannot be undone.</p>
+          <p>Delete your listening history, favourites, music preferences and offline music from this device? This cannot be undone.</p>
           <div class="row">
             <button type="button" class="button primary" id="delete-yes">Yes, delete everything</button>
             <button type="button" class="button quiet" id="delete-no">Keep them</button>
           </div>
         </div>
         <p class="status" id="data-status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="card" style="margin-top: 20px">
+        <h2>Offline music</h2>
+        <p>Recordings you keep for offline listening are copies of Truly's public music files, stored by this browser so they play without a connection.</p>
+        <p class="status" id="offline-summary" role="status" aria-live="polite"></p>
+        <button type="button" class="button quiet" id="offline-remove" hidden>Remove offline music</button>
       </div>
     </section>
 

@@ -172,6 +172,18 @@ stateDiagram-v2
 - The position slider is keyboard friendly: arrow keys move 10 seconds, Page Up and Page Down 30.
 - The Media Session API puts the title and play, pause, next and previous controls on phone lock screens and headsets.
 
+### Offline
+
+The app is an installable web app (`manifest.webmanifest`) with a service worker (`sw.js`) that only caches public files:
+
+| What | How it is fetched |
+|---|---|
+| App pages, scripts, fonts and `tracks.json` | Network first, so updates arrive; the cached copy after 4 seconds or when offline |
+| Models and the ONNX runtime | From the cache after the first download |
+| Recordings | Only those the listener keeps with "Keep this path for offline listening"; range requests are answered from the saved file, so seeking works offline |
+
+Without a connection, new paths are built only from recordings kept on the device. The Privacy page shows how much music is kept and removes it.
+
 ## 7. The camera input
 
 The camera is optional, off until tried, and only adds or subtracts a small amount of valence at the start of the path. Faces are not a reliable guide to feelings (Barrett et al., 2019), so the result is presented as a playful guess.
@@ -320,6 +332,10 @@ flowchart LR
     B4["truly.preferences.v1<br/>instruments and length"]
     B5["truly.listening.v1<br/>per piece: full plays, early skips"]
   end
+  subgraph Cache["Cache Storage, public files only"]
+    C1["App, music list, models once used"]
+    C2["Recordings kept for offline listening"]
+  end
   Nowhere["Never stored or sent:<br/>mood answers, images, sound"]
 ```
 
@@ -336,6 +352,7 @@ Saving is off by default (`truly.saving.v1` is absent). Switching it off stops n
 | `docs/app/face.js` | Camera, face detection and the face model |
 | `docs/app/readout.js` | Turns face model output into a tone; pure functions |
 | `docs/app/voice.js` | Microphone, loudness step and the voice model |
+| `docs/app/sw.js`, `docs/app/manifest.webmanifest` | Offline use and installing the app |
 | `docs/app/models/` | ONNX models and their readout settings |
 | `training/face_teacher.py`, `training/face_distill.py` | Face teacher scores and distillation |
 | `training/voice_teacher.py`, `training/voice_distill.py` | Voice teacher scores and distillation |
