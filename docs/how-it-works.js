@@ -428,6 +428,101 @@ function trainingCharts() {
   });
 }
 
+// Contents panel: built from the page's own headings, with the section in
+// view highlighted.
+
+const WIDE = window.matchMedia("(min-width: 1180px)");
+
+function buildContents() {
+  const side = $("side");
+  const list = $("side-list");
+  const entries = [];
+  for (const section of document.querySelectorAll("main > section[id]")) {
+    const h2 = section.querySelector("h2");
+    const num = h2.querySelector(".n")?.textContent ?? "";
+    const title = h2.textContent.slice(num.length).trim();
+    const li = document.createElement("li");
+    const link = Object.assign(document.createElement("a"), { href: `#${section.id}` });
+    link.append(Object.assign(document.createElement("span"), { className: "num", textContent: num }), title);
+    li.append(link);
+    const subs = [...section.querySelectorAll("h3[id]")];
+    const subLinks = [];
+    if (subs.length) {
+      const ol = document.createElement("ol");
+      for (const h3 of subs) {
+        const sub = document.createElement("li");
+        const a = Object.assign(document.createElement("a"), { href: `#${h3.id}`, textContent: h3.textContent });
+        sub.append(a);
+        ol.append(sub);
+        subLinks.push({ el: h3, link: a });
+      }
+      li.append(ol);
+    }
+    list.append(li);
+    entries.push({ section, title: `${num} ${title}`, li, link, subs: subLinks });
+  }
+  side.hidden = false;
+  // On wide screens the panel is always open; its heading is not a control.
+  $("side-details").addEventListener("toggle", () => {
+    if (WIDE.matches && !$("side-details").open) $("side-details").open = true;
+  });
+  const summary = side.querySelector("summary");
+  const summaryRole = () => {
+    if (WIDE.matches) summary.setAttribute("tabindex", "-1");
+    else summary.removeAttribute("tabindex");
+  };
+  list.addEventListener("click", (e) => {
+    if (e.target.closest("a") && !WIDE.matches) $("side-details").open = false;
+  });
+  const layout = () => {
+    const top = document.querySelector(".topbar").getBoundingClientRect().height;
+    document.documentElement.style.setProperty("--topbar", `${top}px`);
+    const bar = WIDE.matches ? 0 : side.querySelector("summary").getBoundingClientRect().height;
+    document.documentElement.style.scrollPaddingTop = `${top + bar + 12}px`;
+    if (WIDE.matches) $("side-details").open = true;
+    summaryRole();
+  };
+  let current = null;
+  let currentSub = null;
+  const highlight = () => {
+    const line = parseFloat(document.documentElement.style.scrollPaddingTop) + 24;
+    let active = entries[0];
+    for (const e of entries) if (e.section.getBoundingClientRect().top <= line) active = e;
+    let sub = null;
+    for (const s of active.subs) if (s.el.getBoundingClientRect().top <= line) sub = s;
+    if (active !== current) {
+      current?.link.removeAttribute("aria-current");
+      current?.li.classList.remove("open");
+      active.link.setAttribute("aria-current", "location");
+      active.li.classList.add("open");
+      $("side-current").textContent = active.title;
+      current = active;
+      if (WIDE.matches) {
+        // Keep the highlighted entry visible inside the panel only.
+        const panel = side.getBoundingClientRect();
+        const item = active.link.getBoundingClientRect();
+        if (item.top < panel.top + 40 || item.bottom > panel.bottom - 40) side.scrollTop += item.top - panel.top - panel.height / 3;
+      }
+    }
+    if (sub !== currentSub) {
+      currentSub?.link.removeAttribute("aria-current");
+      sub?.link.setAttribute("aria-current", "location");
+      currentSub = sub;
+    }
+  };
+  let queued = false;
+  window.addEventListener("scroll", () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; highlight(); });
+  }, { passive: true });
+  WIDE.addEventListener("change", () => { layout(); highlight(); });
+  window.addEventListener("resize", layout);
+  layout();
+  highlight();
+}
+
+buildContents();
 trainingCharts();
 $("s-run").addEventListener("click", runSpectrogram);
 let resizing = null;

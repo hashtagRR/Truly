@@ -159,6 +159,35 @@ p { margin: 0 0 16px; }
 .pipe span { display: block; font-size: 0.92rem; color: var(--soft-ink); line-height: 1.5; margin-top: 4px; }
 .pipe .dims { font-family: var(--mono); font-size: 0.8rem; color: var(--ink); background: var(--surface); border-radius: 8px; padding: 2px 8px; display: inline-block; margin-top: 8px; }
 
+/* Contents panel: a fixed column on wide screens, a sticky bar on narrow ones */
+.side { position: sticky; top: var(--topbar, 65px); z-index: 9; background: var(--page); border-bottom: 1px solid var(--line); }
+.side details { padding: 0 max(16px, env(safe-area-inset-left, 0px)); }
+.side summary { display: flex; gap: 10px; align-items: center; min-height: 48px; cursor: pointer; font-weight: 700; list-style: none; }
+.side summary::-webkit-details-marker { display: none; }
+.side summary::after { content: "▾"; margin-left: auto; color: var(--accent); }
+.side details[open] summary::after { content: "▴"; }
+.side-label { color: var(--soft-ink); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.side-current { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.side ol { list-style: none; margin: 0; padding: 0 0 12px; max-height: 60vh; overflow-y: auto; }
+.side li { margin: 0; }
+.side a { display: block; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: var(--ink); font-size: 0.95rem; line-height: 1.35; border-left: 3px solid transparent; }
+.side a .num { color: var(--soft-ink); font-variant-numeric: tabular-nums; margin-right: 6px; }
+.side a:hover { background: var(--surface); }
+.side a[aria-current="location"] { background: var(--tint-teal); border-left-color: var(--accent); font-weight: 700; }
+.side ol ol { padding: 2px 0 6px 18px; max-height: none; }
+.side ol ol a { font-size: 0.88rem; padding: 4px 10px; color: var(--soft-ink); }
+.side ol ol a[aria-current="location"] { background: transparent; color: var(--accent); border-left-color: var(--accent); }
+.side li:not(.open) > ol { display: none; }
+@media (min-width: 1180px) {
+  :root { --side-w: 270px; }
+  .side { position: fixed; top: var(--topbar, 65px); bottom: 0; left: 0; width: var(--side-w); border-bottom: 0; border-right: 1px solid var(--line); overflow-y: auto; padding: 18px 10px 24px 14px; }
+  .side details { padding: 0; }
+  .side summary { pointer-events: none; min-height: 0; margin: 0 0 10px 10px; }
+  .side summary::after, .side-current { display: none; }
+  .side ol { max-height: none; overflow: visible; }
+  .side ~ .hero, .side ~ main, .side ~ footer { margin-left: var(--side-w); }
+}
+
 /* Technical document */
 .eq { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif; font-size: 1.15rem; line-height: 1.9; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin: 0 0 18px; overflow-x: auto; white-space: nowrap; }
 .eq var, .m var { font-style: italic; }
@@ -277,6 +306,13 @@ footer p { margin: 0; }
     </nav>
   </div>
 </header>
+
+<nav class="side" id="side" aria-label="On this page" hidden>
+  <details id="side-details">
+    <summary><span class="side-label">On this page</span><span class="side-current" id="side-current"></span></summary>
+    <ol id="side-list"></ol>
+  </details>
+</nav>
 
 <div class="hero gutter">
   <div class="column">
@@ -416,19 +452,19 @@ footer p { margin: 0; }
     <h2 id="h-engine"><span class="n">4</span>Recommendation engine</h2>
     <p class="lead read">All functions are in <code>docs/app/music.js</code> and are pure: the same inputs and random source give the same path.</p>
 
-    <h3>4.1 Start point</h3>
+    <h3 id="s4-1">4.1 Start point</h3>
     <p class="read">Each answer <span class="m"><var>ℓ</var> ∈ {1, …, 5}</span> selects a quantile level <span class="m"><var>q<sub>ℓ</sub></var> ∈ (0.08, 0.25, 0.50, 0.75, 0.92)</span>:</p>
     <div class="eq" role="math" aria-label="p zero equals Q V of q for the mood answer, and Q A of q for the energy answer"><var>p</var><sub>0</sub> = ( <var>Q<sub>V</sub></var>(<var>q</var><sub>mood</sub>), <var>Q<sub>A</sub></var>(<var>q</var><sub>energy</sub>) )</div>
     <p class="read">Placing answers by quantile of the catalogue, rather than by a fixed mapping to the annotation scale, keeps every answer inside the region where recordings exist.</p>
 
-    <h3>4.2 Optional nudges</h3>
+    <h3 id="s4-2">4.2 Optional nudges</h3>
     <p class="read">The camera result is a tone <span class="m"><var>τ</var></span> and moves valence only. The voice result <span class="m">(<var>v̂</var>, <var>â</var>)</span> is in standard deviations from everyday speech (7.6) and passes through <span class="m"><var>c</var>(<var>x</var>) = max(−1, min(1, <var>x</var> / 1.5))</span>:</p>
     <div class="eq" role="math" aria-label="Camera: v zero plus 0.35 sigma V for bright, unchanged for calm, minus 0.35 sigma V for heavy. Voice: v zero plus 0.12 sigma V times c of v hat; a zero plus 0.40 sigma A times c of a hat.">
       <span class="row">camera: <var>v</var><sub>0</sub> ← <var>v</var><sub>0</sub> + 0.35 <var>σ<sub>V</sub></var> · {+1 bright, 0 calm, −1 heavy}</span>
       <span class="row">voice: <var>v</var><sub>0</sub> ← <var>v</var><sub>0</sub> + 0.12 <var>σ<sub>V</sub></var> <var>c</var>(<var>v̂</var>), &nbsp; <var>a</var><sub>0</sub> ← <var>a</var><sub>0</sub> + 0.40 <var>σ<sub>A</sub></var> <var>c</var>(<var>â</var>)</span>
     </div>
 
-    <h3>4.3 Goal</h3>
+    <h3 id="s4-3">4.3 Goal</h3>
     <div class="table-wrap"><table class="tight">
       <thead><tr><th scope="col">Direction</th><th scope="col">Goal valence</th><th scope="col">Goal arousal</th></tr></thead>
       <tbody>
@@ -439,7 +475,7 @@ footer p { margin: 0; }
     </table></div>
     <p class="read">The default direction is steady when mood ≥ 4, calmer when mood ≤ 2 and energy ≥ 4, and brighter otherwise. The listener can always override it.</p>
 
-    <h3>4.4 Planned points</h3>
+    <h3 id="s4-4">4.4 Planned points</h3>
     <div class="eq" role="math" aria-label="p i equals p zero plus i over n minus 1 times p g minus p zero, for i from 0 to n minus 1"><var>p<sub>i</sub></var> = <var>p</var><sub>0</sub> + <span class="frac"><span><var>i</var></span><span><var>n</var> − 1</span></span> (<var>p<sub>g</sub></var> − <var>p</var><sub>0</sub>), &nbsp; <var>i</var> = 0, …, <var>n</var> − 1</div>
     <p class="read">Paths have <span class="m"><var>n</var></span> = 4, 6 or 9 pieces; "slow down" uses round(1.5 <var>n</var>) and keeps the first piece. The heading <span class="m"><var>h</var></span> is the unit vector from <span class="m"><var>p</var><sub>0</sub></span> to <span class="m"><var>p<sub>g</sub></var></span> in standardised units. Starting near the listener's state and moving gradually follows the iso principle (Heiderscheit and Madson, 2015; Starcke and von Georgi, 2024).</p>
 
@@ -490,7 +526,7 @@ footer p { margin: 0; }
       <p class="status" id="x-status" role="status"></p>
     </div>
 
-    <h3>4.5 Cost of a candidate</h3>
+    <h3 id="s4-5">4.5 Cost of a candidate</h3>
     <p class="read">For candidate <span class="m"><var>s</var></span> at planned point <span class="m"><var>p<sub>i</sub></var></span>, with previous piece <span class="m"><var>r</var></span> and <span class="m">Δ</span> the standardised step from <span class="m"><var>r</var></span> to <span class="m"><var>s</var></span>:</p>
     <div class="eq" role="math" aria-label="C of s equals d of s and p i squared, plus 0.35 times the squared step, plus 1.0 times the squared negative part of the step projected on h, plus 0.3 times the squared tempo change over 30, plus 0.6 if no preferred instrument, minus 0.25 for a favourite, minus 0.24 lambda s for listening history">
       <span class="row"><var>C</var>(<var>s</var>) = <var>d</var>(<var>s</var>, <var>p<sub>i</sub></var>)<sup>2</sup> <span class="why">closeness</span></span>
@@ -514,7 +550,7 @@ footer p { margin: 0; }
       <figcaption>Candidates exclude pieces and performers already earlier in the path. Negative terms (favourite, listening history) are zero in this demonstration.</figcaption>
     </figure>
 
-    <h3>4.6 Selection</h3>
+    <h3 id="s4-6">4.6 Selection</h3>
 <pre class="algo"><code>buildPath(catalogue, points, keep, prefs, rng):
     path ← keep
     for each planned point p_i not covered by keep:
@@ -526,10 +562,10 @@ footer p { margin: 0; }
     return path sorted by (v_s/σ_V, a_s/σ_A) · h          # forward order</code></pre>
     <p class="read">Sampling among near-ties varies paths between sessions without choosing poor matches. The final sort guarantees monotone progress along the heading, even when a later point selected a piece slightly behind an earlier one. <code>replaceSong</code> repeats the choice for one index, first restricted to candidates whose projection on <span class="m"><var>h</var></span> lies between the neighbours' projections, then without that bound, and sorts again.</p>
 
-    <h3>4.7 Explanations</h3>
+    <h3 id="s4-7">4.7 Explanations</h3>
     <p class="read">For piece <span class="m"><var>i</var> &gt; 0</span>, the standardised differences from piece <span class="m"><var>i</var> − 1</span> are compared with ±0.15: arousal gives "calmer" or "livelier", valence "brighter" or "more reflective". The first piece "matches the mood and energy you described"; the last piece of a moving path "is where the path settles". A note is added for a favourite, a matching preferred instrument, or <span class="m"><var>λ<sub>s</sub></var> ≥ 2/3</span>.</p>
 
-    <h3>4.8 Path quality</h3>
+    <h3 id="s4-8">4.8 Path quality</h3>
     <div class="table-wrap"><table class="tight">
       <thead><tr><th scope="col">Metric</th><th scope="col">Definition, over the standardised steps ‖Δ<sub><var>j</var></sub>‖</th></tr></thead>
       <tbody>
@@ -580,7 +616,7 @@ footer p { margin: 0; }
 <section id="face" class="gutter" aria-labelledby="h-face">
   <div class="column">
     <h2 id="h-face"><span class="n">6</span>Face pipeline</h2>
-    <h3>6.1 Inference</h3>
+    <h3 id="s6-1">6.1 Inference</h3>
     <ol class="pipe" aria-label="Face inference pipeline">
       <li class="privacy"><strong>Frame</strong><span>Drawn from the video into a canvas; never stored.</span><span class="dims">640 × 480</span></li>
       <li><strong>Normalise</strong><span>Resize, then (<var>x</var> − 127) / 128 per channel.</span><span class="dims">1 × 3 × 240 × 320</span></li>
@@ -590,7 +626,7 @@ footer p { margin: 0; }
       <li><strong>Readout</strong><span>Seven class scores (6.2).</span><span class="dims">7</span></li>
       <li><strong>Aggregate</strong><span>Up to 30 attempts 0.4 s apart, at most 10 frames, at least 3; mean, offsets, argmax, tone.</span></li>
     </ol>
-    <h3 class="sub">6.2 Readout</h3>
+    <h3 class="sub" id="s6-2">6.2 Readout</h3>
     <p class="read">With model output <span class="m"><var>z</var> ∈ ℝ<sup>40</sup></span> and per-category training statistics <span class="m"><var>μ</var>, <var>σ</var></span> from <code>readout.json</code>, and <span class="m"><var>G<sub>k</sub></var></span> the categories mapped to class <span class="m"><var>k</var></span> in <code>mappings/emonet_categories.json</code>:</p>
     <div class="eq" role="math" aria-label="r equals z times sigma plus mu. g k is the mean of r over the categories in G k, for every class except neutral. g neutral is minus the largest of the other g k. The class is the argmax of the frame-averaged g plus offsets b.">
       <span class="row"><var>r</var> = <var>z</var> ⊙ <var>σ</var> + <var>μ</var></span>
@@ -598,7 +634,7 @@ footer p { margin: 0; }
       <span class="row"><var>k̂</var> = argmax<sub><var>k</var></sub> (<var>ḡ<sub>k</sub></var> + <var>b<sub>k</sub></var>)</span>
     </div>
     <p class="read">Happy and surprise map to the tone <em>bright</em>; angry, disgust, fear and sad to <em>heavy</em>; neutral to <em>calm</em>.</p>
-    <h3>6.3 Training by distillation</h3>
+    <h3 id="s6-3">6.3 Training by distillation</h3>
     <div class="table-wrap"><table class="facts tight">
       <tbody>
         <tr><th scope="row">Teacher</th><td>Empathic-Insight-Face-Large: 40 MLP heads (1152 → 1024 → 512 → 256 → 1, ReLU, dropout 0.2) on SigLIP 2 so400m patch16-384 embeddings (1152-d); about 470 M parameters in total</td></tr>
@@ -612,9 +648,9 @@ footer p { margin: 0; }
       </tbody>
     </table></div>
     <p class="read">No FER-2013 data was used for training or calibration. The same network trained directly on EmoNet-Face Binary expert labels reached 30.7% on FER-2013 PrivateTest; distillation from the teacher's dense 40-dimensional scores reached 51.0%.</p>
-    <h3>6.4 Calibration</h3>
+    <h3 id="s6-4">6.4 Calibration</h3>
     <p class="read">The offsets <span class="m"><var>b</var> ∈ ℝ<sup>7</sup></span> are fitted by coordinate ascent on CREMA-D video frames from actors with even identifiers, maximising macro F1 over the classes present: four rounds over the classes, each searching a 61-point grid on <span class="m">[−3 sd(<var>g</var>), 3 sd(<var>g</var>)]</span>. Surprise does not occur in CREMA-D and keeps <span class="m"><var>b</var> = 0</span>.</p>
-    <h3>6.5 Evaluation</h3>
+    <h3 id="s6-5">6.5 Evaluation</h3>
     <div class="explorer-grid">
       <div class="table-wrap"><table class="tight">
         <thead><tr><th scope="col">Test set</th><th scope="col" class="num">Images</th><th scope="col" class="num">Accuracy</th><th scope="col" class="num">Macro F1</th></tr></thead>
@@ -636,16 +672,16 @@ footer p { margin: 0; }
 <section id="voice" class="gutter band" aria-labelledby="h-voice" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
   <div class="column">
     <h2 id="h-voice"><span class="n">7</span>Voice pipeline</h2>
-    <h3>7.1 Capture</h3>
+    <h3 id="s7-1">7.1 Capture</h3>
     <p class="read"><code>getUserMedia</code> is called with <code>echoCancellation: true</code>, <code>noiseSuppression: false</code> and <code>autoGainControl: false</code>, so the signal keeps its natural dynamics. A <code>ScriptProcessorNode</code> with 4,096-frame buffers collects <span class="m">5 <var>f<sub>s</sub></var></span> samples at the device rate, and the stream stops immediately afterwards. An <code>OfflineAudioContext</code> resamples to 16 kHz and the first 80,000 samples are kept.</p>
-    <h3>7.2 Loudness normalisation</h3>
+    <h3 id="s7-2">7.2 Loudness normalisation</h3>
     <p class="read">Applied identically in training (<code>voice_teacher.py</code>) and in the browser (<code>voice.js</code>). For a signal <span class="m"><var>x</var></span> split into 400-sample frames with RMS values <span class="m"><var>e<sub>t</sub></var></span>:</p>
     <div class="eq" role="math" aria-label="L is the set of frames with RMS above the larger of 1e-4 and 0.1 times the loudest frame. gamma is 0.05 over the root mean square of those frames, capped at 0.99 over the peak.">
       <span class="row"><var>L</var> = { <var>t</var> : <var>e<sub>t</sub></var> &gt; max(10<sup>−4</sup>, 0.1 max<sub><var>t</var></sub> <var>e<sub>t</sub></var>) }</span>
       <span class="row"><var>γ</var> = 0.05 / √(mean<sub><var>t</var> ∈ <var>L</var></sub> <var>e<sub>t</sub></var><sup>2</sup>), &emsp; <var>γ</var> ← min(<var>γ</var>, 0.99 / max|<var>x</var>|)</span>
     </div>
     <p class="read">The output is <span class="m"><var>γx</var></span>, zero-padded or cut to 80,000 samples. If the loudest frame is below 0.002 the clip is rejected as silence. Normalising over the sounding frames only makes the level independent of pauses, and removes distance to the microphone as a source of variation.</p>
-    <h3>7.3 Model</h3>
+    <h3 id="s7-3">7.3 Model</h3>
     <p class="read">The spectrogram is computed inside the network, so the ONNX graph takes raw samples.</p>
     <div class="table-wrap"><table class="tight">
       <thead><tr><th scope="col">Stage</th><th scope="col">Operation</th><th scope="col">Output shape</th><th scope="col" class="num">Parameters</th></tr></thead>
@@ -688,9 +724,9 @@ footer p { margin: 0; }
       <p class="status" id="s-status" role="status"></p>
     </figure>
 
-    <h3>7.4 Teacher</h3>
+    <h3 id="s7-4">7.4 Teacher</h3>
     <p class="read">Empathic-Insight-Voice-Small provides one regression head per attribute on BUD-E-Whisper encoder states. The audio is padded to Whisper's 30-second window, giving 1,500 × 768 hidden states; each head flattens them and applies 1,152,000 → 64 → 64 → 32 → 16 → 1 with ReLU. Only the Valence and Arousal heads are downloaded and run; no other attribute is ever computed. With the encoder, the teacher has about 235 M parameters, 560 times the student.</p>
-    <h3>7.5 Training by distillation</h3>
+    <h3 id="s7-5">7.5 Training by distillation</h3>
     <div class="table-wrap"><table class="facts tight">
       <tbody>
         <tr><th scope="row">Windows</th><td>5 s at 16 kHz after the loudness step; windows with RMS below 0.01 skipped</td></tr>
@@ -703,13 +739,13 @@ footer p { margin: 0; }
         <tr><th scope="row">Compute</th><td>One NVIDIA T4 on Kaggle, 19 minutes</td></tr>
       </tbody>
     </table></div>
-    <h3>7.6 Readout</h3>
+    <h3 id="s7-6">7.6 Readout</h3>
     <p class="read">The output <span class="m"><var>z</var></span> is in standard deviations of the training targets. The training mix leans towards expressive acted speech, so its mean sits above everyday speech; <code>readout.json</code> re-centres on the teacher's mean <span class="m"><var>m</var></span> over natural YODAS speech, so 0 means "as lively, or as bright, as ordinary speech":</p>
     <div class="eq" role="math" aria-label="v hat and a hat equal z times sigma plus mu minus m, all over sigma; m is 0.162 and 1.168, mu is 0.328 and 1.247, sigma is 0.684 and 0.591">
       (<var>v̂</var>, <var>â</var>) = (<var>z</var> ⊙ <var>σ</var> + <var>μ</var> − <var>m</var>) / <var>σ</var>, &emsp; <var>m</var> = (0.162, 1.168), <var>μ</var> = (0.328, 1.247), <var>σ</var> = (0.684, 0.591)
     </div>
     <p class="read">The engine then applies the bounded nudge of 4.2. Arousal carries most of the weight because the teacher's valence depends largely on lexical content, which Truly never uses.</p>
-    <h3>7.7 Evaluation</h3>
+    <h3 id="s7-7">7.7 Evaluation</h3>
     <div class="explorer-grid">
       <div>
         <div class="table-wrap"><table class="tight">
