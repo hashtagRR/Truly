@@ -5,7 +5,7 @@
 - The music view shows the path as a small map of mood and energy, with the playing piece marked.
 - With saving on, Truly learns which pieces you usually play to the end and which you leave early, and leans a little towards the first. "Your listening" shows what it has learned and can forget it.
 - Truly can be installed as an app and works offline. "Keep this path for offline listening" saves a path's recordings on the device; without a connection, new paths use only those. The Privacy page shows and removes offline music.
-- Path quality measures (average and largest step, step variation, largest tempo change), with tests and a live view on the Inside Truly page.
+- Path quality measures (average and largest step, step variation, largest tempo change), with tests and a live view on the technical design page.
 
 ## 0.1.0 (2026-10-19)
 
@@ -43,7 +43,7 @@ The first release of Truly, a free, open source, privacy-first music recommender
 
 ### For developers
 
-- A step by step blueprint of the app and its models, with diagrams, in `references/ARCHITECTURE.md`, and a visual version on the website with a live path explorer, the cost of each candidate piece and the voice model's spectrogram.
+- A technical design document, `references/ARCHITECTURE.md`, also published on the website with a live path explorer, the cost terms of each candidate and the voice model's front end.
 - Kaggle training scripts for both models, model cards and readout settings.
 - Tests for music paths, storage, preferences, the face and voice readouts and the shipped models, run by GitHub Actions.
 - A project scope with a feature acceptance rule, a contributing guide and a pull request checklist.

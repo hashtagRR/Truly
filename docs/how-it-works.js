@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 hashtagRR
 
-// Interactive figures for the "Inside Truly" page. The path explorer and the
+// Interactive figures for the technical design page. The path explorer and the
 // cost chart call the app's own music.js; the spectrogram demo uses the
 // loudness step from voice.js and rebuilds the voice model's log-mel front end.
 

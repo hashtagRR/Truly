@@ -5,8 +5,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Inside Truly</title>
-<meta name="description" content="A step by step blueprint of Truly: how answers become a music path, how pieces are chosen, and how the on-device face and voice models work and were trained.">
+<title>How Truly is built</title>
+<meta name="description" content="Technical design of Truly: system structure, the recommendation algorithm, the on-device face and voice models, how they were trained, the browser runtime and storage.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='9' fill='%23e8955a'/%3E%3Cpath d='M2 24c6-4 10-4 14-1s8 3 14-1v8H2z' fill='%231c6b73'/%3E%3C/svg%3E">
 <style>
 @font-face {
@@ -159,6 +159,31 @@ p { margin: 0 0 16px; }
 .pipe span { display: block; font-size: 0.92rem; color: var(--soft-ink); line-height: 1.5; margin-top: 4px; }
 .pipe .dims { font-family: var(--mono); font-size: 0.8rem; color: var(--ink); background: var(--surface); border-radius: 8px; padding: 2px 8px; display: inline-block; margin-top: 8px; }
 
+/* Technical document */
+.eq { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif; font-size: 1.15rem; line-height: 1.9; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin: 0 0 18px; overflow-x: auto; white-space: nowrap; }
+.eq var, .m var { font-style: italic; }
+.eq .row { display: block; }
+.eq .why { font-family: var(--font); font-size: 0.85rem; color: var(--soft-ink); margin-left: 1.2em; }
+.m { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", serif; font-size: 1.05em; white-space: nowrap; }
+.frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; margin: 0 2px; }
+.frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 3px; }
+.frac > span { line-height: 1.25; }
+pre.algo { background: var(--surface); border: 1px solid var(--line); }
+.facts th { width: 30%; color: var(--soft-ink); font-weight: 700; }
+.tight td, .tight th { padding: 6px 8px; font-size: 0.95rem; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+h2 + .lead { margin-top: 4px; }
+.sub { margin-top: 36px; }
+.diagram-repos { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; }
+.repo { border: 2px dashed var(--line); border-radius: 18px; padding: 14px; }
+.repo h3 { margin: 0 0 10px; font-size: 1rem; font-family: var(--mono); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span { background: var(--page); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; font-family: var(--mono); font-size: 0.88rem; }
+.chips span.core { background: var(--tint-teal); border-color: transparent; }
+.chips span.ml { background: var(--tint-sun); border-color: transparent; }
+.seq td:nth-child(2) { font-family: var(--mono); font-size: 0.88rem; white-space: nowrap; }
+@media (max-width: 680px) { .diagram-repos { grid-template-columns: 1fr; } .eq { font-size: 1.02rem; } }
+
 /* Explorer */
 .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 22px; margin-bottom: 14px; }
 .controls fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
@@ -255,80 +280,171 @@ footer p { margin: 0; }
 
 <div class="hero gutter">
   <div class="column">
-    <p class="eyebrow">Blueprint</p>
-    <h1>Inside Truly</h1>
-    <p class="read">A step by step tour of how Truly turns two answers into a path of music, how it chooses each piece, and how its two small on-device models hear and see. The interactive parts below run the app's own code on the real music collection.</p>
+    <p class="eyebrow">Technical design</p>
+    <h1>How Truly is built</h1>
+    <p class="read">The system structure, the recommendation algorithm, the two on-device models and how they were trained, the browser runtime, client-side state, and the reasons behind the main design choices. Written for engineers and machine learning practitioners. The interactive figures run the app's own code on the real collection.</p>
     <ul class="toc" aria-label="Contents">
-      <li><a href="#big-picture">1. Big picture</a></li>
-      <li><a href="#map">2. The map</a></li>
-      <li><a href="#path">3. Answers to a path</a></li>
-      <li><a href="#choice">4. Choosing pieces</a></li>
-      <li><a href="#player">5. The player</a></li>
-      <li><a href="#camera">6. Camera</a></li>
-      <li><a href="#voice">7. Voice</a></li>
-      <li><a href="#training">8. Training</a></li>
-      <li><a href="#storage">9. What is stored</a></li>
-      <li><a href="#code">10. Code map</a></li>
+      <li><a href="#overview">1. Overview</a></li>
+      <li><a href="#structure">2. System structure</a></li>
+      <li><a href="#catalogue">3. Catalogue and notation</a></li>
+      <li><a href="#engine">4. Recommendation engine</a></li>
+      <li><a href="#runtime">5. Inference runtime</a></li>
+      <li><a href="#face">6. Face pipeline</a></li>
+      <li><a href="#voice">7. Voice pipeline</a></li>
+      <li><a href="#export">8. Export and verification</a></li>
+      <li><a href="#storage">9. State and storage</a></li>
+      <li><a href="#playback">10. Playback and offline</a></li>
+      <li><a href="#testing">11. Testing</a></li>
+      <li><a href="#decisions">12. Design decisions</a></li>
+      <li><a href="#code">13. Code map</a></li>
     </ul>
   </div>
 </div>
 
 <main id="main">
 
-<section id="big-picture" class="gutter" aria-labelledby="h-big">
+<section id="overview" class="gutter" aria-labelledby="h-overview">
   <div class="column">
-    <h2 id="h-big"><span class="n">1</span>The big picture</h2>
-    <p class="lead read">Truly is a static website. There is no server code, no database and no account. Once the page has loaded, everything happens on your device.</p>
-    <figure class="figure">
-      <div class="panels">
-        <div class="panel">
-          <h3>Served by GitHub Pages</h3>
-          <ul>
-            <li>The app: HTML, CSS and JavaScript modules, no build step</li>
-            <li><code>tracks.json</code> and 18 MP3 recordings, from the Truly-music repository</li>
-            <li>Two ONNX models, fetched only if you try the camera or voice</li>
-          </ul>
-        </div>
-        <div class="bridge" aria-hidden="true"><svg viewBox="0 0 48 24"><path d="M4 12h38M34 5l8 7-8 7"/></svg>downloads once</div>
-        <div class="panel teal">
-          <h3>Runs in your browser</h3>
-          <ul>
-            <li>Check-in, path builder and player</li>
-            <li>ONNX Runtime Web runs the models with WebAssembly</li>
-            <li>Optional saving in <code>localStorage</code>, off by default</li>
-            <li>Nothing is sent back</li>
-          </ul>
-        </div>
-      </div>
-      <figcaption>Both repositories are served from the same domain, so the app fetches music without any cross-site requests, cookies or third parties.</figcaption>
-    </figure>
-    <ol class="pipe" aria-label="One session, in order">
-      <li><strong>Check-in</strong><span>Mood and energy, each 1 to 5.</span></li>
-      <li class="privacy"><strong>Camera or voice</strong><span>Optional. A small, capped nudge to the start.</span></li>
-      <li><strong>Start point</strong><span>The answers placed on the music map.</span></li>
-      <li><strong>Direction</strong><span>Calmer, gently brighter or stay.</span></li>
-      <li><strong>Planned points</strong><span>A straight line, one point per piece.</span></li>
-      <li><strong>Pieces</strong><span>One per point, with your preferences.</span></li>
-      <li><strong>Play and explain</strong><span>A reason for every piece.</span></li>
-    </ol>
+    <h2 id="h-overview"><span class="n">1</span>Overview</h2>
+    <p class="read">Truly maps a listener's self-reported mood and energy to a point in valence and arousal space, plans a straight line from that point to a goal chosen by direction, and fills the line with recordings whose published valence, arousal and tempo place them close to it. Two optional models, a face expression model and a voice model, may shift the start point by a small, bounded amount. Everything runs in the browser.</p>
+    <div class="table-wrap"><table class="facts">
+      <tbody>
+        <tr><th scope="row">Hosting</th><td>Static files on GitHub Pages; no server code</td></tr>
+        <tr><th scope="row">Client</th><td>Plain ES modules, no build step, no framework</td></tr>
+        <tr><th scope="row">Recommendation</th><td>Geometry, a cost function and weighted sampling, in <code>music.js</code></td></tr>
+        <tr><th scope="row">Models</th><td>Two ONNX models distilled from LAION teachers, run with ONNX Runtime Web (WebAssembly)</td></tr>
+        <tr><th scope="row">Face model</th><td>EfficientNet-B0, 4.06 M parameters, 16.2 MB, 224 × 224 input, 40 outputs</td></tr>
+        <tr><th scope="row">Voice model</th><td>Log-mel CNN, 420,410 parameters, 2.4 MB, 80,000-sample input, 2 outputs</td></tr>
+        <tr><th scope="row">State</th><td>In memory per visit; optional <code>localStorage</code>, off by default</td></tr>
+        <tr><th scope="row">Offline</th><td>Service worker caching public files only</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Constraints that shape the design</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Constraint</th><th scope="col">Consequence</th></tr></thead>
+      <tbody>
+        <tr><td>Static hosting, no backend</td><td>All computation in the client; models in ONNX; catalogue as a JSON file</td></tr>
+        <tr><td>No personal data leaves the device</td><td>No analytics or third-party requests; recordings self-hosted; inference on device</td></tr>
+        <tr><td>Non-clinical scope</td><td>Models only adjust a start point; no output is shown as a reading of the person; mood answers never stored</td></tr>
+        <tr><td>Phones as the main target</td><td>Small models, lazy loading, single-threaded WebAssembly, offline support</td></tr>
+        <tr><td>Small catalogue (18 recordings)</td><td>Quantile-based placement of answers; candidate pooling; forward re-ordering of paths</td></tr>
+      </tbody>
+    </table></div>
   </div>
 </section>
 
-<section id="map" class="gutter" aria-labelledby="h-map">
+<section id="structure" class="gutter" aria-labelledby="h-structure">
   <div class="column">
-    <h2 id="h-map"><span class="n">2</span>The map: mood and energy as numbers</h2>
-    <div class="read">
-      <p>Truly puts people and music on one map with two axes (Russell, 1980). <strong>Valence</strong> is how pleasant or bright something feels; <strong>arousal</strong> is how lively it is. Every recording takes its valence, arousal and tempo from MCUD 1.0, a published dataset of music used in studies (Du et al., 2026), so no value is a guess.</p>
-      <p>Your answers are placed using the collection's own spread. Each answer from 1 to 5 picks a quantile of the catalogue: 8%, 25%, 50%, 75% or 92%. A mood of 3 means "the median valence of the music Truly has". Distances are measured in standard deviations of the catalogue, so a step in mood and a step in energy count the same.</p>
+    <h2 id="h-structure"><span class="n">2</span>System structure</h2>
+    <h3>Components</h3>
+    <figure class="figure">
+      <div class="diagram-repos">
+        <div class="repo">
+          <h3>/Truly/app/</h3>
+          <div class="chips">
+            <span>index.html</span><span>app.css</span>
+            <span class="core">app.js</span><span class="core">music.js</span><span class="core">store.js</span>
+            <span class="ml">face.js</span><span class="ml">readout.js</span><span class="ml">voice.js</span>
+            <span class="ml">models/*.onnx</span><span class="ml">vendor/ort/*</span>
+            <span>sw.js</span><span>manifest.webmanifest</span>
+          </div>
+        </div>
+        <div class="repo">
+          <h3>/Truly-music/</h3>
+          <div class="chips"><span>tracks.json</span><span>audio/*.mp3</span></div>
+        </div>
+      </div>
+      <figcaption>Two repositories served from one GitHub Pages origin. Teal: core application modules. Orange: machine learning modules and files, loaded only when the camera or voice is used.</figcaption>
+    </figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Module</th><th scope="col">Responsibility</th><th scope="col">Depends on</th></tr></thead>
+      <tbody>
+        <tr><td><code>app.js</code></td><td>Views, event wiring, session state, player, preferences, history</td><td><code>music.js</code>, <code>store.js</code>; lazily <code>face.js</code>, <code>voice.js</code></td></tr>
+        <tr><td><code>music.js</code></td><td>Pure recommendation functions: placement, goals, planning, cost, selection, swaps, nudges, explanations, quality metrics</td><td>none</td></tr>
+        <tr><td><code>store.js</code></td><td>The only module that touches <code>localStorage</code></td><td>none</td></tr>
+        <tr><td><code>face.js</code>, <code>readout.js</code></td><td>Camera capture, face detection, face model, readout to a tone</td><td>ONNX Runtime Web</td></tr>
+        <tr><td><code>voice.js</code></td><td>Microphone capture, resampling, loudness normalisation, voice model, readout</td><td>ONNX Runtime Web</td></tr>
+        <tr><td><code>sw.js</code></td><td>Caching for offline use</td><td>none</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read"><code>music.js</code>, <code>readout.js</code> and <code>store.js</code> have no DOM dependencies and run unchanged in Node.js, which is how they are tested.</p>
+    <h3>Request flow of one session</h3>
+    <div class="table-wrap"><table class="seq tight">
+      <thead><tr><th scope="col">#</th><th scope="col">From → to</th><th scope="col">Message</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Listener → app.js</td><td>Mood and energy, 1 to 5</td></tr>
+        <tr><td>2</td><td>app.js → face.js or voice.js</td><td>Optional: <code>readExpression()</code> or <code>readVoice()</code>; the runtime and model are fetched on first use; a tone or <code>{valence, arousal}</code> is returned and kept in memory</td></tr>
+        <tr><td>3</td><td>app.js → network or cache</td><td><code>tracks.json</code></td></tr>
+        <tr><td>4</td><td>app.js → music.js</td><td><code>startPoint</code>, <code>nudgeStart</code>, <code>nudgeVoice</code>, <code>goalPoint</code>, <code>pathPoints</code></td></tr>
+        <tr><td>5</td><td>app.js → store.js</td><td>Favourites, "not for me" and listening counts, if saved</td></tr>
+        <tr><td>6</td><td>app.js → music.js</td><td><code>buildPath(catalogue, points, prefs)</code> returns the ordered path</td></tr>
+        <tr><td>7</td><td>app.js → network or cache</td><td><code>audio/*.mp3</code> over range requests</td></tr>
+        <tr><td>8</td><td>app.js → store.js</td><td><code>savePath</code>, <code>recordListen</code>, only while saving is on</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="catalogue" class="gutter" aria-labelledby="h-catalogue">
+  <div class="column">
+    <h2 id="h-catalogue"><span class="n">3</span>Catalogue and notation</h2>
+    <p class="read"><code>tracks.json</code> in the Truly-music repository lists every recording.</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>key</code></td><td>string</td><td>Stable identifier, also the audio file name</td></tr>
+        <tr><td><code>title</code>, <code>composer</code>, <code>performer</code></td><td>string</td><td>Credits</td></tr>
+        <tr><td><code>instruments</code></td><td>string[]</td><td>Any of <code>piano</code>, <code>strings</code>, <code>orchestra</code>, <code>winds</code></td></tr>
+        <tr><td><code>audio</code></td><td>string</td><td>Relative path to a 96 kbps MP3, loudness-normalised</td></tr>
+        <tr><td><code>seconds</code></td><td>number</td><td>Duration</td></tr>
+        <tr><td><code>valence</code>, <code>arousal</code></td><td>number</td><td>From MCUD 1.0 (Du et al., 2026), averaged when a recording covers several entries</td></tr>
+        <tr><td><code>bpm</code></td><td>number or null</td><td>Tempo from MCUD 1.0</td></tr>
+        <tr><td><code>licence</code>, <code>licence_url</code>, <code>source</code></td><td>string</td><td>Licence and Wikimedia Commons page</td></tr>
+        <tr><td><code>mcud</code></td><td>number[]</td><td>MCUD 1.0 song identifiers</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Notation</h3>
+    <p class="read">A piece <span class="m"><var>s</var></span> has position <span class="m">(<var>v<sub>s</sub></var>, <var>a<sub>s</sub></var>)</span>. The catalogue's valence and arousal have standard deviations <span class="m"><var>σ<sub>V</sub></var></span> and <span class="m"><var>σ<sub>A</sub></var></span> and empirical quantile functions <span class="m"><var>Q<sub>V</sub></var></span> and <span class="m"><var>Q<sub>A</sub></var></span>. All distances are in standardised units, so a step of mood and a step of energy weigh the same:</p>
+    <div class="eq" role="math" aria-label="d of x and y equals the square root of the squared standardised valence difference plus the squared standardised arousal difference">
+      <var>d</var>(<var>x</var>, <var>y</var>) = √( ((<var>v<sub>x</sub></var> − <var>v<sub>y</sub></var>) / <var>σ<sub>V</sub></var>)<sup>2</sup> + ((<var>a<sub>x</sub></var> − <var>a<sub>y</sub></var>) / <var>σ<sub>A</sub></var>)<sup>2</sup> )
     </div>
   </div>
 </section>
 
-<section id="path" class="gutter band" aria-labelledby="h-path" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
+<section id="engine" class="gutter band" aria-labelledby="h-engine" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
   <div class="column">
-    <h2 id="h-path"><span class="n">3</span>From answers to a path</h2>
-    <p class="lead read">Try it. This runs <code>music.js</code>, the same module the app uses, on the real collection. The ring is your start point, the orange dots are the planned points, and the numbered pieces are the path.</p>
+    <h2 id="h-engine"><span class="n">4</span>Recommendation engine</h2>
+    <p class="lead read">All functions are in <code>docs/app/music.js</code> and are pure: the same inputs and random source give the same path.</p>
+
+    <h3>4.1 Start point</h3>
+    <p class="read">Each answer <span class="m"><var>ℓ</var> ∈ {1, …, 5}</span> selects a quantile level <span class="m"><var>q<sub>ℓ</sub></var> ∈ (0.08, 0.25, 0.50, 0.75, 0.92)</span>:</p>
+    <div class="eq" role="math" aria-label="p zero equals Q V of q for the mood answer, and Q A of q for the energy answer"><var>p</var><sub>0</sub> = ( <var>Q<sub>V</sub></var>(<var>q</var><sub>mood</sub>), <var>Q<sub>A</sub></var>(<var>q</var><sub>energy</sub>) )</div>
+    <p class="read">Placing answers by quantile of the catalogue, rather than by a fixed mapping to the annotation scale, keeps every answer inside the region where recordings exist.</p>
+
+    <h3>4.2 Optional nudges</h3>
+    <p class="read">The camera result is a tone <span class="m"><var>τ</var></span> and moves valence only. The voice result <span class="m">(<var>v̂</var>, <var>â</var>)</span> is in standard deviations from everyday speech (7.6) and passes through <span class="m"><var>c</var>(<var>x</var>) = max(−1, min(1, <var>x</var> / 1.5))</span>:</p>
+    <div class="eq" role="math" aria-label="Camera: v zero plus 0.35 sigma V for bright, unchanged for calm, minus 0.35 sigma V for heavy. Voice: v zero plus 0.12 sigma V times c of v hat; a zero plus 0.40 sigma A times c of a hat.">
+      <span class="row">camera: <var>v</var><sub>0</sub> ← <var>v</var><sub>0</sub> + 0.35 <var>σ<sub>V</sub></var> · {+1 bright, 0 calm, −1 heavy}</span>
+      <span class="row">voice: <var>v</var><sub>0</sub> ← <var>v</var><sub>0</sub> + 0.12 <var>σ<sub>V</sub></var> <var>c</var>(<var>v̂</var>), &nbsp; <var>a</var><sub>0</sub> ← <var>a</var><sub>0</sub> + 0.40 <var>σ<sub>A</sub></var> <var>c</var>(<var>â</var>)</span>
+    </div>
+
+    <h3>4.3 Goal</h3>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Direction</th><th scope="col">Goal valence</th><th scope="col">Goal arousal</th></tr></thead>
+      <tbody>
+        <tr><td>calmer</td><td class="m"><var>v</var><sub>0</sub> + 0.4 (max(<var>v</var><sub>0</sub>, <var>Q<sub>V</sub></var>(0.55)) − <var>v</var><sub>0</sub>)</td><td class="m">min(<var>a</var><sub>0</sub>, <var>Q<sub>A</sub></var>(0.25))</td></tr>
+        <tr><td>brighter</td><td class="m">max(<var>v</var><sub>0</sub>, <var>Q<sub>V</sub></var>(0.70))</td><td class="m"><var>a</var><sub>0</sub> + 0.4 (<var>Q<sub>A</sub></var>(0.45) − <var>a</var><sub>0</sub>)</td></tr>
+        <tr><td>steady</td><td class="m"><var>v</var><sub>0</sub></td><td class="m"><var>a</var><sub>0</sub></td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">The default direction is steady when mood ≥ 4, calmer when mood ≤ 2 and energy ≥ 4, and brighter otherwise. The listener can always override it.</p>
+
+    <h3>4.4 Planned points</h3>
+    <div class="eq" role="math" aria-label="p i equals p zero plus i over n minus 1 times p g minus p zero, for i from 0 to n minus 1"><var>p<sub>i</sub></var> = <var>p</var><sub>0</sub> + <span class="frac"><span><var>i</var></span><span><var>n</var> − 1</span></span> (<var>p<sub>g</sub></var> − <var>p</var><sub>0</sub>), &nbsp; <var>i</var> = 0, …, <var>n</var> − 1</div>
+    <p class="read">Paths have <span class="m"><var>n</var></span> = 4, 6 or 9 pieces; "slow down" uses round(1.5 <var>n</var>) and keeps the first piece. The heading <span class="m"><var>h</var></span> is the unit vector from <span class="m"><var>p</var><sub>0</sub></span> to <span class="m"><var>p<sub>g</sub></var></span> in standardised units. Starting near the listener's state and moving gradually follows the iso principle (Heiderscheit and Madson, 2015; Starcke and von Georgi, 2024).</p>
+
     <div class="figure" id="explorer">
+      <h3 style="margin-top: 0">Try it: the engine on the real collection</h3>
       <form class="controls" id="explorer-form" aria-label="Path explorer settings">
         <fieldset><legend>Mood</legend><div class="seg" data-group="mood"></div></fieldset>
         <fieldset><legend>Energy</legend><div class="seg" data-group="energy"></div></fieldset>
@@ -348,24 +464,24 @@ footer p { margin: 0; }
           <input type="checkbox" name="instrument" id="x-ins-orchestra" value="orchestra"><label for="x-ins-orchestra">Orchestra</label>
           <input type="checkbox" name="instrument" id="x-ins-winds" value="winds"><label for="x-ins-winds">Winds</label>
         </div></fieldset>
-        <div><button type="button" class="button quiet" id="x-shuffle">Another path</button></div>
+        <div><button type="button" class="button quiet" id="x-shuffle">Another seed</button></div>
       </form>
       <div class="explorer-grid">
         <div>
           <div id="x-map" aria-live="polite"></div>
           <ul class="legend" aria-hidden="true">
-            <li><i style="border: 3px solid var(--sun-ink)"></i>Start point</li>
-            <li><i style="background: var(--sun)"></i>Planned point</li>
-            <li><i style="background: var(--accent)"></i>Piece in the path</li>
+            <li><i style="border: 3px solid var(--sun-ink)"></i><span class="m"><var>p</var><sub>0</sub></span></li>
+            <li><i style="background: var(--sun)"></i>Planned point <span class="m"><var>p<sub>i</sub></var></span></li>
+            <li><i style="background: var(--accent)"></i>Selected piece</li>
             <li><i style="border: 1.5px solid var(--soft-ink); background: var(--surface)"></i>Other recordings</li>
           </ul>
         </div>
         <div>
-          <h3 style="margin-top: 0">The path</h3>
+          <h3 style="margin-top: 0">Path and explanations</h3>
           <ol class="path-list" id="x-list"></ol>
         </div>
       </div>
-      <dl class="quality" id="x-quality" aria-label="How gradual this path is">
+      <dl class="quality" id="x-quality" aria-label="Quality of this path (section 4.8)">
         <div><dt>Average step</dt><dd id="q-average"></dd></div>
         <div><dt>Largest step</dt><dd id="q-largest"></dd></div>
         <div><dt>Step variation</dt><dd id="q-variation"></dd></div>
@@ -373,34 +489,19 @@ footer p { margin: 0; }
       </dl>
       <p class="status" id="x-status" role="status"></p>
     </div>
-    <div class="read">
-      <h3>Direction and goal</h3>
-      <p>Each direction mainly moves one thing. <strong>Calmer</strong> lowers energy to the catalogue's 25% quantile and lifts mood a little. <strong>Gently brighter</strong> raises mood to at least the 70% quantile and moves energy a little towards the middle. <strong>Stay</strong> keeps the goal at the start. Truly suggests a direction from your answers, and you can always change it.</p>
-      <h3>Planned points</h3>
-      <p>A straight line runs from the start to the goal, with one point per piece. Slowing down keeps the first piece and spreads the same journey over half as many points again, so each step is smaller. Starting near your mood and moving gradually is the iso principle, a sequencing idea from music therapy practice (Heiderscheit and Madson, 2015) that changed listeners' affective state in an experiment (Starcke and von Georgi, 2024). Truly borrows the sequencing only, and makes no health claims.</p>
-      <h3>How gradual is a path?</h3>
-      <p>The four numbers under the explorer come from <code>pathQuality()</code>. Steps are measured on the map in standard deviations of the collection. Step variation is the spread of the step sizes divided by their average: 0 means every step is the same size. Studies of mood playlists judge paths on the same ideas, smoothness and even steps (Donnelly and Gaur, 2022). With 18 recordings the typical step is about half a standard deviation; a larger collection will make paths more even, and the tests keep paths from getting jumpier than they are today.</p>
-    </div>
-  </div>
-</section>
 
-<section id="choice" class="gutter" aria-labelledby="h-choice">
-  <div class="column">
-    <h2 id="h-choice"><span class="n">4</span>Choosing each piece</h2>
-    <p class="lead read">At every planned point, each remaining piece gets a cost. Lower is better. All distances are in standard deviations of the catalogue.</p>
-<div class="formula" role="img" aria-label="Cost equals closeness to the planned point, plus 0.35 times the step from the previous piece, plus the squared backward part of that step, plus 0.3 times the squared tempo change over 30 beats per minute, plus 0.6 if no preferred instrument, minus 0.25 for a favourite, and at most 0.24 either way from how often the piece was played to the end or left early."><span class="k-close">closeness</span>  (v - point.v)² + (a - point.a)²
-<span class="k-step">step</span>     + 0.35 × [(v - prev.v)² + (a - prev.a)²]
-<span class="k-back">backward</span> + 1.0  × (part of that step going backwards)²
-<span class="k-tempo">tempo</span>    + 0.3  × ((bpm - prev.bpm) / 30)²
-         + 0.6  if none of your preferred instruments
-         - 0.25 if it is a favourite
-         ± 0.24 at most from listening: played to the end, or left early</div>
-    <div class="read">
-      <p>Three rules come first: no piece twice, no performer twice, and never a piece marked "not for me". Truly then keeps the eight cheapest pieces and picks among those within 0.25 of the best, with weights 1, 1/4, 1/9 and 1/16, so the best match wins most of the time and near-ties sometimes swap. Finally the path is sorted along its direction, so it never steps backwards.</p>
+    <h3>4.5 Cost of a candidate</h3>
+    <p class="read">For candidate <span class="m"><var>s</var></span> at planned point <span class="m"><var>p<sub>i</sub></var></span>, with previous piece <span class="m"><var>r</var></span> and <span class="m">Δ</span> the standardised step from <span class="m"><var>r</var></span> to <span class="m"><var>s</var></span>:</p>
+    <div class="eq" role="math" aria-label="C of s equals d of s and p i squared, plus 0.35 times the squared step, plus 1.0 times the squared negative part of the step projected on h, plus 0.3 times the squared tempo change over 30, plus 0.6 if no preferred instrument, minus 0.25 for a favourite, minus 0.24 lambda s for listening history">
+      <span class="row"><var>C</var>(<var>s</var>) = <var>d</var>(<var>s</var>, <var>p<sub>i</sub></var>)<sup>2</sup> <span class="why">closeness</span></span>
+      <span class="row">&emsp;&emsp;+ 0.35 ‖Δ‖<sup>2</sup> <span class="why">small step</span></span>
+      <span class="row">&emsp;&emsp;+ 1.0 min(0, Δ · <var>h</var>)<sup>2</sup> <span class="why">no backward movement</span></span>
+      <span class="row">&emsp;&emsp;+ 0.3 ((bpm<sub><var>s</var></sub> − bpm<sub><var>r</var></sub>) / 30)<sup>2</sup> <span class="why">gradual tempo</span></span>
+      <span class="row">&emsp;&emsp;+ 0.6 [no preferred instrument] − 0.25 [favourite] − 0.24 <var>λ<sub>s</sub></var> <span class="why">preferences and listening history</span></span>
     </div>
+    <p class="read"><span class="m">[·]</span> is 1 when the condition holds, and <span class="m"><var>λ<sub>s</sub></var> ∈ [−1, 1]</span> is the clipped difference between full plays and early skips, divided by 3 (section 9). Terms involving <span class="m"><var>r</var></span> are zero for the first piece. <code>cost()</code> returns every term separately; the chart below plots them for the path above.</p>
     <figure class="figure">
-      <h3 style="margin-top: 0">Why this piece? The cost of each candidate</h3>
-      <p class="note">Choose a step of the path above. The bars show the cheapest candidates at that step, given the pieces already chosen before it. These numbers come from <code>cost()</code> in <code>music.js</code>.</p>
+      <h3 style="margin-top: 0">Cost terms of the cheapest candidates, per step</h3>
       <div class="steps-picker" id="c-steps" role="group" aria-label="Step of the path"></div>
       <div id="c-chart"></div>
       <ul class="legend" aria-hidden="true">
@@ -410,187 +511,362 @@ footer p { margin: 0; }
         <li><i style="background: var(--soft-ink)"></i>Tempo</li>
         <li><i style="background: var(--muted-bar)"></i>No preferred instrument</li>
       </ul>
+      <figcaption>Candidates exclude pieces and performers already earlier in the path. Negative terms (favourite, listening history) are zero in this demonstration.</figcaption>
     </figure>
-    <div class="read">
-      <h3>Explaining each piece</h3>
-      <p>Each reason is written from the piece's place in the path. The first piece matches the answers. Every later piece is compared with the one before: a change of more than 0.15 standard deviations reads as calmer or livelier, brighter or more reflective. The last piece of a moving path is "where the path settles". When a preference applies, a short note follows, such as "Features piano, as you asked."</p>
+
+    <h3>4.6 Selection</h3>
+<pre class="algo"><code>buildPath(catalogue, points, keep, prefs, rng):
+    path ← keep
+    for each planned point p_i not covered by keep:
+        candidates ← pieces not in path, performer not in path, not ruled out
+        K ← the 8 candidates with the lowest C(s)
+        pool ← members of K with rank &lt; 4 and C ≤ C_min + 0.25
+        choose from pool with weights 1 / (1 + rank)²    # 1, 1/4, 1/9, 1/16
+        append the choice to path
+    return path sorted by (v_s/σ_V, a_s/σ_A) · h          # forward order</code></pre>
+    <p class="read">Sampling among near-ties varies paths between sessions without choosing poor matches. The final sort guarantees monotone progress along the heading, even when a later point selected a piece slightly behind an earlier one. <code>replaceSong</code> repeats the choice for one index, first restricted to candidates whose projection on <span class="m"><var>h</var></span> lies between the neighbours' projections, then without that bound, and sorts again.</p>
+
+    <h3>4.7 Explanations</h3>
+    <p class="read">For piece <span class="m"><var>i</var> &gt; 0</span>, the standardised differences from piece <span class="m"><var>i</var> − 1</span> are compared with ±0.15: arousal gives "calmer" or "livelier", valence "brighter" or "more reflective". The first piece "matches the mood and energy you described"; the last piece of a moving path "is where the path settles". A note is added for a favourite, a matching preferred instrument, or <span class="m"><var>λ<sub>s</sub></var> ≥ 2/3</span>.</p>
+
+    <h3>4.8 Path quality</h3>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Metric</th><th scope="col">Definition, over the standardised steps ‖Δ<sub><var>j</var></sub>‖</th></tr></thead>
+      <tbody>
+        <tr><td>Average step</td><td class="m"><var>δ̄</var> = mean<sub><var>j</var></sub> ‖Δ<sub><var>j</var></sub>‖</td></tr>
+        <tr><td>Largest step</td><td class="m">max<sub><var>j</var></sub> ‖Δ<sub><var>j</var></sub>‖</td></tr>
+        <tr><td>Step variation</td><td class="m">sd<sub><var>j</var></sub> ‖Δ<sub><var>j</var></sub>‖ / <var>δ̄</var> &nbsp;(0 when all steps are equal)</td></tr>
+        <tr><td>Largest tempo change</td><td class="m">max<sub><var>j</var></sub> |bpm<sub><var>j</var>+1</sub> − bpm<sub><var>j</var></sub>|</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">These follow the smoothness and evenness criteria used for mood playlists (Donnelly and Gaur, 2022). Over all 25 answer pairs, 3 directions, 3 lengths and 5 seeds (1,125 paths) with the current catalogue:</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Metric</th><th scope="col" class="num">Median</th><th scope="col" class="num">90th percentile</th><th scope="col" class="num">Maximum</th></tr></thead>
+      <tbody>
+        <tr><td>Average step</td><td class="num">0.48</td><td class="num">0.80</td><td class="num">1.12</td></tr>
+        <tr><td>Largest step</td><td class="num">0.92</td><td class="num">1.84</td><td class="num">2.01</td></tr>
+        <tr><td>Step variation</td><td class="num">0.68</td><td class="num">0.99</td><td class="num">1.24</td></tr>
+        <tr><td>Largest tempo change (bpm)</td><td class="num">21</td><td class="num">40</td><td class="num">44</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">The tests fail if any path exceeds a largest step of 2.2, an average step of 1.2 or a tempo change of 45 bpm.</p>
+  </div>
+</section>
+
+<section id="runtime" class="gutter" aria-labelledby="h-runtime">
+  <div class="column">
+    <h2 id="h-runtime"><span class="n">5</span>On-device inference runtime</h2>
+    <div class="table-wrap"><table class="facts">
+      <tbody>
+        <tr><th scope="row">Runtime</th><td>ONNX Runtime Web 1.30.0, WebAssembly backend with SIMD (<code>ort-wasm-simd-threaded.wasm</code>, 14.2 MB)</td></tr>
+        <tr><th scope="row">Threads</th><td>1 (<code>ort.env.wasm.numThreads = 1</code>)</td></tr>
+        <tr><th scope="row">Loading</th><td>Runtime and models load through dynamic <code>import()</code> only when the camera or voice is first used</td></tr>
+        <tr><th scope="row">Caching</th><td>Service worker, cache first after the first download</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">GitHub Pages cannot send the <code>Cross-Origin-Opener-Policy</code> and <code>Cross-Origin-Embedder-Policy</code> headers needed for <code>SharedArrayBuffer</code>, so multi-threaded WebAssembly is unavailable; one thread is set explicitly to avoid a failed attempt.</p>
+    <p class="read">Inference time, median of five runs after one warm-up, on one thread of a 2.2 GHz Xeon in Node.js 20 with the same runtime:</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Model</th><th scope="col">Input</th><th scope="col" class="num">Size</th><th scope="col" class="num">Time per run</th></tr></thead>
+      <tbody>
+        <tr><td>UltraFace RFB-320</td><td>1 × 3 × 240 × 320</td><td class="num">1.3 MB</td><td class="num">377 ms</td></tr>
+        <tr><td>Truly face model v1</td><td>1 × 3 × 224 × 224</td><td class="num">16.2 MB</td><td class="num">191 ms</td></tr>
+        <tr><td>Truly voice model v1</td><td>1 × 80,000</td><td class="num">2.4 MB</td><td class="num">132 ms</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="face" class="gutter" aria-labelledby="h-face">
+  <div class="column">
+    <h2 id="h-face"><span class="n">6</span>Face pipeline</h2>
+    <h3>6.1 Inference</h3>
+    <ol class="pipe" aria-label="Face inference pipeline">
+      <li class="privacy"><strong>Frame</strong><span>Drawn from the video into a canvas; never stored.</span><span class="dims">640 × 480</span></li>
+      <li><strong>Normalise</strong><span>Resize, then (<var>x</var> − 127) / 128 per channel.</span><span class="dims">1 × 3 × 240 × 320</span></li>
+      <li class="model"><strong>UltraFace RFB-320</strong><span>Face probabilities and decoded boxes for 4,420 anchors. Best box above 0.7; no NMS needed.</span></li>
+      <li><strong>Crop</strong><span>Square of side 1.5 max(<var>w</var>, <var>h</var>) at the box centre; ImageNet mean and std.</span><span class="dims">1 × 3 × 224 × 224</span></li>
+      <li class="model"><strong>EfficientNet-B0</strong><span>Classifier replaced by 1280 → 40; EmoNet-Face categories in alphabetical order.</span><span class="dims">1 × 40</span></li>
+      <li><strong>Readout</strong><span>Seven class scores (6.2).</span><span class="dims">7</span></li>
+      <li><strong>Aggregate</strong><span>Up to 30 attempts 0.4 s apart, at most 10 frames, at least 3; mean, offsets, argmax, tone.</span></li>
+    </ol>
+    <h3 class="sub">6.2 Readout</h3>
+    <p class="read">With model output <span class="m"><var>z</var> ∈ ℝ<sup>40</sup></span> and per-category training statistics <span class="m"><var>μ</var>, <var>σ</var></span> from <code>readout.json</code>, and <span class="m"><var>G<sub>k</sub></var></span> the categories mapped to class <span class="m"><var>k</var></span> in <code>mappings/emonet_categories.json</code>:</p>
+    <div class="eq" role="math" aria-label="r equals z times sigma plus mu. g k is the mean of r over the categories in G k, for every class except neutral. g neutral is minus the largest of the other g k. The class is the argmax of the frame-averaged g plus offsets b.">
+      <span class="row"><var>r</var> = <var>z</var> ⊙ <var>σ</var> + <var>μ</var></span>
+      <span class="row"><var>g<sub>k</sub></var> = <span class="frac"><span>1</span><span>|<var>G<sub>k</sub></var>|</span></span> Σ<sub><var>c</var> ∈ <var>G<sub>k</sub></var></sub> <var>r<sub>c</sub></var> &nbsp; (<var>k</var> ≠ neutral), &emsp; <var>g</var><sub>neutral</sub> = −max<sub><var>k</var> ≠ neutral</sub> <var>g<sub>k</sub></var></span>
+      <span class="row"><var>k̂</var> = argmax<sub><var>k</var></sub> (<var>ḡ<sub>k</sub></var> + <var>b<sub>k</sub></var>)</span>
     </div>
+    <p class="read">Happy and surprise map to the tone <em>bright</em>; angry, disgust, fear and sad to <em>heavy</em>; neutral to <em>calm</em>.</p>
+    <h3>6.3 Training by distillation</h3>
+    <div class="table-wrap"><table class="facts tight">
+      <tbody>
+        <tr><th scope="row">Teacher</th><td>Empathic-Insight-Face-Large: 40 MLP heads (1152 → 1024 → 512 → 256 → 1, ReLU, dropout 0.2) on SigLIP 2 so400m patch16-384 embeddings (1152-d); about 470 M parameters in total</td></tr>
+        <tr><th scope="row">Student</th><td>EfficientNet-B0 with a 40-output head, 4.06 M parameters</td></tr>
+        <tr><th scope="row">Data</th><td>79,999 face images: 40,000 FairFace, 20,000 EmoNet-Face Big, 19,999 EmoNet-Face Binary; 76,000 train, 3,999 validation</td></tr>
+        <tr><th scope="row">Targets</th><td>Teacher scores for all 40 categories, standardised per category</td></tr>
+        <tr><th scope="row">Loss</th><td>Smooth L1 (β = 1)</td></tr>
+        <tr><th scope="row">Optimiser</th><td>AdamW, weight decay 0.02; one-cycle learning rate, peak 10<sup>−3</sup>, 10% warm-up; batch 128; 8 epochs; mixed precision</td></tr>
+        <tr><th scope="row">Augmentation</th><td>Random square crop of 80 to 100%, horizontal flip (0.5), rotation ±10°, greyscale (0.25), downscale to 48, 64 or 96 px and back (0.25), brightness × U(0.8, 1.2) plus U(−0.2, 0.2) on normalised pixels</td></tr>
+        <tr><th scope="row">Compute</th><td>Two NVIDIA T4 GPUs on Kaggle, 31.8 minutes including evaluation</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">No FER-2013 data was used for training or calibration. The same network trained directly on EmoNet-Face Binary expert labels reached 30.7% on FER-2013 PrivateTest; distillation from the teacher's dense 40-dimensional scores reached 51.0%.</p>
+    <h3>6.4 Calibration</h3>
+    <p class="read">The offsets <span class="m"><var>b</var> ∈ ℝ<sup>7</sup></span> are fitted by coordinate ascent on CREMA-D video frames from actors with even identifiers, maximising macro F1 over the classes present: four rounds over the classes, each searching a 61-point grid on <span class="m">[−3 sd(<var>g</var>), 3 sd(<var>g</var>)]</span>. Surprise does not occur in CREMA-D and keeps <span class="m"><var>b</var> = 0</span>.</p>
+    <h3>6.5 Evaluation</h3>
+    <div class="explorer-grid">
+      <div class="table-wrap"><table class="tight">
+        <thead><tr><th scope="col">Test set</th><th scope="col" class="num">Images</th><th scope="col" class="num">Accuracy</th><th scope="col" class="num">Macro F1</th></tr></thead>
+        <tbody>
+          <tr><td>FER-2013 PrivateTest</td><td class="num">3,589</td><td class="num">51.0%</td><td class="num">0.422</td></tr>
+          <tr><td>FER+ PrivateTest</td><td class="num">3,350</td><td class="num">59.5%</td><td class="num">0.461</td></tr>
+          <tr><td>CREMA-D frames, odd actors</td><td class="num">7,066</td><td class="num">36.2%</td><td class="num">0.376</td></tr>
+        </tbody>
+      </table></div>
+      <figure class="figure" style="margin: 0">
+        <div id="t-face"></div>
+        <figcaption>Accuracy over seven classes; dashed line: chance, 14.3%.</figcaption>
+      </figure>
+    </div>
+    <p class="read">On EmoNet-Face HQ (2,500 images, four expert ratings per category) the mean Spearman correlation with expert intensity is 0.458, and the mean AUROC for categories rated 2 or higher is 0.793. Per-class results are in the <a href="https://github.com/hashtagRR/Truly/blob/main/models/face/MODEL_CARD.md">face model card</a>.</p>
   </div>
 </section>
 
-<section id="player" class="gutter" aria-labelledby="h-player">
+<section id="voice" class="gutter band" aria-labelledby="h-voice" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
   <div class="column">
-    <h2 id="h-player"><span class="n">5</span>The player</h2>
-    <p class="lead read">One <code>&lt;audio&gt;</code> element, built to keep going on poor connections.</p>
-    <ol class="pipe">
-      <li><strong>Music list</strong><span>Fetched with a 10 second timeout and up to three attempts, then a "Try again" button.</span></li>
-      <li><strong>Play</strong><span>If a piece has not started after 15 seconds, Truly says the connection is slow and keeps waiting.</span></li>
-      <li><strong>Read ahead</strong><span>Once a piece can play through, the next one starts downloading.</span></li>
-      <li><strong>Dropped connection</strong><span>Retried once from the same position after 2 seconds, then the path moves on.</span></li>
-      <li><strong>Controls</strong><span>Arrow keys move 10 seconds, Page Up and Down 30. Lock screen and headset buttons work through the Media Session API.</span></li>
-      <li class="privacy"><strong>Offline</strong><span>A service worker keeps the app and any path you choose to keep, so it plays without a connection. Only public files are cached.</span></li>
-    </ol>
-  </div>
-</section>
-
-<section id="camera" class="gutter" aria-labelledby="h-camera">
-  <div class="column">
-    <h2 id="h-camera"><span class="n">6</span>The camera input</h2>
-    <p class="lead read">Optional, off until tried, and only a small nudge to the starting mood. Faces are not a reliable guide to feelings (Barrett et al., 2019), so the result is offered as a playful guess.</p>
-    <ol class="pipe" aria-label="Camera pipeline">
-      <li class="privacy"><strong>Frame</strong><span>Drawn from the video into memory. Never stored or sent.</span><span class="dims">640 × 480</span></li>
-      <li class="model"><strong>Find the face</strong><span>UltraFace RFB-320 checks 4,420 candidate boxes; the most confident above 0.7 wins.</span><span class="dims">1 × 3 × 240 × 320</span></li>
-      <li><strong>Crop</strong><span>A square around the face, 25% larger each side, with ImageNet colour normalisation.</span><span class="dims">1 × 3 × 224 × 224</span></li>
-      <li class="model"><strong>Truly face model</strong><span>EfficientNet-B0 scores 40 emotion categories from the EmoNet-Face taxonomy.</span><span class="dims">1 × 40</span></li>
-      <li><strong>Read out</strong><span>Averaged into seven expression groups; neutral is minus the strongest group; calibration offsets added.</span><span class="dims">7 classes</span></li>
-      <li><strong>Average</strong><span>Up to ten frames 0.4 s apart. Fewer than three usable frames: no result.</span></li>
-      <li><strong>Nudge</strong><span>Bright moves the start up 0.35 standard deviations of valence, heavy down 0.35, calm not at all. Energy is untouched.</span></li>
-    </ol>
-  </div>
-</section>
-
-<section id="voice" class="gutter" aria-labelledby="h-voice">
-  <div class="column">
-    <h2 id="h-voice"><span class="n">7</span>The voice input</h2>
-    <p class="lead read">Optional, off until tried. It listens to the sound of the voice and never the words: nothing is transcribed. It mainly nudges the starting energy, and mood only lightly.</p>
-    <ol class="pipe" aria-label="Voice pipeline">
-      <li class="privacy"><strong>Record</strong><span>Five seconds into memory. Echo cancellation on; noise suppression and automatic gain off.</span></li>
-      <li><strong>Resample</strong><span>To 16 kHz with an OfflineAudioContext.</span><span class="dims">80,000 samples</span></li>
-      <li><strong>Loudness step</strong><span>Sounding parts brought to an RMS of 0.05, peaks kept under 0.99. Too quiet: no result.</span></li>
-      <li class="model"><strong>Truly voice model</strong><span>Spectrogram and CNN, all inside one ONNX file.</span><span class="dims">1 × 80000 → 1 × 2</span></li>
-      <li><strong>Read out</strong><span>Shifted so 0 means "about as lively as everyday speech", then capped.</span></li>
-      <li><strong>Nudge</strong><span>Energy moves at most 0.4 standard deviations, mood at most 0.12.</span></li>
-      <li class="privacy"><strong>Forget</strong><span>The sound buffers are overwritten with zeros.</span></li>
-    </ol>
-
-    <h3>Why a loudness step?</h3>
-    <p class="read">A voice close to a phone and a voice across the room differ far more in loudness than in expression. Training clips and microphone audio both go through the same step, so the model judges how lively the sound is, not how close the microphone was.</p>
-
-    <h3>Inside the model</h3>
-    <ol class="pipe" aria-label="Voice model layers">
-      <li><strong>DFT as a convolution</strong><span>402 fixed filters: cosine and sine waves for 201 frequencies, times a Hann window. 400-sample window, 160-sample hop.</span><span class="dims">201 × 498</span></li>
-      <li><strong>Mel bands</strong><span>64 bands from 50 Hz to 8 kHz, spaced like pitch hearing.</span><span class="dims">64 × 498</span></li>
-      <li><strong>Log and standardise</strong><span>Per clip, so any remaining level difference disappears.</span></li>
-      <li class="model"><strong>Four conv blocks</strong><span>Two 3 × 3 convolutions with batch norm and ReLU, then 2 × 2 max pooling, in each block.</span><span class="dims">24 → 48 → 96 → 128</span></li>
-      <li class="model"><strong>Average and output</strong><span>Global average pool over time and pitch, then one linear layer.</span><span class="dims">128 → 2</span></li>
-    </ol>
-    <p class="read" style="margin-top: 16px">The spectrogram filters are fixed buffers, not trained weights. Writing the Fourier transform as a convolution keeps the whole model in standard ONNX operators, so the browser only passes raw samples in.</p>
+    <h2 id="h-voice"><span class="n">7</span>Voice pipeline</h2>
+    <h3>7.1 Capture</h3>
+    <p class="read"><code>getUserMedia</code> is called with <code>echoCancellation: true</code>, <code>noiseSuppression: false</code> and <code>autoGainControl: false</code>, so the signal keeps its natural dynamics. A <code>ScriptProcessorNode</code> with 4,096-frame buffers collects <span class="m">5 <var>f<sub>s</sub></var></span> samples at the device rate, and the stream stops immediately afterwards. An <code>OfflineAudioContext</code> resamples to 16 kHz and the first 80,000 samples are kept.</p>
+    <h3>7.2 Loudness normalisation</h3>
+    <p class="read">Applied identically in training (<code>voice_teacher.py</code>) and in the browser (<code>voice.js</code>). For a signal <span class="m"><var>x</var></span> split into 400-sample frames with RMS values <span class="m"><var>e<sub>t</sub></var></span>:</p>
+    <div class="eq" role="math" aria-label="L is the set of frames with RMS above the larger of 1e-4 and 0.1 times the loudest frame. gamma is 0.05 over the root mean square of those frames, capped at 0.99 over the peak.">
+      <span class="row"><var>L</var> = { <var>t</var> : <var>e<sub>t</sub></var> &gt; max(10<sup>−4</sup>, 0.1 max<sub><var>t</var></sub> <var>e<sub>t</sub></var>) }</span>
+      <span class="row"><var>γ</var> = 0.05 / √(mean<sub><var>t</var> ∈ <var>L</var></sub> <var>e<sub>t</sub></var><sup>2</sup>), &emsp; <var>γ</var> ← min(<var>γ</var>, 0.99 / max|<var>x</var>|)</span>
+    </div>
+    <p class="read">The output is <span class="m"><var>γx</var></span>, zero-padded or cut to 80,000 samples. If the loudest frame is below 0.002 the clip is rejected as silence. Normalising over the sounding frames only makes the level independent of pauses, and removes distance to the microphone as a source of variation.</p>
+    <h3>7.3 Model</h3>
+    <p class="read">The spectrogram is computed inside the network, so the ONNX graph takes raw samples.</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Stage</th><th scope="col">Operation</th><th scope="col">Output shape</th><th scope="col" class="num">Parameters</th></tr></thead>
+      <tbody>
+        <tr><td>Input</td><td>5 s at 16 kHz</td><td>1 × 80,000</td><td></td></tr>
+        <tr><td>DFT</td><td><code>Conv1d</code>, 402 fixed filters of length 400, stride 160</td><td>1 × 402 × 498</td><td class="num">fixed</td></tr>
+        <tr><td>Power</td><td>re² + im²</td><td>1 × 201 × 498</td><td></td></tr>
+        <tr><td>Mel</td><td>Fixed 64 × 201 Slaney filter bank, 50 Hz to 8 kHz</td><td>1 × 64 × 498</td><td class="num">fixed</td></tr>
+        <tr><td>Log, standardise</td><td>log(<var>x</var> + 10<sup>−6</sup>), zero mean and unit variance per clip</td><td>1 × 1 × 64 × 498</td><td></td></tr>
+        <tr><td>Block 1</td><td>2 × (3 × 3 conv, batch norm, ReLU), 2 × 2 max pool</td><td>1 × 24 × 32 × 249</td><td class="num">5,496</td></tr>
+        <tr><td>Block 2</td><td>same</td><td>1 × 48 × 16 × 124</td><td class="num">31,296</td></tr>
+        <tr><td>Block 3</td><td>same</td><td>1 × 96 × 8 × 62</td><td class="num">124,800</td></tr>
+        <tr><td>Block 4</td><td>same</td><td>1 × 128 × 4 × 31</td><td class="num">258,560</td></tr>
+        <tr><td>Pool</td><td>Global average over frequency and time</td><td>1 × 128</td><td></td></tr>
+        <tr><td>Head</td><td>Dropout 0.2, linear</td><td>1 × 2</td><td class="num">258</td></tr>
+        <tr><th scope="row">Total</th><td></td><td></td><td class="num"><strong>420,410</strong></td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">The DFT filters, with the periodic Hann window <span class="m"><var>w</var>[<var>n</var>] = 0.5 − 0.5 cos(2π<var>n</var> / 400)</span>, are:</p>
+    <div class="eq" role="math" aria-label="W k of n equals w of n times cosine of 2 pi k n over 400; W 201 plus k of n equals minus w of n times sine of 2 pi k n over 400, for k from 0 to 200">
+      <var>W<sub>k</sub></var>[<var>n</var>] = <var>w</var>[<var>n</var>] cos(2π<var>kn</var> / 400), &emsp; <var>W</var><sub>201+<var>k</var></sub>[<var>n</var>] = −<var>w</var>[<var>n</var>] sin(2π<var>kn</var> / 400), &emsp; <var>k</var> = 0, …, 200
+    </div>
+    <p class="read">Writing the short-time Fourier transform as a strided convolution uses only standard ONNX operators (<code>Conv</code>, <code>Mul</code>, <code>Add</code>, <code>MatMul</code>, <code>Log</code>), which every ONNX Runtime backend supports. Per-clip standardisation of the log-mel image removes any level offset left after 7.2.</p>
 
     <figure class="figure" id="spectro">
-      <h3 style="margin-top: 0">See what the voice model sees</h3>
-      <p class="note">This runs the same steps in the page on five seconds of a recording from the collection: resampling to 16 kHz, the loudness step from <code>voice.js</code>, and the log-mel front end. It uses no microphone, and downloads the chosen recording only when you press the button.</p>
+      <h3 style="margin-top: 0">The front end, run in this page</h3>
+      <p class="note">A JavaScript copy of 7.2 and of the DFT, mel and log stages, applied to five seconds of a recording from the collection. It matches the model's own filter bank to 2 × 10<sup>−9</sup> and its log-mel output to 2 × 10<sup>−5</sup>. No microphone is used; the recording is downloaded only when you press the button.</p>
       <div class="demo-row">
         <label>Recording<select id="s-track"></select></label>
-        <button type="button" class="button primary" id="s-run">Show the spectrogram</button>
+        <button type="button" class="button primary" id="s-run">Compute the log-mel input</button>
       </div>
       <div id="s-out" hidden>
-        <div class="canvas-label"><span>Before the loudness step</span><span id="s-rms-in"></span></div>
-        <canvas class="wave" id="s-wave-in" width="800" height="70" role="img" aria-label="Waveform before the loudness step"></canvas>
-        <div class="canvas-label"><span>After the loudness step</span><span id="s-rms-out"></span></div>
-        <canvas class="wave" id="s-wave-out" width="800" height="70" role="img" aria-label="Waveform after the loudness step"></canvas>
-        <div class="canvas-label"><span>Log-mel spectrogram, 64 bands by 498 frames: low pitches at the bottom, time left to right</span></div>
+        <div class="canvas-label"><span>Before 7.2</span><span id="s-rms-in"></span></div>
+        <canvas class="wave" id="s-wave-in" width="800" height="70" role="img" aria-label="Waveform before loudness normalisation"></canvas>
+        <div class="canvas-label"><span>After 7.2</span><span id="s-rms-out"></span></div>
+        <canvas class="wave" id="s-wave-out" width="800" height="70" role="img" aria-label="Waveform after loudness normalisation"></canvas>
+        <div class="canvas-label"><span>Standardised log-mel, 64 × 498: low frequencies at the bottom, time left to right</span></div>
         <canvas class="spec" id="s-spec" width="498" height="64" role="img" aria-label="Log-mel spectrogram of the clip"></canvas>
       </div>
       <p class="status" id="s-status" role="status"></p>
     </figure>
-  </div>
-</section>
 
-<section id="training" class="gutter band" aria-labelledby="h-training" style="background: linear-gradient(160deg, var(--band-top), var(--band-low));">
-  <div class="column">
-    <h2 id="h-training"><span class="n">8</span>How the models were trained</h2>
-    <p class="lead read">Both models are students distilled from larger LAION models. The small model learns to reproduce the big model's outputs on many examples, so the knowledge fits in a size that runs in a browser. Only non-clinical outputs of the teachers were ever computed.</p>
-    <ol class="pipe" aria-label="Distillation">
-      <li><strong>Collect</strong><span>Images or five-second clips from openly licensed datasets.</span></li>
-      <li class="model"><strong>Teacher</strong><span>The large LAION model scores each one, once, on a Kaggle GPU.</span></li>
-      <li class="model"><strong>Student</strong><span>The small model predicts the same scores.</span></li>
-      <li><strong>Learn</strong><span>Smooth L1 loss between student and teacher; AdamW with a one-cycle schedule.</span></li>
-      <li><strong>Test</strong><span>On people the student never saw: CREMA-D actors with odd identifiers.</span></li>
-      <li><strong>Export</strong><span>To ONNX, checked against PyTorch and the browser runtime.</span></li>
-    </ol>
-
-    <div class="explorer-grid" style="margin-top: 24px">
-      <figure class="figure">
-        <h3 style="margin-top: 0">Voice: arousal by heard emotion</h3>
+    <h3>7.4 Teacher</h3>
+    <p class="read">Empathic-Insight-Voice-Small provides one regression head per attribute on BUD-E-Whisper encoder states. The audio is padded to Whisper's 30-second window, giving 1,500 × 768 hidden states; each head flattens them and applies 1,152,000 → 64 → 64 → 32 → 16 → 1 with ReLU. Only the Valence and Arousal heads are downloaded and run; no other attribute is ever computed. With the encoder, the teacher has about 235 M parameters, 560 times the student.</p>
+    <h3>7.5 Training by distillation</h3>
+    <div class="table-wrap"><table class="facts tight">
+      <tbody>
+        <tr><th scope="row">Windows</th><td>5 s at 16 kHz after the loudness step; windows with RMS below 0.01 skipped</td></tr>
+        <tr><th scope="row">Data</th><td>12,932 windows: 3,592 LAION's Got Talent (expressive acted speech), 6,000 Emolia YODAS (natural English speech), 3,340 CREMA-D actors with even identifiers</td></tr>
+        <tr><th scope="row">Split</th><td>12,286 training, 646 validation (random); test: 3,457 CREMA-D windows from actors with odd identifiers</td></tr>
+        <tr><th scope="row">Targets</th><td>Teacher valence and arousal, standardised with the training mean and standard deviation</td></tr>
+        <tr><th scope="row">Loss</th><td>Smooth L1 (β = 1)</td></tr>
+        <tr><th scope="row">Optimiser</th><td>AdamW, weight decay 0.01; one-cycle learning rate, peak 2 × 10<sup>−3</sup>, 15% warm-up; batch 64; 30 epochs; best validation checkpoint</td></tr>
+        <tr><th scope="row">Augmentation</th><td>Circular shift up to ±0.5 s, gain U(0.5, 1.6), Gaussian noise at 15 to 40 dB SNR (probability 0.7), clipping to [−1, 1]</td></tr>
+        <tr><th scope="row">Compute</th><td>One NVIDIA T4 on Kaggle, 19 minutes</td></tr>
+      </tbody>
+    </table></div>
+    <h3>7.6 Readout</h3>
+    <p class="read">The output <span class="m"><var>z</var></span> is in standard deviations of the training targets. The training mix leans towards expressive acted speech, so its mean sits above everyday speech; <code>readout.json</code> re-centres on the teacher's mean <span class="m"><var>m</var></span> over natural YODAS speech, so 0 means "as lively, or as bright, as ordinary speech":</p>
+    <div class="eq" role="math" aria-label="v hat and a hat equal z times sigma plus mu minus m, all over sigma; m is 0.162 and 1.168, mu is 0.328 and 1.247, sigma is 0.684 and 0.591">
+      (<var>v̂</var>, <var>â</var>) = (<var>z</var> ⊙ <var>σ</var> + <var>μ</var> − <var>m</var>) / <var>σ</var>, &emsp; <var>m</var> = (0.162, 1.168), <var>μ</var> = (0.328, 1.247), <var>σ</var> = (0.684, 0.591)
+    </div>
+    <p class="read">The engine then applies the bounded nudge of 4.2. Arousal carries most of the weight because the teacher's valence depends largely on lexical content, which Truly never uses.</p>
+    <h3>7.7 Evaluation</h3>
+    <div class="explorer-grid">
+      <div>
+        <div class="table-wrap"><table class="tight">
+          <thead><tr><th scope="col">Set</th><th scope="col" class="num">Windows</th><th scope="col" class="num">r, arousal</th><th scope="col" class="num">r, valence</th></tr></thead>
+          <tbody>
+            <tr><td>Validation</td><td class="num">646</td><td class="num">0.897</td><td class="num">0.870</td></tr>
+            <tr><td>CREMA-D, odd actors</td><td class="num">3,457</td><td class="num">0.787</td><td class="num">0.139</td></tr>
+          </tbody>
+        </table></div>
+        <p class="read">Pearson correlation with the teacher. CREMA-D actors read the same lexically neutral sentences in every emotion, so the teacher's valence barely varies on it, which explains the low valence correlation there.</p>
+      </div>
+      <figure class="figure" style="margin: 0">
         <div id="t-voice"></div>
         <ul class="legend" aria-hidden="true">
           <li><i style="background: var(--sun)"></i>Teacher</li>
-          <li><i style="background: var(--accent)"></i>Truly student</li>
+          <li><i style="background: var(--accent)"></i>Student</li>
         </ul>
-        <figcaption>Average arousal for CREMA-D clips by the emotion listeners heard in the audio, on test actors the student never saw. Correlation with the teacher: 0.90 on validation, 0.79 on these actors.</figcaption>
-      </figure>
-      <figure class="figure">
-        <h3 style="margin-top: 0">Face: expression accuracy</h3>
-        <div id="t-face"></div>
-        <figcaption>Accuracy over seven expression classes; the dashed line is chance (14.3%). CREMA-D frames come from actors never used for calibration.</figcaption>
+        <figcaption>Mean arousal on the teacher scale for CREMA-D test clips, by the emotion listeners heard in the audio alone.</figcaption>
       </figure>
     </div>
+  </div>
+</section>
 
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th scope="col"></th><th scope="col">Face model</th><th scope="col">Voice model</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Teacher</th><td>Empathic-Insight-Face-Large on SigLIP 2</td><td>Empathic-Insight-Voice-Small, Valence and Arousal, on BUD-E-Whisper</td></tr>
-          <tr><th scope="row">Student</th><td>EfficientNet-B0, 4.1 million parameters, 16.2 MB</td><td>Log-mel CNN, 420,410 parameters, 2.4 MB</td></tr>
-          <tr><th scope="row">Data</th><td>79,999 images: FairFace, EmoNet-Face Big and Binary</td><td>12,932 clips: Got Talent, Emolia YODAS, CREMA-D</td></tr>
-          <tr><th scope="row">Training</th><td>8 epochs, two T4 GPUs, 32 minutes</td><td>30 epochs, one T4 GPU, 19 minutes</td></tr>
-          <tr><th scope="row">Licence</th><td>CC BY 4.0</td><td>CC BY 4.0</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="read">Read the <a href="https://github.com/hashtagRR/Truly/blob/main/models/face/MODEL_CARD.md">face model card</a> and the <a href="https://github.com/hashtagRR/Truly/blob/main/models/voice/MODEL_CARD.md">voice model card</a> for every setting and result. Both models run with ONNX Runtime Web 1.30.0 on one WebAssembly thread, which works on any static host.</p>
+<section id="export" class="gutter" aria-labelledby="h-export">
+  <div class="column">
+    <h2 id="h-export"><span class="n">8</span>Export and verification</h2>
+    <p class="read">Both students are exported with <code>torch.onnx.export</code>, opset 17, a dynamic batch axis, input names <code>image</code> and <code>audio</code>, and output name <code>scores</code>. The exports are checked in three ways:</p>
+    <ol class="read">
+      <li>For the voice model, PyTorch and ONNX Runtime Web outputs on the same input agree to within 10<sup>−4</sup>.</li>
+      <li>The JavaScript front end in 7.3 matches the model's filter bank to 2 × 10<sup>−9</sup> and its log-mel output to 2 × 10<sup>−5</sup>.</li>
+      <li><code>tests/models.test.mjs</code> loads every shipped model with the vendored runtime and checks input names, output shapes and that outputs are finite.</li>
+    </ol>
   </div>
 </section>
 
 <section id="storage" class="gutter" aria-labelledby="h-storage">
   <div class="column">
-    <h2 id="h-storage"><span class="n">9</span>What is stored, and where</h2>
-    <p class="lead read">Saving is off by default. Nothing is ever sent to a server.</p>
-    <div class="panels">
-      <div class="panel">
-        <h3>In memory, for this visit</h3>
-        <ul>
-          <li>Mood and energy answers</li>
-          <li>Camera and voice results</li>
-          <li>Video frames and sound, cleared after use</li>
-          <li>Preferences, when saving is off</li>
-        </ul>
-      </div>
-      <div class="bridge" aria-hidden="true"><svg viewBox="0 0 48 24"><path d="M4 12h38M34 5l8 7-8 7"/></svg>only if you switch saving on</div>
-      <div class="panel sun">
-        <h3>In this browser's <code>localStorage</code></h3>
-        <ul>
-          <li><code>truly.paths.v1</code>: paths played, up to 50</li>
-          <li><code>truly.favourites.v1</code></li>
-          <li><code>truly.not-for-me.v1</code></li>
-          <li><code>truly.preferences.v1</code>: instruments and length</li>
-          <li><code>truly.listening.v1</code>: per piece, how often played to the end or left early</li>
-        </ul>
-      </div>
-    </div>
-    <p class="read" style="margin-top: 16px">Mood answers, images and sound are never stored anywhere. The Privacy page in the app downloads or deletes everything saved, and <code>store.js</code> is the only code that touches storage.</p>
+    <h2 id="h-storage"><span class="n">9</span>Client state and storage</h2>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">State</th><th scope="col">Where</th><th scope="col">Lifetime</th></tr></thead>
+      <tbody>
+        <tr><td>Mood and energy answers, camera tone, voice result</td><td><code>session</code> in <code>app.js</code></td><td>Current check-in only; never written anywhere</td></tr>
+        <tr><td>Video frames, audio samples</td><td>Canvas and typed arrays</td><td>Discarded after inference; audio buffers zero-filled</td></tr>
+        <tr><td>Preferences, "not for me"</td><td>Memory, and <code>localStorage</code> when saving is on</td><td>Visit, or until deleted</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read"><code>localStorage</code> keys, written only by <code>store.js</code> and only while <code>truly.saving.v1</code> is <code>true</code>:</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Key</th><th scope="col">Schema</th></tr></thead>
+      <tbody>
+        <tr><td><code>truly.saving.v1</code></td><td><code>true</code>; absent means off</td></tr>
+        <tr><td><code>truly.paths.v1</code></td><td><code>[{ id, at, direction, pieces: [{ key, title, composer }], played: [key] }]</code>, last 50</td></tr>
+        <tr><td><code>truly.favourites.v1</code></td><td><code>[{ key, title, composer, performer }]</code></td></tr>
+        <tr><td><code>truly.not-for-me.v1</code></td><td><code>[{ key, title, composer, performer }]</code></td></tr>
+        <tr><td><code>truly.preferences.v1</code></td><td><code>{ instruments: [string], length: "short" | "standard" | "long" }</code></td></tr>
+        <tr><td><code>truly.listening.v1</code></td><td><code>{ [key]: { full, early, title } }</code>, counts capped at 20</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">A play counts as <code>full</code> on the audio <code>ended</code> event, and as <code>early</code> when the listener leaves the piece by choice (next, previous, another piece, or swapping the playing piece) within 30 seconds. The listening term is <span class="m"><var>λ<sub>s</sub></var> = clip(full<sub><var>s</var></sub> − early<sub><var>s</var></sub>, −3, 3) / 3</span>. Turning saving off stops writes; the Privacy view exports all keys as JSON or deletes them.</p>
+  </div>
+</section>
+
+<section id="playback" class="gutter" aria-labelledby="h-playback">
+  <div class="column">
+    <h2 id="h-playback"><span class="n">10</span>Playback and offline use</h2>
+    <p class="read">The player is one <code>&lt;audio&gt;</code> element, and recordings are served over HTTP range requests. Its transitions:</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">State</th><th scope="col">Event</th><th scope="col">Next state</th></tr></thead>
+      <tbody>
+        <tr><td>Idle</td><td><code>play(i)</code></td><td>Loading</td></tr>
+        <tr><td>Loading</td><td><code>playing</code></td><td>Playing</td></tr>
+        <tr><td>Loading</td><td>No data for 15 s</td><td>Stalled (message shown, still waiting)</td></tr>
+        <tr><td>Playing</td><td><code>waiting</code></td><td>Loading</td></tr>
+        <tr><td>Playing or Loading</td><td><code>error</code></td><td>Retry: reload once after 2 s at the same position, then the next piece</td></tr>
+        <tr><td>Playing</td><td><code>ended</code></td><td>Next piece, or Idle after the last</td></tr>
+        <tr><td>Retry</td><td>3 failures in a row</td><td>Idle, with a message</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read"><code>tracks.json</code> is fetched with a 10 s timeout and up to three attempts with exponential back-off. On <code>canplaythrough</code>, the next recording is preloaded in a detached <code>Audio</code> element. The Media Session API exposes metadata and the play, pause, next, previous and seek actions.</p>
+    <p class="read"><code>sw.js</code> (scope <code>/Truly/app/</code>) caches only public files:</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Request</th><th scope="col">Strategy</th><th scope="col">Cache</th></tr></thead>
+      <tbody>
+        <tr><td>App files, fonts, <code>tracks.json</code></td><td>Network first; the cached copy after 4 s or on failure</td><td><code>truly-shell-v1</code></td></tr>
+        <tr><td><code>models/</code>, <code>vendor/</code></td><td>Cache first</td><td><code>truly-models-v1</code></td></tr>
+        <tr><td><code>*.mp3</code></td><td>From the cache if the listener kept it, with range responses built from the cached blob; otherwise the network</td><td><code>truly-offline-music</code></td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">While the browser is offline, pieces not in <code>truly-offline-music</code> are excluded from selection, so new paths use only kept recordings.</p>
+  </div>
+</section>
+
+<section id="testing" class="gutter" aria-labelledby="h-testing">
+  <div class="column">
+    <h2 id="h-testing"><span class="n">11</span>Testing</h2>
+    <p class="read"><code>node --test tests/</code> runs in GitHub Actions on every push and pull request.</p>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">File</th><th scope="col">Verifies</th></tr></thead>
+      <tbody>
+        <tr><td><code>music.test.mjs</code></td><td>Path length; no repeated performer; monotone progress along the heading, including after swaps and slowing down; bounded nudges; preferences shift selection and ruled-out pieces never appear; explanations; catalogue loading retries; quality metrics and limits; valid instrument tags</td></tr>
+        <tr><td><code>store.test.mjs</code></td><td>Nothing written while saving is off; upserts, caps and deletion; preferences, "not for me" and listening counts</td></tr>
+        <tr><td><code>face.test.mjs</code></td><td>Readout groups match the category mapping; neutral scoring; frame averaging; tones</td></tr>
+        <tr><td><code>voice.test.mjs</code></td><td>Loudness normalisation level, silence rejection, peak limit and length; centring of the voice readout</td></tr>
+        <tr><td><code>models.test.mjs</code></td><td>Every shipped ONNX model loads in ONNX Runtime Web and has the expected input and output shapes</td></tr>
+      </tbody>
+    </table></div>
+    <p class="read">Browser behaviour (playback failures, offline use, preferences) was checked in headless Chromium with Playwright.</p>
+  </div>
+</section>
+
+<section id="decisions" class="gutter" aria-labelledby="h-decisions">
+  <div class="column">
+    <h2 id="h-decisions"><span class="n">12</span>Design decisions</h2>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">Decision</th><th scope="col">Alternatives considered</th><th scope="col">Reason</th></tr></thead>
+      <tbody>
+        <tr><td>Static site, all logic in the client</td><td>Server API</td><td>No personal data can leave the device if there is nowhere to send it; free hosting</td></tr>
+        <tr><td>Published valence and arousal per recording</td><td>Predicting them from audio</td><td>Inspectable, citable values; no model error in the catalogue</td></tr>
+        <tr><td>Quantile placement of answers</td><td>Linear mapping to the annotation scale</td><td>Every answer lands where recordings exist, whatever the catalogue's spread</td></tr>
+        <tr><td>Straight-line plan, greedy selection, forward sort</td><td>Shortest path or dynamic programming over the catalogue</td><td>With fewer than 20 pieces, greedy choice plus re-ordering gives monotone paths in microseconds and is easy to explain</td></tr>
+        <tr><td>Distilled students</td><td>Training on human labels directly; running the teachers</td><td>Direct training reached 30.7% on FER-2013; the teachers have about 470 M and 235 M parameters and cannot run on phones</td></tr>
+        <tr><td>Dense teacher targets (40 face categories)</td><td>Hard class labels</td><td>More signal per image and a readout that can change without retraining</td></tr>
+        <tr><td>DFT as a fixed convolution</td><td>The ONNX <code>STFT</code> operator; features computed in JavaScript</td><td>Standard operators run on every backend; one file holds the whole pipeline</td></tr>
+        <tr><td>Loudness normalisation in training and inference</td><td>Gain augmentation only</td><td>Removes microphone distance as a variable at its source</td></tr>
+        <tr><td>Energy-first voice nudge</td><td>Equal weights</td><td>The teacher's valence depends on words, which are never used</td></tr>
+        <tr><td>Bounded, additive nudges</td><td>Letting a model choose the start</td><td>The listener's own answers always lead, as the scope requires</td></tr>
+        <tr><td>Single-threaded WebAssembly</td><td>Threads, WebGPU</td><td>GitHub Pages cannot enable cross-origin isolation; WebGPU support on phones is uneven</td></tr>
+        <tr><td>Opt-in, per-path offline audio</td><td>Caching everything</td><td>A path is about 20 MB; the listener decides what uses their storage</td></tr>
+      </tbody>
+    </table></div>
   </div>
 </section>
 
 <section id="code" class="gutter" aria-labelledby="h-code">
   <div class="column">
-    <h2 id="h-code"><span class="n">10</span>Code map</h2>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th scope="col">File</th><th scope="col">What it does</th></tr></thead>
-        <tbody>
-          <tr><td><code>docs/app/app.js</code></td><td>Wires the views together: check-in, camera and voice, path, player, preferences, history</td></tr>
-          <tr><td><code>docs/app/music.js</code></td><td>Pure functions: the map, goals, planned points, costs, swaps, nudges and explanations</td></tr>
-          <tr><td><code>docs/app/store.js</code></td><td>The only code that touches <code>localStorage</code></td></tr>
-          <tr><td><code>docs/app/face.js</code>, <code>readout.js</code></td><td>Camera, face detection, the face model and its readout</td></tr>
-          <tr><td><code>docs/app/voice.js</code></td><td>Microphone, loudness step and the voice model</td></tr>
-          <tr><td><code>docs/app/sw.js</code></td><td>Offline use: the app, models once used, and recordings kept for offline listening</td></tr>
-          <tr><td><code>training/</code></td><td>Kaggle scripts for the teachers and the distillation of both models</td></tr>
-          <tr><td><code>tests/</code></td><td>Tests for paths, storage, readouts and the shipped models</td></tr>
-        </tbody>
-      </table>
+    <h2 id="h-code"><span class="n">13</span>Code map and extension points</h2>
+    <div class="table-wrap"><table class="tight">
+      <thead><tr><th scope="col">File</th><th scope="col">Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/app/app.js</code></td><td>Views, session, player, preferences, history, offline controls</td></tr>
+        <tr><td><code>docs/app/music.js</code></td><td>Recommendation engine (section 4)</td></tr>
+        <tr><td><code>docs/app/store.js</code></td><td>Storage (section 9)</td></tr>
+        <tr><td><code>docs/app/face.js</code>, <code>readout.js</code></td><td>Face pipeline (section 6)</td></tr>
+        <tr><td><code>docs/app/voice.js</code></td><td>Voice pipeline (section 7)</td></tr>
+        <tr><td><code>docs/app/sw.js</code>, <code>manifest.webmanifest</code></td><td>Offline use and installation (section 10)</td></tr>
+        <tr><td><code>training/face_teacher.py</code>, <code>face_distill.py</code></td><td>Face teacher scoring, distillation, calibration and export</td></tr>
+        <tr><td><code>training/voice_teacher.py</code>, <code>voice_distill.py</code></td><td>Voice windows and teacher scoring, distillation and export</td></tr>
+        <tr><td><code>music/recordings.json</code>, <code>prepare_audio.py</code></td><td>Catalogue sources and audio preparation</td></tr>
+        <tr><td><code>tests/</code></td><td>Section 11</td></tr>
+      </tbody>
+    </table></div>
+    <div class="read">
+      <p><strong>Replacing a model.</strong> Any model that keeps the ONNX contract works without code changes: input <code>image</code> <code>[N, 3, 224, 224]</code> with ImageNet normalisation and output <code>scores</code> <code>[N, 40]</code> in EmoNet-Face category order, or input <code>audio</code> <code>[N, 80000]</code> after the loudness step and output <code>scores</code> <code>[N, 2]</code> (valence, arousal). Ship its <code>readout.json</code>, update <code>models.test.mjs</code> if shapes change, and raise <code>VERSION</code> in <code>sw.js</code> if the file name stays the same.</p>
+      <p><strong>Growing the catalogue.</strong> Add entries to <code>music/recordings.json</code> with a freely licensed source and published valence, arousal and tempo, run <code>music/prepare_audio.py</code>, and tag the instruments. Quantile placement and the quality tests adapt automatically, and the limits in 4.8 can then be tightened.</p>
+      <p><strong>Changing the cost.</strong> Every term is in <code>cost()</code>. The path tests and quality limits show whether a change keeps paths gradual and forward.</p>
+      <p>The same document, with diagrams, is in <a href="https://github.com/hashtagRR/Truly/blob/main/references/ARCHITECTURE.md">references/ARCHITECTURE.md</a>. Full references are in <a href="https://github.com/hashtagRR/Truly/blob/main/references/RESEARCH.md">RESEARCH.md</a>, <a href="https://github.com/hashtagRR/Truly/blob/main/references/DATASETS.md">DATASETS.md</a> and <a href="https://github.com/hashtagRR/Truly/blob/main/references/RELATED_WORK.md">RELATED_WORK.md</a>.</p>
     </div>
-    <p class="read">The same blueprint, with diagrams, is in <a href="https://github.com/hashtagRR/Truly/blob/main/references/ARCHITECTURE.md">references/ARCHITECTURE.md</a>.</p>
   </div>
 </section>
 

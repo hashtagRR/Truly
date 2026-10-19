@@ -19,7 +19,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 ## Documents
 
-- [How Truly works](references/ARCHITECTURE.md): a step by step blueprint of the app and its models, with diagrams. A visual version with live examples is at [hashtagrr.github.io/Truly/how-it-works.html](https://hashtagrr.github.io/Truly/how-it-works.html).
+- [Technical design](references/ARCHITECTURE.md): system structure, the recommendation algorithm, the face and voice models and their training, the browser runtime, storage and design decisions. Also on the website at [hashtagrr.github.io/Truly/how-it-works.html](https://hashtagrr.github.io/Truly/how-it-works.html), with live examples.
 - [Scope](references/SCOPE.md): the project's purpose, what it never does, the feature acceptance rule, privacy and milestones.
 - [Contributing](CONTRIBUTING.md): how to propose changes and the scope check every pull request answers.
 - [Roadmap](ROADMAP.md): planned work for the next releases.
@@ -32,7 +32,7 @@ Full references are in [references/RESEARCH.md](references/RESEARCH.md).
 
 | Path | Contents |
 |---|---|
-| `docs/` | Project website, published with GitHub Pages, including the visual blueprint `how-it-works.html` |
+| `docs/` | Project website, published with GitHub Pages, including the technical design page `how-it-works.html` |
 | `docs/app/` | The web app: plain HTML, CSS and JavaScript modules, no build step |
 | `references/` | Scope, research basis, data and models, related work |
 | `mappings/` | EmoNet-Face categories mapped to FER classes and to valence/arousal |
