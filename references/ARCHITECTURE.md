@@ -152,7 +152,7 @@ All functions below are in `docs/app/music.js` and are pure: the same inputs and
 Each answer $\ell \in \{1, \dots, 5\}$ selects a quantile level $q_\ell \in (0.08, 0.25, 0.50, 0.75, 0.92)$:
 
 $$
-p_0 = \big(Q_V(q_{\ell_\text{mood}}),\; Q_A(q_{\ell_\text{energy}})\big)
+p_0 = (Q_V(q_{\ell_\text{mood}}),\; Q_A(q_{\ell_\text{energy}}))
 $$
 
 Placing answers by quantile of the catalogue, rather than by a fixed mapping to the annotation scale, keeps every answer inside the region where recordings exist.
@@ -185,7 +185,7 @@ The default direction is `steady` when mood $\ge 4$, `calmer` when mood $\le 2$ 
 
 ### 4.4 Planned points
 
-For a path of $n$ pieces (4, 6 or 9; "slow down" uses $\operatorname{round}(1.5\,n)$ and keeps the first piece):
+For a path of $n$ pieces (4, 6 or 9; "slow down" uses $\mathrm{round}(1.5\,n)$ and keeps the first piece):
 
 $$
 p_i = p_0 + \frac{i}{n - 1}\,(p_g - p_0), \qquad i = 0, \dots, n - 1
@@ -239,9 +239,9 @@ For piece $i > 0$, the standardised differences from piece $i - 1$ are compared 
 
 | Metric | Definition |
 |---|---|
-| Average step | $\bar\delta = \operatorname{mean}_j \lVert \Delta_j \rVert$ |
+| Average step | $\bar\delta = \mathrm{mean}_j \lVert \Delta_j \rVert$ |
 | Largest step | $\max_j \lVert \Delta_j \rVert$ |
-| Step variation | $\operatorname{sd}_j \lVert \Delta_j \rVert \,/\, \bar\delta$; 0 when all steps are equal |
+| Step variation | $\mathrm{sd}_j \lVert \Delta_j \rVert \,/\, \bar\delta$; 0 when all steps are equal |
 | Largest tempo change | $\max_j \lvert \text{bpm}_{j+1} - \text{bpm}_j \rvert$ |
 
 These follow the smoothness and evenness criteria used for mood playlists (Donnelly and Gaur, 2022). Measured over all 25 answer pairs, 3 directions, 3 lengths and 5 random seeds (1,125 paths) with the current catalogue:
@@ -324,7 +324,7 @@ No FER-2013 data was used for training or calibration. The same network trained 
 
 ### 6.4 Calibration
 
-The offsets $b \in \mathbb{R}^7$ are fitted by coordinate ascent on CREMA-D video frames from actors with even identifiers, maximising macro F1 over the classes present: four rounds over the classes, each searching a 61-point grid on $[-3\,\operatorname{sd}(g), 3\,\operatorname{sd}(g)]$. Surprise does not occur in CREMA-D and keeps $b = 0$.
+The offsets $b \in \mathbb{R}^7$ are fitted by coordinate ascent on CREMA-D video frames from actors with even identifiers, maximising macro F1 over the classes present: four rounds over the classes, each searching a 61-point grid on $[-3\,\mathrm{sd}(g), 3\,\mathrm{sd}(g)]$. Surprise does not occur in CREMA-D and keeps $b = 0$.
 
 ### 6.5 Evaluation
 
@@ -348,7 +348,7 @@ Applied identically in training (`voice_teacher.py`) and in the browser (`voice.
 
 $$
 L = \{\, t : e_t > \max(10^{-4},\, 0.1 \max_t e_t) \,\}, \qquad
-\gamma = \frac{0.05}{\sqrt{\operatorname{mean}_{t \in L}\, e_t^2}}, \qquad
+\gamma = \frac{0.05}{\sqrt{\mathrm{mean}_{t \in L}\, e_t^2}}, \qquad
 \gamma \leftarrow \min\!\left(\gamma,\, \frac{0.99}{\max \lvert x \rvert}\right)
 $$
 
@@ -452,7 +452,7 @@ Both students are exported with `torch.onnx.export`, opset 17, a dynamic batch a
 | `truly.preferences.v1` | `{ instruments: [string], length: "short" \| "standard" \| "long" }` |
 | `truly.listening.v1` | `{ [key]: { full, early, title } }`, counts capped at 20 |
 
-A play counts as `full` on the audio `ended` event, and as `early` when the listener leaves the piece by choice (next, previous, another piece, or swapping the playing piece) within 30 seconds. The listening term is $\lambda_s = \operatorname{clip}(\text{full}_s - \text{early}_s, -3, 3) / 3$. Turning saving off stops writes; the Privacy view exports all keys as JSON or deletes them.
+A play counts as `full` on the audio `ended` event, and as `early` when the listener leaves the piece by choice (next, previous, another piece, or swapping the playing piece) within 30 seconds. The listening term is $\lambda_s = \mathrm{clip}(\text{full}_s - \text{early}_s, -3, 3) / 3$. Turning saving off stops writes; the Privacy view exports all keys as JSON or deletes them.
 
 ## 10. Playback and offline use
 
